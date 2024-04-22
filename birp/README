@@ -1,0 +1,8 @@
+
+
+* Put any C/C++/Fortran code in 'src'.
+* If you have compiled code, add a useDynLib() directive to 'NAMESPACE'.
+* Run compile.sh to compile the package to a tarball
+
+
+Read "Writing R Extensions" for more information.
