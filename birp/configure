@@ -1,0 +1,31 @@
+#!/bin/bash
+
+: ${R_HOME=`R RHOME`}
+if test -z "${R_HOME}"; then
+  echo "could not determine R_HOME"
+  exit 1
+fi
+
+
+CC=`"${R_HOME}/bin/R" CMD config CC`
+CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
+LDFLAGS=`"${R_HOME}/bin/R" CMD config LDFLAGS`
+
+echo $CC
+echo $CFLAGS
+echo $CPPFLAGS
+echo $LDFLAGS
+
+# clone coretools and make
+cd src
+git clone git@bitbucket.org:wegmannlab/coretools.git
+cd coretools
+mkdir build
+cd build
+cmake ..
+make
+cd ../..
+
+#${MAKE}
+

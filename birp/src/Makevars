@@ -1,0 +1,2 @@
+
+PKG_CPPFLAGS=-Icoretools/core/ -Icoretools/fast_float/include/ -Icoretools/fmt/include/ -Icoretools/json/include/ -Icoretools/armadillo/include/
