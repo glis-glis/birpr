@@ -2,6 +2,9 @@
 
 cd birp/src/
 rm -rf coretools/
+rm -rf stattools/
+rm -rf genometools/
+rm -rf birp_cpp/
 rm *.o
 cd ../..
 

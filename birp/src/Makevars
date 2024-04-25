@@ -1,2 +1,17 @@
 
-PKG_CPPFLAGS=-Icoretools/core/ -Icoretools/fast_float/include/ -Icoretools/fmt/include/ -Icoretools/json/include/ -Icoretools/armadillo/include/
+
+repoName=birp_cpp
+
+PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
+	       -I${repoName}/coretools/fast_float/include/ \
+               -I${repoName}/coretools/fmt/include/ \
+	       -I${repoName}/coretools/json/include/ \
+               -I${repoName}/coretools/armadillo/include/ \
+               -I${repoName}/genometools/core/ \
+               -I${repoName}/stattools/core/
+
+PKG_LIBS    =  ${repoName}/build/_deps/coretools-build/libcoretools.a \
+               ${repoName}/build/_deps/stattools-build/libstattools.a \
+               ${repoName}/build/_deps/genometools-build/libgenometools.a \
+               ${repoName}/build/libcoreLib.a \
+               ${repoName}/build/_deps/fmt-build/libfmt.a
