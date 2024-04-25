@@ -17,15 +17,16 @@ echo $CFLAGS
 echo $CPPFLAGS
 echo $LDFLAGS
 
-# clone coretools and make
+# clone coretools
 cd src
-git clone git@bitbucket.org:wegmannlab/coretools.git
+if [ ! -d coretools ]; then
+	git clone git@bitbucket.org:wegmannlab/coretools.git
+fi
+
 cd coretools
-mkdir build
+mkdir -p build
 cd build
 cmake ..
-make
+${MAKE}
+
 cd ../..
-
-#${MAKE}
-
