@@ -19,12 +19,10 @@ echo $LDFLAGS
 
 # clone coretools
 cd src
-if [ ! -d coretools ]; then
-	git clone git@bitbucket.org:wegmannlab/coretools.git
-fi
-
+rm -rf coretools
+git clone git@bitbucket.org:wegmannlab/coretools.git
 cd coretools
-mkdir -p build
+mkdir build
 cd build
 cmake ..
 ${MAKE}
