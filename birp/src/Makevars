@@ -11,7 +11,7 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
                -I${repoName}/stattools/core/ \
 	       -I${repoName}/core/
 
-PKG_LIBS    +=  ${repoName}/build/libcoreLib.a \
+PKG_LIBS    =  ${repoName}/build/libcoreLib.a \
 ${repoName}/build/_deps/stattools-build/libstattools.a \
 ${repoName}/build/_deps/genometools-build/libgenometools.a \
 ${repoName}/build/_deps/coretools-build/libcoretools.a \
