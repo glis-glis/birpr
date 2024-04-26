@@ -38,6 +38,6 @@ cd src
 rm -rf $repoName
 git clone git@bitbucket.org:wegmannlab/${repoName}.git
 cd $repoName && mkdir build && cd build
-${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON ..
-${MAKE} -j4
+${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON ..
+${MAKE} -j4 coreLib
 cd ../../

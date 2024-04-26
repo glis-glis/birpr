@@ -8,10 +8,13 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 	       -I${repoName}/coretools/json/include/ \
                -I${repoName}/coretools/armadillo/include/ \
                -I${repoName}/genometools/core/ \
-               -I${repoName}/stattools/core/
+               -I${repoName}/stattools/core/ \
+	       -I${repoName}/core/
 
-PKG_LIBS    =  ${repoName}/build/_deps/coretools-build/libcoretools.a \
-               ${repoName}/build/_deps/stattools-build/libstattools.a \
-               ${repoName}/build/_deps/genometools-build/libgenometools.a \
-               ${repoName}/build/libcoreLib.a \
-               ${repoName}/build/_deps/fmt-build/libfmt.a
+PKG_LIBS    +=  ${repoName}/build/libcoreLib.a \
+${repoName}/build/_deps/stattools-build/libstattools.a \
+${repoName}/build/_deps/genometools-build/libgenometools.a \
+${repoName}/build/_deps/coretools-build/libcoretools.a \
+${repoName}/build/_deps/fmt-build/libfmt.a \
+${repoName}/build/_deps/armadillo-build/libarmadillo.a \
+$(LAPACK_LIBS) $(BLAS_LIBS)
