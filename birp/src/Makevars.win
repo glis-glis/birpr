@@ -1,0 +1,20 @@
+
+
+repoName=birp_cpp
+
+PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
+	       -I${repoName}/coretools/fast_float/include/ \
+               -I${repoName}/coretools/fmt/include/ \
+	       -I${repoName}/coretools/json/include/ \
+               -I${repoName}/coretools/armadillo/include/ \
+               -I${repoName}/genometools/core/ \
+               -I${repoName}/stattools/core/ \
+	       -I${repoName}/core/
+
+PKG_LIBS    =  ${repoName}/build/libcoreLib.dll \
+${repoName}/build/_deps/stattools-build/libstattools.dll \
+${repoName}/build/_deps/genometools-build/libgenometools.dll \
+${repoName}/build/_deps/coretools-build/libcoretools.dll \
+${repoName}/build/_deps/fmt-build/libfmt.dll \
+${repoName}/build/_deps/armadillo-build/libarmadillo.dll \
+$(LAPACK_LIBS) $(BLAS_LIBS)
