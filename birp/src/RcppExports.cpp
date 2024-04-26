@@ -10,6 +10,17 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// birp_interface
+List birp_interface(List input);
+RcppExport SEXP _birp_birp_interface(SEXP inputSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input(inputSEXP);
+    rcpp_result_gen = Rcpp::wrap(birp_interface(input));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_hello_world
 List rcpp_hello_world();
 RcppExport SEXP _birp_rcpp_hello_world() {
@@ -22,6 +33,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_birp_birp_interface", (DL_FUNC) &_birp_birp_interface, 1},
     {"_birp_rcpp_hello_world", (DL_FUNC) &_birp_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };
