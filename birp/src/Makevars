@@ -1,5 +1,4 @@
 
-
 repoName=birp_cpp
 
 PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
@@ -9,8 +8,7 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
                -I${repoName}/coretools/armadillo/include/ \
                -I${repoName}/genometools/core/ \
                -I${repoName}/stattools/core/ \
-	       -I${repoName}/core/ 
-
+	       -I${repoName}/core/
 
 PKG_LIBS    +=  ${repoName}/build/libcoreLib.a \
 ${repoName}/build/_deps/stattools-build/libstattools.a \
