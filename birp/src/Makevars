@@ -17,4 +17,5 @@ ${repoName}/build/_deps/genometools-build/libgenometools.a \
 ${repoName}/build/_deps/coretools-build/libcoretools.a \
 ${repoName}/build/_deps/fmt-build/libfmt.a \
 ${repoName}/build/_deps/armadillo-build/libarmadillo.a \
-$(ARPACK_LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
+-larpack \
+$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
