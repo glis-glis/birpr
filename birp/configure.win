@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Inspired from: https://cloud.r-project.org/doc/manuals/r-devel/R-exts.html#Using-cmake-1
+
+# Define project
+repoName=birp_cpp
+
+# Find C++
+CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
+echo $CXX17
+if test -z "$CXX17"; then
+  echo "No C++17 compiler is available"
+fi
+CXX17STD=`"${R_HOME}/bin/R" CMD config CXX17STD`
+CXX="${CXX17} ${CXX17STD}"
+CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX17FLAGS`
+
+# Find R
+: ${R_HOME=`R RHOME`}
+if test -z "${R_HOME}"; then
+  echo "could not determine R_HOME"
+  exit 1
+fi
+
+# Set compilation path
+CC=`"${R_HOME}/bin/R" CMD config CC`
+CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
+LDFLAGS=`"${R_HOME}/bin/R" CMD config LDFLAGS`
+
+# Find CMake (for Mac)
+if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
+if test -z "$CMAKE"; then CMAKE=/Applications/CMake.app/Contents/bin/cmake; fi
+if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
+
+# Clone repository
+cd src
+rm -rf $repoName
+git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
+
+# Run CMake
+cd $repoName && mkdir build && cd build
+${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON ..
+
+# Make
+make -j4 coreLib
+cd ../../
