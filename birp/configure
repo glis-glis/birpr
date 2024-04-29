@@ -46,7 +46,7 @@ ${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITIO
 arma_libs=$(cat cmake_log.txt | grep ARMA_LIBS | cut -d "=" -f2 | tr -d ' ' | sed 's/;/ /g')
 
 # Write Makevars
-cat ../../Makevars.in | sed "s/XXXARMALIBSXXX/$arma_libs/g" > ../../Makevars
+cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars
 
 # Make
 make -j4 coreLib
