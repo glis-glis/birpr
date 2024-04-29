@@ -33,11 +33,19 @@ if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
 if test -z "$CMAKE"; then CMAKE=/Applications/CMake.app/Contents/bin/cmake; fi
 if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
 
-# Clone repository, run CMake and then make
+# Clone repository
 cd src
 rm -rf $repoName
 git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
+
+# Run CMake
 cd $repoName && mkdir build && cd build
 ${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON ..
+
+# Extract armadillo libs and write them to Makevars file (needed for detecting arpack)
+libs_arma=$(cat ./_deps/armadillo-build/CMakeFiles/armadillo.dir/link.txt | awk '{for (i=1; i<NF; ++i){if($i ~ /^-l/){s = s" "$i}}}END{print s}')
+cat ../src/Makevars.in | sed "s/XXXLIBSARMAXXX/${libs_arma}/g" > ../src/Makevars
+
+# Make
 ${MAKE} -j4 coreLib
 cd ../../
