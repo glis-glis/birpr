@@ -11,10 +11,13 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 	       -I${repoName}/core/ \
                $(SHLIB_OPENMP_CXXFLAGS)
 
+echo $ARPACK_LIBS
+echo $LAPACK_LIBS
+
 PKG_LIBS    +=  ${repoName}/build/libcoreLib.a \
 ${repoName}/build/_deps/stattools-build/libstattools.a \
 ${repoName}/build/_deps/genometools-build/libgenometools.a \
 ${repoName}/build/_deps/coretools-build/libcoretools.a \
 ${repoName}/build/_deps/fmt-build/libfmt.a \
 ${repoName}/build/_deps/armadillo-build/libarmadillo.a \
-/usr/lib/x86_64-linux-gnu/libarpack.so $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
+$(ARPACK_LIBS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
