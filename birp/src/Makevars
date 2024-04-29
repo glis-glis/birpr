@@ -11,11 +11,10 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 	       -I${repoName}/core/ \
                $(SHLIB_OPENMP_CXXFLAGS)
 
-PKG_LIBS    +=  ${repoName}/build/libcoreLib.a \
-${repoName}/build/_deps/stattools-build/libstattools.a \
-${repoName}/build/_deps/genometools-build/libgenometools.a \
-${repoName}/build/_deps/coretools-build/libcoretools.a \
-${repoName}/build/_deps/fmt-build/libfmt.a \
-${repoName}/build/_deps/armadillo-build/libarmadillo.a \
+PKG_LIBS    =  -L${repoName}/build -lcoreLib \
+-L${repoName}/build/_deps/stattools-build -lstattools \
+-L${repoName}/build/_deps/genometools-build -lgenometools \
+-L${repoName}/build/_deps/coretools-build -lcoretools \
+-L${repoName}/build/_deps/fmt-build -lfmt \
+-L${repoName}/build/_deps/armadillo-build -larmadillo \
 $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
-XXXLIBSARMAXXX

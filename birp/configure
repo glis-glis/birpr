@@ -42,10 +42,6 @@ git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
 cd $repoName && mkdir build && cd build
 ${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON ..
 
-# Extract armadillo libs and write them to Makevars file (needed for detecting arpack)
-libs_arma=$(cat ./_deps/armadillo-build/CMakeFiles/armadillo.dir/link.txt | awk '{for (i=1; i<NF; ++i){if($i ~ /^-l/){s = s" "$i}}}END{print s}')
-cat ../src/Makevars.in | sed "s/XXXLIBSARMAXXX/${libs_arma}/g" > ../src/Makevars
-
 # Make
-${MAKE} -j4 coreLib
+make -j4 coreLib
 cd ../../
