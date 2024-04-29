@@ -47,7 +47,7 @@ cat cmake_log.txt
 arma_libs=$(cat cmake_log.txt | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
 
 # Append extra libraries needed for Windows
-arma_libs=$(echo $arma_libs -lz -lgfortran)
+arma_libs=$(echo $arma_libs -lz -lgfortran -lquadmath)
 
 # Write Makevars.win
 cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars.win

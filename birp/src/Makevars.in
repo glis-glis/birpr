@@ -9,6 +9,7 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
                -I${repoName}/genometools/core/ \
                -I${repoName}/stattools/core/ \
 	       -I${repoName}/core/ \
+               $(SHLIB_OPENMP_CXXFLAGS)
 
 PKG_LIBS    =  -L${repoName}/build -lcoreLib \
 -L${repoName}/build/_deps/stattools-build -lstattools \
@@ -16,5 +17,5 @@ PKG_LIBS    =  -L${repoName}/build -lcoreLib \
 -L${repoName}/build/_deps/coretools-build -lcoretools \
 -L${repoName}/build/_deps/fmt-build -lfmt \
 -L${repoName}/build/_deps/armadillo-build -larmadillo \
-$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) \
+$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
 XXXARMALIBSXXX
