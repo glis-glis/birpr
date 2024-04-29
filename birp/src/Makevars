@@ -11,9 +11,6 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 	       -I${repoName}/core/ \
                $(SHLIB_OPENMP_CXXFLAGS)
 
-echo $ARPACK_LIBS
-echo $LAPACK_LIBS
-
 PKG_LIBS    +=  ${repoName}/build/libcoreLib.a \
 ${repoName}/build/_deps/stattools-build/libstattools.a \
 ${repoName}/build/_deps/genometools-build/libgenometools.a \
