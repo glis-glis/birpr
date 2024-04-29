@@ -41,12 +41,16 @@ git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
 # Run CMake
 cd $repoName && mkdir build && cd build
 ${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON -DPARALLEL=OFF .. > cmake_log.txt
+cat cmake_log.txt
 
 # Get Armadillo libraries from cmake output
 arma_libs=$(cat cmake_log.txt | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
 
-# Write Makevars
-cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars
+# Append extra libraries needed for Windows
+arma_libs=$(echo $arma_libs -lz -lgfortran)
+
+# Write Makevars.win
+cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars.win
 
 # Make
 make -j4 coreLib
