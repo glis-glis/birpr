@@ -5,7 +5,3 @@ birp_interface <- function(input) {
     .Call(`_birp_birp_interface`, input)
 }
 
-rcpp_hello_world <- function() {
-    .Call(`_birp_rcpp_hello_world`)
-}
-

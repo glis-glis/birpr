@@ -23,22 +23,3 @@ List birp_interface(List input) {
   // now run program
   return main.run(input);
 }
-
-// [[Rcpp::export]]
-List rcpp_hello_world() {
-
-    double fds = coretools::logistic(0);
-    std::cout << fds << std::endl;
-
-    double other = coretools::dummyTestRcpp(1.0);
-    std::cout << other << std::endl;
-    
-    stattools::TStatePosteriorsReader reader("doesnotexist.txt");
-    reader.close();
-
-    CharacterVector x = CharacterVector::create( "foo", "bar" )  ;
-    NumericVector y   = NumericVector::create( 0.0, 1.0 ) ;
-    List z            = List::create( x, y ) ;
-
-    return z ;
-}
