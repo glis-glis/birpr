@@ -10,7 +10,7 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 -I${repoName}/stattools/core/ \
 -I${repoName}/core/ \
 $(SHLIB_OPENMP_CXXFLAGS) \
--DRCPP
+-DUSE_RCPP
 
 
 PKG_LIBS    =  -L${repoName}/build -lcoreLib \
