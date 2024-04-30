@@ -21,9 +21,7 @@ List birp_interface(List input) {
   main.addRegularTask("infer", new TTask_infer());
   
   // now run program
-  // return main.run(input);
-  
-  return input;
+  return main.run(input.size(), input);
 }
 
 // [[Rcpp::export]]
