@@ -1,3 +1,7 @@
 useDynLib(birp, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
+
+S3method(print, birp)
+S3method(summary, birp)
+S3method(plot, birp)
