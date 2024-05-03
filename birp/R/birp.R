@@ -81,6 +81,55 @@
   return(substitute(gamma[epoch], list(epoch=epoch)))
 }
 
+#' Function to add text box to plot denoting P(gamma > 0 | x) or P(gamma < 0 | x) for single epochs
+#' @param x A birp object
+#' @return No return value, called for side effects.
+#' @keywords internal
+.addTextSingleEpoch.birp <- function(x){
+  diffFromBorder <- 0.01 * diff(par("usr")[1:2])
+  if(x$prob_gamma_positive > 0.5){
+    ttext <- bquote(paste("P(", gamma, " > 0 | D) = ", .(round(x$prob_gamma_positive, 3))))
+    text(par("usr")[2] - diffFromBorder, par("usr")[4], adj = c(1, 1.5), labels = ttext)
+  } else {
+    ttext <- bquote(paste("P(", gamma, " < 0 | x) = ", .(round(1 - x$prob_gamma_positive, 3))))
+    text(par("usr")[1] + diffFromBorder, par("usr")[4], adj = c(0, 1.5), labels = ttext)
+  }
+}
+
+#' Function to add legend to plot denoting epochs
+#' @param x A birp object
+#' @param legend Add a legend to the plot
+#' @param dens A list containing the densities for each epoch
+#' @param xlim The x-limits (x1, x2) of the plot
+#' @param col Line color, one per epoch
+#' @param lwd Line width, one per epoch
+#' @param lty Line type, one per epoch
+#' @param ... additional parameters passed to the function.
+#' @return No return value, called for side effects.
+#' @keywords internal
+.addLegendMultiEpoch.birp <- function(x, legend, dens, xlim, col, lwd, lty, ...){
+  # Add legend
+  # Check if highest density is left or right of plot
+  max.y <- max(dens[[1]]$y)
+  max.x <- dens[[1]]$x[dens[[1]]$y == max(dens[[1]]$y)]
+  if (x$num_epochs > 1){
+    for (e in 2:x$num_epochs){
+      if (max(dens[[e]]$y) > max.y){
+        max.y <- max(dens[[e]]$y)
+        max.x <- dens[[e]]$x[dens[[e]]$y == max(dens[[e]]$y)]
+      }
+    }
+  }
+  
+  if (max.x < xlim[1] + diff(xlim)/2){
+    legend.pos <- 'topright'
+  } else {
+    legend.pos <- 'topleft'
+  }
+  
+  legend(legend.pos, legend, col = col, lwd = lwd, lty = lty, ...)
+}
+
 #---------------------------------------
 # Constructor
 #---------------------------------------
@@ -88,38 +137,44 @@
 #' Creating a Birp Object
 #'
 #' This function creates a birp object by running the MCMC
-#' @param data The filename of the counts file
+#' @param data The filename of the counts file. If NULL, the example files will be loaded
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
 #' @param assumeTrueDetectionProbability A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized
+#' @param prefixOutputCommandLine The prefix provided to command-line birp. Used to locate output files
 #' @return An object of class birp
 #' @examples 
 #' b <- birp()
 #' @export
-birp <- function(data,
+birp <- function(data = NULL,
                  timesOfChange = c(),
                  negativeBinomial = FALSE,
                  stochastic = FALSE,
-                 assumeTrueDetectionProbability = FALSE
+                 assumeTrueDetectionProbability = FALSE,
+                 prefixOutputCommandLine = NA
                  ){
   # Create named list of function arguments 
   args <- c(as.list(environment()))
   
   # Get temporary directory where output will be written
-  out <- tempfile()
-  
+  if (is.na(prefixOutputCommandLine)){
+    out <- tempfile()
+  } else {
+    out <- prefixOutputCommandLine
+  }
+
   # Parse options and convert to string
   options <- list(task = "infer", out = out)
   for (i in 1:length(args)){
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
-  print(options)
-  
   # Run MCMC
-  res <- birp::birp_interface(options)
-  
+  if (is.na(prefixOutputCommandLine)){
+    birp::birp_interface(options)
+  }
+
   # Read output files
   meanVar <- read.table(paste0(out, "_meanVar.txt"), header = T)
   trace <- read.table(paste0(out, "_trace.txt"), header = T)
@@ -268,25 +323,14 @@ plot.birp <- function(x,
     lines(dens[[e]], col = col[e], lwd = lwd[e], lty = lty[e], ...)
   }
   
-  # Add legend
+ 
+  # Add legend?
   if (!any(is.na(legend))){
-    # Check if highest density is left or right of plot
-    max.y <- max(dens[[1]]$y)
-    max.x <- dens[[1]]$x[dens[[1]]$y == max(dens[[1]]$y)]
-    for (e in 2:x$num_epochs){
-      if (max(dens[[e]]$y) > max.y){
-        max.y <- max(dens[[e]]$y)
-        max.x <- dens[[e]]$x[dens[[e]]$y == max(dens[[e]]$y)]
-      }
-    }
-    
-    if (max.x < xlim[1] + diff(xlim)/2){
-      legend.pos <- 'topright'
+    if (x$num_epochs == 1){
+      .addTextSingleEpoch.birp(x)
     } else {
-      legend.pos <- 'topleft'
+      .addLegendMultiEpoch.birp(x, legend, dens, xlim, col, lwd, lty, ...)
     }
-    
-    legend(legend.pos, legend, col = col, lwd = lwd, lty = lty, ...)
   }
 }
 
