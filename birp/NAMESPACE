@@ -2,6 +2,11 @@ useDynLib(birp, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 
+importFrom("grDevices", "gray")
+importFrom("graphics", "abline", "contour", "layout", "lines", "par", "polygon", "text")
+importFrom("stats", "median", "quantile")
+importFrom("utils", "read.table")
+    
 S3method(print, birp)
 S3method(summary, birp)
 S3method(plot, birp)

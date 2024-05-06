@@ -4,7 +4,7 @@
 #include "TBirpCore.h"
 
 // [[Rcpp::export]]
-void birp_interface(Rcpp::List input) {
+void birp_interface(Rcpp::List Parameters, Rcpp::List Data) {
   
   // Create main by providing a program name, a version, an
   // affiliation, link to repo and contact email
@@ -17,5 +17,5 @@ void birp_interface(Rcpp::List input) {
   main.addRegularTask("infer", new TTask_infer());
   
   // now run program
-  main.run(input);
+  main.run(Parameters, Data);
 }

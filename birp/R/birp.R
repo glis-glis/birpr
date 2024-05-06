@@ -206,7 +206,7 @@ birp <- function(data = NULL,
   
   # Run MCMC
   if (is.na(prefixOutputCommandLine)){
-    birp::birp_interface(options)
+    birp::birp_interface(options, list())
   }
 
   # Read output files
