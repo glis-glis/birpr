@@ -134,6 +134,32 @@
   legend(legend.pos, legend, col = col, lwd = lwd, lty = lty, ...)
 }
 
+#' Function to get the start of each epoch, including for a hypothetical epoch after the last epoch
+#' @param times An integer or numeric vector with time points
+#' @param times_of_change An integer or numeric vector with times of change
+#' @return An integer or numeric vector with starting points for each epoch
+#' @keywords internal
+.getEpochStarts.birp <- function(times, times_of_change){
+  return(c(0, times_of_change, max(times[length(times)], times_of_change + 1)))
+}
+
+#' Function to calculate rho 
+#' @param times An integer or numeric vector with time points
+#' @param times_of_change An integer or numeric vector with times of change
+#' @return A numeric matrix containing rho for each time point and epoch
+#' @keywords internal
+.calculateRho.birp <- function(times, times_of_change){
+  epoch_start_T <- .getEpochStarts.birp(times, times_of_change)
+  num_epochs <- length(times_of_change) + 1
+  rho <- matrix(0, nrow = length(times), ncol = num_epochs)
+  for (e in 1:num_epochs){
+    rho[times >= epoch_start_T[e+1], e] <- epoch_start_T[e+1] - epoch_start_T[e]
+    within_epoch <- times < epoch_start_T[e+1] & times > epoch_start_T[e]
+    rho[within_epoch ,e] <- times[within_epoch] - epoch_start_T[e]
+  }
+  return(rho)
+}
+
 #---------------------------------------
 # Constructor
 #---------------------------------------
@@ -156,7 +182,11 @@ birp <- function(data = NULL,
                  negativeBinomial = FALSE,
                  stochastic = FALSE,
                  assumeTrueDetectionProbability = FALSE,
-                 prefixOutputCommandLine = NA
+                 prefixOutputCommandLine = NA,
+                 iterations = 100000,
+                 numBurnin = 10,
+                 burnin = 1000,
+                 thinning = 10
                  ){
   # Create named list of function arguments 
   args <- c(as.list(environment()))
@@ -183,6 +213,7 @@ birp <- function(data = NULL,
   meanVar <- read.table(paste0(out, "_meanVar.txt"), header = T)
   trace <- read.table(paste0(out, "_trace.txt"), header = T)
   gamma <- read.table(paste0(out, "_gammaSummaries.txt"), header = T)
+  timepoints <- read.table(paste0(out, "_timepoints.txt"), header = T)$timepoints
   
   # Calculate statistics on gamma
   gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
@@ -205,7 +236,8 @@ birp <- function(data = NULL,
             gamma_posterior_median = gamma_posterior_median,
             gamma_posterior_q05 = gamma_posterior_q05,
             gamma_posterior_q95 = gamma_posterior_q95,
-            prob_gamma_positive = prob_gamma_positive
+            prob_gamma_positive = prob_gamma_positive,
+            timepoints = timepoints
             )
   class(x) <- "birp"
   
@@ -434,6 +466,169 @@ plot_epoch_pair <- function(x,
              paste('P(', gamma[epoch1], ' > ', gamma[epoch2], ' | x) = ', q),
              list(epoch1 = epoch1, epoch2 = epoch2, q = round(1 - q, digits=4))))
     }
+  }
+}
+
+#' Plotting posterior trajectories
+#'
+#' @param x A birp object
+#' @param xlim The x limits (x1, x2) of the plot. Note that x1 > x2 is allowed and leads to a "reversed axis". The default value, NULL, indicates that the range of the finite values to be plotted should be used.
+#' @param n_points Number of points
+#' @param quantiles Which quantiles to plot
+#' @param quantile.col Colors of the quantiles
+#' @param quantile.border Define border of the quantile. NA is possible
+#' @param median.col Color of the median
+#' @param median.lwd Line width of median
+#' @param median.lty Line type of median
+#' @param epoch.col Color to represent the epochs
+#' @param epoch.lwd Line width to represent the epochs
+#' @param epoch.lty Line type to represent the epochs
+#' @param times.col Color to represent the times of change
+#' @param times.lwd Line width that represents times of change
+#' @param times.lty Line type that represents times of change.
+#' @param log Plot relative densities in log
+#' @param xlab A label for the x axis
+#' @param ylab A label for the y axis
+#' @param ... additional parameters passed to the function
+#' @return No return value, called for side effects
+#'
+#' @export
+#' @seealso \code{\link{birp}}
+#' @importFrom grDevices gray
+#' @examples 
+#' b <- birp()
+#' plot_trajectory(b)
+
+plot_trajectory <- function(x, 
+                            xlim = range(x$timepoints), 
+                            n_points = 1000, 
+                            quantiles = c(0.99, 0.9, 0.5, 0.25), 
+                            quantile.col = "gray"(seq(1, 0, length.out = length(quantiles)+2)[2:(length(quantiles)+1)]), 
+                            quantile.border = NA,
+                            median.col = "deeppink",
+                            median.lwd = 1,
+                            median.lty = 1,
+                            epoch.col = "black",
+                            epoch.lwd = 1,
+                            epoch.lty = 1,
+                            times.col = "black",
+                            times.lwd = 1,
+                            times.lty = 2,
+                            log = FALSE,
+                            xlab = "Time",
+                            ylab = paste(c("log", "Relative Density")[c(log, TRUE)], collapse=" "),
+                            ...){
+  # Check parameters
+  if(max(quantiles) > 1.0){ stop("Provided quantiles must be <= 1.0!") }
+  if(min(quantiles) <= 0.0){ stop("Provided quantiles must be > 0.0!") }
+  if(sum(xlim < 0) > 0){ stop("xlim range must be positive!") }
+  if(xlim[2] <= xlim[1]){ stop("xlim range is zero or inverted!") }
+  
+  # Prepare calculations of means
+  epoch_ranges <- c(xlim[1], x$times_of_change[x$times_of_change > xlim[1] & x$times_of_change < xlim[2]], xlim[2])
+  epoch_length <- epoch_ranges[2:length(epoch_ranges)] - epoch_ranges[1:(length(epoch_ranges)-1)]
+  rho <- .calculateRho.birp(epoch_ranges, x$times_of_change)
+  num_epochs <- length(epoch_length)
+  
+  # Which epochs are relevant?
+  if (x$num_epochs == 1){
+    first.gamma.col <- 1
+  } else if(xlim[1] >= max(x$times_of_change)){
+    first.gamma.col <- length(x$times_of_change) + 1
+  } else {
+    first.gamma.col <- min(which(c(x$times_of_change > xlim[1])))
+  }
+  if (x$num_epochs == 1){
+    last.gamma.col <- 1
+  } else if(xlim[2] <= min(x$times_of_change)){
+    last.gamma.col <- 1
+  } else {
+    last.gamma.col <- max(which(x$times_of_change < epoch_ranges[length(epoch_ranges)]))+1
+  }
+  gamma.cols <- first.gamma.col:last.gamma.col
+  
+  # Prepare points at which to calculate rates
+  xvals <- seq(xlim[1], xlim[2], length.out = n_points)
+  rho_x <- .calculateRho.birp(xvals, x$times_of_change)
+  mcmc_length <- nrow(x$trace)
+  rates <- matrix(0, ncol = length(xvals), nrow = mcmc_length - 1)
+  
+  for (i in 2:mcmc_length){
+    # Calculate mean to normalize / align
+    # Prevent underflow by normalizing with mean
+    change <- rho %*% x$trace_gamma[i,]
+    meanLog <- mean(change)
+    change <- exp(change - meanLog)
+    average <- sum((change[2:(num_epochs+1),1] - change[1:num_epochs]) / x$trace_gamma[i,gamma.cols] / epoch_length)
+    
+    # Calc normalized rates
+    rates[i-1,] <- rho_x %*% x$trace_gamma[i,] - log(average) - meanLog
+  }
+  
+  if(!log){
+    rates <- exp(rates)
+  }
+  
+  # Calculate quantiles and median of distribution
+  probs <- sort(c((1-quantiles)/2, 0.5, 1-(1-quantiles)/2))
+  quant <- apply(rates, 2, quantile, probs = probs)
+  
+  # Open plot
+  plot(0, type = 'n', xlim = xlim, ylim = range(quant, na.rm = TRUE), xlab = xlab, ylab = ylab, ...)
+  
+  # Add epochs
+  if(!is.na(epoch.lwd) & epoch.lwd>0){
+    for(t in x$times_of_change[x$times_of_change > xlim[1] & x$times_of_change < xlim[2]]){
+      lines(rep(t, 2), par("usr")[3:4], col = epoch.col, lwd = epoch.lwd, lty = epoch.lty)
+    }
+  }
+  
+  # Add times with measurements
+  if(!is.na(times.lwd) & times.lwd>0){
+    for(t in x$timepoints[x$timepoints >= xlim[1] & x$timepoints <= xlim[2]]){
+      lines(rep(t, 2), par("usr")[3:4], col = times.col, lwd = times.lwd, lty = times.lty)
+    }
+  }
+  
+  # Plot quantiles
+  n_probs <- length(probs)
+  x_poly <- c(xvals, rev(xvals), xvals[1])
+  for(q in 1:length(quantiles)){
+    y_poly <- c(quant[q,], rev(quant[n_probs-q+1,]), quant[q,1])
+    polygon(x_poly, y_poly, col = quantile.col[q], border = quantile.border)
+  }
+  
+  # Plot median
+  if (!is.na(median.lwd) & median.lwd > 0){
+    lines(xvals, quant[length(quantiles) + 1,], lwd = median.lwd, lty = median.lty, col = median.col)
+  }
+}
+
+#' Plotting the MCMC chains
+#'
+#' @param x A birp object
+#' @param col Color(s) used in the plot
+#'
+#' @return No return value, called for side effects
+#' @export
+#' @seealso \code{\link{birp}}
+#' @examples 
+#' b <- birp()
+#' plot_mcmc(b)
+plot_mcmc <- function(x, col=c("black", "blue")){
+  # Layout
+  layout(matrix(1:(2*x$num_epochs), ncol = 2, byrow=TRUE), widths = c(2,1))
+  
+  # Plot MCMC and posterior for each epoch
+  mcmc_len <- nrow(x$trace)
+  
+  for(e in 1:x$num_epochs){
+    # Plot trace
+    xax <- 1:nrow(x$trace_gamma) * as.numeric(x$options$thinning)
+    plot(xax, x$trace_gamma[,e], xlab = "Iteration", ylab = bquote(gamma[.(e)]))
+
+    # Plot density
+    plot(stats::density(x$trace_gamma[,e]),  main="", xlab=bquote(gamma[.(e)]), ylab="Posterior density")
   }
 }
 
