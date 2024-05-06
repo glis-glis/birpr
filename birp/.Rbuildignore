@@ -8,7 +8,7 @@
 ^src/birp_cpp/stattools/tests/*
 
 ^src/birp_cpp/build/CMakeFiles/*
-^src/birp_cpp/build/bin/*
+^src/birp_cpp/build/lib/*
 
 ^src/birp_cpp/build/_deps/armadillo-subbuild/*
 ^src/birp_cpp/build/_deps/armadillo-build/CMakeFiles/*
