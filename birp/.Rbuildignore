@@ -1,10 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 
-^src/birp_cpp/core/*
-^src/birp_cpp/coretools/*
-^src/birp_cpp/genometools/*
-^src/birp_cpp/stattools/*
 ^src/birp_cpp/simulationTestFiles/*
 ^src/birp_cpp/tests/*
 
