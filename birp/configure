@@ -35,11 +35,14 @@ if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
 
 # Clone repository
 cd src
-rm -rf $repoName
-git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
+if [ -d $repoName ]; then
+	cd $repoName; git pull
+else
+	git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git; cd $repoName
+fi
 
 # Run CMake
-cd $repoName && mkdir build && cd build
+mkdir build && cd build
 ${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON -DPARALLEL=OFF .. > cmake_log.txt
 cat cmake_log.txt
 
