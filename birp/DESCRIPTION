@@ -17,4 +17,3 @@ Description: Provides functions to test for population trends and changes in pop
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.12), MASS
 LinkingTo: Rcpp
-StagedInstall: no

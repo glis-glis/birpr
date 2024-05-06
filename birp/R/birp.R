@@ -19,7 +19,11 @@
     options[[name]] <- paste0(x, collapse = ",")
   } else if (is.null(x)){
     # ignore, argument is empty
+  } else if (is.na(x)){
+    # ignore, argument is empty
   } else if (is.logical(x)){
+    print(name)
+    print(x)
     if (x){
       # is TRUE -> set flag for parameters().exists()
       options[[name]] <- ""

@@ -52,7 +52,6 @@ Thumbs.db
 birp/src/*.o
 birp/src/birp_cpp
 .Rhistory
-birp/.Rbuildignore
 birp/.Rhistory
 birp/birp.Rproj
 birp/src/birp.so
