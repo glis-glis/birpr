@@ -208,14 +208,8 @@ birp <- function(data,
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
-  # Write data to file
-  filenames <- numeric(length(data$data))
-  for (i in 1:length(data$data)){
-    name <- paste0(out, data$method_names[i], ".txt")
-    write.table(data$data[[i]], file = name, append = F, quote = F, row.names = F, col.names = T, sep = "\t")
-    filenames[i] <- name
-  }
-  options[["data"]] <- paste0(filenames, collapse = ",")
+  # Add input data names
+  options[["data"]] <- paste(data$method_names, collapse = ",")
   
   # Run MCMC
   if (is.na(prefixOutputCommandLine)){
