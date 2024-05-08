@@ -167,7 +167,7 @@
 #' Creating a Birp Object
 #'
 #' This function creates a birp object by running the MCMC
-#' @param data The filename of the counts file. If NULL, the example files will be loaded
+#' @param data A birp_data object
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
@@ -177,7 +177,7 @@
 #' @examples 
 #' b <- birp()
 #' @export
-birp <- function(data = NULL,
+birp <- function(data,
                  timesOfChange = c(),
                  negativeBinomial = FALSE,
                  stochastic = FALSE,
@@ -188,6 +188,9 @@ birp <- function(data = NULL,
                  burnin = 1000,
                  thinning = 10
                  ){
+  # Check for valid arguments
+  stopifnot(class(data) == "birp_data")
+  
   # Create named list of function arguments 
   args <- c(as.list(environment()))
   
@@ -201,12 +204,22 @@ birp <- function(data = NULL,
   # Parse options and convert to string
   options <- list(task = "infer", out = out)
   for (i in 1:length(args)){
+    if (names(args)[i] == "data") next # skip data: no command-line argument
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
+  # Write data to file
+  filenames <- numeric(length(data$data))
+  for (i in 1:length(data$data)){
+    name <- paste0(out, data$method_names[i], ".txt")
+    write.table(data$data[[i]], file = name, append = F, quote = F, row.names = F, col.names = T, sep = "\t")
+    filenames[i] <- name
+  }
+  options[["data"]] <- paste0(filenames, collapse = ",")
+  
   # Run MCMC
   if (is.na(prefixOutputCommandLine)){
-    birp::birp_interface(options, list())
+    birp::birp_interface(options, data$data)
   }
 
   # Read output files
@@ -225,7 +238,8 @@ birp <- function(data = NULL,
   prob_gamma_positive <- diag(matrix_gamma)
   
   # Define results
-  x <- list(options = options,
+  x <- list(data = data,
+            options = options,
             meanVar = meanVar,
             trace = trace,
             trace_gamma = trace_gamma,
