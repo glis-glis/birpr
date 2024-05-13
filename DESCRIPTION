@@ -13,7 +13,8 @@ Authors@R: c(person("Madleina", "Caduff",
                      email = "daniel.wegmann@unifr.ch")
              )
 Maintainer: Madleina Caduff <madleina.caduff@unifr.ch>
-Description: Provides functions to test for population trends and changes in population trends from sparse and noisy ecological count data
+Description: Provides functions to test for population trends and changes in population trends from sparse and noisy ecological count data.
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.12), MASS
 LinkingTo: Rcpp
+RoxygenNote: 7.3.1
