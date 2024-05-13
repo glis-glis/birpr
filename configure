@@ -36,6 +36,7 @@ if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
 # Clone repository
 cd src/
 if [ -d $repoName ]; then
+        echo "Already exists: `pwd`"
 	cd ../
 else
 	git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
