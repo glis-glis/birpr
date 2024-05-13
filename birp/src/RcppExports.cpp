@@ -11,14 +11,15 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // birp_interface
-void birp_interface(Rcpp::List Parameters, Rcpp::List Data);
+Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data);
 RcppExport SEXP _birp_birp_interface(SEXP ParametersSEXP, SEXP DataSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type Parameters(ParametersSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type Data(DataSEXP);
-    birp_interface(Parameters, Data);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(birp_interface(Parameters, Data));
+    return rcpp_result_gen;
 END_RCPP
 }
 
