@@ -213,7 +213,7 @@ birp <- function(data,
   
   # Run MCMC
   if (is.na(prefixOutputCommandLine)){
-    birp::birp_interface(options, data$data)
+    res <- birp::birp_interface(options, data$data)
   }
 
   # Read output files
@@ -245,7 +245,8 @@ birp <- function(data,
             gamma_posterior_q05 = gamma_posterior_q05,
             gamma_posterior_q95 = gamma_posterior_q95,
             prob_gamma_positive = prob_gamma_positive,
-            timepoints = timepoints
+            timepoints = timepoints,
+            res = res
             )
   class(x) <- "birp"
   
