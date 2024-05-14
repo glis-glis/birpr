@@ -23,4 +23,5 @@ Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {
   if (returnCode[0] == 1) { // 1 encodes an error
     Rcpp::stop("Birp C++ terminated with errors");
   }
+  return result;
 }
