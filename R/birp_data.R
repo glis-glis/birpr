@@ -179,12 +179,65 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ""){
 }
 
 #' This function simulates a birp_data object
-#' @param filenames A vector of filenames specifying the input file(s) (one per method)
+#' @param timesOfChange A numeric or integer vector specifying the times of change
+#' @param gamma A numeric vector with gammas to simulate. If empty, all gamma will be set to zero.
+#' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
+#' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
+#' @param timepoints A vector of integers that denote the time points at which the counts were obtained
+#' @param numLocations An integer denoting the number of locations at which the counts were obtained
+#' @param numMethods An integer denoting the number of methods with which the counts were obtained
+#' @param numCovariatesEffort An integer denoting the number of covariates for modeling the effort
+#' @param numCovariatesDetection An integer denoting the number of covariates for modeling the detection probabilities
+#' @param n_bar ???
+#' @param covariatesEffort ???
+#' @param covariatesDetection ???
+#' @param proportionZeroEffort ???
 #' @return An object of type birp_data
 #' @examples 
-#' b <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
+#' b <- simulate_birp()
 #' @export
-simulate_birp <- function(){
+simulate_birp <- function(timesOfChange = c(),
+                          gamma = c(),
+                          negativeBinomial = FALSE,
+                          stochastic = FALSE,
+                          timepoints = c(1,2,3),
+                          numLocations = 2,
+                          numMethods = 1,
+                          numCovariatesEffort = 1,
+                          numCovariatesDetection = 1,
+                          n_bar = 1000,
+                          covariatesEffort = "gamma(1, 2)",
+                          covariatesDetection = "normal(0, 1)",
+                          proportionZeroEffort = 0
+                          ) {
+  # Create named list of function arguments 
+  args <- c(as.list(environment()))
+  
+  # Get temporary directory where output will be written
+  out <- tempfile()
+  
+  # Parse options and convert to string
+  options <- list(task = "simulate", out = out)
+  for (i in 1:length(args)){
+    options <- .addToList.birp(options, names(args)[i], args[[i]])
+  }
+  
+  # Run MCMC
+  res <- birp::birp_interface(options, list(x = c()))
+  
+  # Properly format Rcpp data frames
+  res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
+  
+  # Assemble all output files
+  names <- res[[paste0(out, "_simulated_allFilesGenerated")]]$V0
+  all_df <- list()
+  for (i in 1:length(names)){
+    all_df[[names[i]]] <- res[[paste0(names[i])]]
+  }
+  
+  # Create and return birp_data instance
+  x <- new_birp_data(all_df)
+  return(x)
 }
 
 #---------------------------------------
@@ -199,11 +252,13 @@ simulate_birp <- function(){
 #' print(dat)
 #' @export
 print.birp_data <- function(x, ...){
-  cat("birp_data object for", length(x$method_names), "method(s),", length(x$locations),"location(s) and", length(x$times),"time points:\n");
+  cat("birp_data object for", length(x$method_names), "method(s),", length(x$locations), "location(s) and", length(x$times), "time points:\n");
   cat(" - methods: [", paste(x$method_names, collapse=", "), "]\n", sep="");
   cat(" - locations: [", paste(x$locations, collapse=", "), "]\n", sep="");
   cat(" - time points: [", paste(x$times, collapse=", "), "]\n", sep="");
   cat(" - total number of data points: ", sum(sapply(data, length)) ,"\n", sep="");
+  
+  invisible(x)
 }
 
 #' This function summarizes a birp_data object

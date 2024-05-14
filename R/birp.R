@@ -22,8 +22,6 @@
   } else if (is.na(x)){
     # ignore, argument is empty
   } else if (is.logical(x)){
-    print(name)
-    print(x)
     if (x){
       # is TRUE -> set flag for parameters().exists()
       options[[name]] <- ""
@@ -172,7 +170,6 @@
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
 #' @param assumeTrueDetectionProbability A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized
-#' @param prefixOutputCommandLine The prefix provided to command-line birp. Used to locate output files
 #' @return An object of class birp
 #' @examples 
 #' b <- birp()
@@ -182,7 +179,6 @@ birp <- function(data,
                  negativeBinomial = FALSE,
                  stochastic = FALSE,
                  assumeTrueDetectionProbability = FALSE,
-                 prefixOutputCommandLine = NA,
                  iterations = 100000,
                  numBurnin = 10,
                  burnin = 1000,
@@ -195,11 +191,7 @@ birp <- function(data,
   args <- c(as.list(environment()))
   
   # Get temporary directory where output will be written
-  if (is.na(prefixOutputCommandLine)){
-    out <- tempfile()
-  } else {
-    out <- prefixOutputCommandLine
-  }
+  out <- tempfile()
 
   # Parse options and convert to string
   options <- list(task = "infer", out = out)
@@ -212,9 +204,7 @@ birp <- function(data,
   options[["data"]] <- paste(data$method_names, collapse = ",")
   
   # Run MCMC
-  if (is.na(prefixOutputCommandLine)){
-    res <- birp::birp_interface(options, data$data)
-  }
+  res <- birp::birp_interface(options, data$data)
   
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
