@@ -215,12 +215,15 @@ birp <- function(data,
   if (is.na(prefixOutputCommandLine)){
     res <- birp::birp_interface(options, data$data)
   }
+  
+  # Properly format Rcpp data frames
+  res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
 
   # Read output files
-  meanVar <- read.table(paste0(out, "_meanVar.txt"), header = T)
-  trace <- read.table(paste0(out, "_trace.txt"), header = T)
-  gamma <- read.table(paste0(out, "_gammaSummaries.txt"), header = T)
-  timepoints <- read.table(paste0(out, "_timepoints.txt"), header = T)$timepoints
+  meanVar <- res[[paste0(out, "_meanVar.txt")]]
+  trace <- res[[paste0(out, "_trace.txt")]]
+  gamma <- res[[paste0(out, "_gammaSummaries.txt")]]
+  timepoints <- res[[paste0(out, "_timepoints.txt")]]
   
   # Calculate statistics on gamma
   gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]

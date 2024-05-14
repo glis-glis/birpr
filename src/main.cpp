@@ -17,5 +17,10 @@ Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {
   main.addRegularTask("infer", new TTask_infer());
   
   // now run program
-  return main.run(Parameters, Data);
+  Rcpp::List result              = main.run(Parameters, Data);
+  Rcpp::IntegerVector returnCode = result["returnCode"];
+  
+  if (returnCode[0] == 1) { // 1 encodes an error
+    stop("Birp C++ terminated with errors");
+  }
 }
