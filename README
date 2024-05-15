@@ -1,8 +1,5 @@
+# Welcome to birp!
 
+Birp infers population trends and changes in population trends from sparse and noisy ecological count data.
 
-* Put any C/C++/Fortran code in 'src'.
-* If you have compiled code, add a useDynLib() directive to 'NAMESPACE'.
-* Run compile.sh to compile the package to a tarball
-
-
-Read "Writing R Extensions" for more information.
+Please see our detailed [wiki](https://bitbucket.org/wegmannlab/birpr/wiki/) for more information!
