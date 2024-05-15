@@ -27,5 +27,5 @@ An object of type birp_data
 This function creates a birp_data object
 }
 \examples{
-b <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
+data <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
 }

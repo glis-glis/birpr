@@ -14,7 +14,7 @@
   legend.x = "topright",
   legend.y = NULL,
   legend.bty = "o",
-  xlim = range(x$times),
+  xlim = range(as.numeric(x$times)),
   ylim = NA,
   ...
 )
@@ -48,6 +48,6 @@
 This function plots MLE estimates of rate (lambda) estimates per time-point, method and location
 }
 \examples{
-dat <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5));
-plot(dat);
+data <- simulate_birp()
+plot(data)
 }

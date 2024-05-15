@@ -9,12 +9,12 @@
 \arguments{
 \item{x}{The birp_data object to be printed.}
 
-\item{...}{Other parameters}
+\item{...}{Other parameters passed to function}
 }
 \description{
 This function summarizes a birp_data object
 }
 \examples{
-dat <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
-summary(dat)
+data <- simulate_birp()
+summary(data)
 }

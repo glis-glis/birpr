@@ -4,7 +4,7 @@
 \alias{birp_data_from_file}
 \title{Creating a Birp Data Object based on filenames}
 \usage{
-birp_data_from_file(filenames, method_names = NA, sep = "")
+birp_data_from_file(filenames, method_names = NA, sep = ",")
 }
 \arguments{
 \item{filenames}{A vector of filenames specifying the input file(s) (one per method)}
@@ -20,5 +20,7 @@ An object of type birp_data
 This function creates a birp_data object
 }
 \examples{
-b <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
+\donttest{
+data <- birp_data_from_file("myInputFile.txt")
+}
 }

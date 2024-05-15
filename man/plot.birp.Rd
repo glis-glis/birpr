@@ -57,8 +57,9 @@ No return value, called for side effects.
 Plotting a birp object
 }
 \examples{
-b <- birp()
-plot(b)
+data <- simulate_birp()
+est <- birp(data)
+plot(est)
 }
 \seealso{
 \code{\link{birp}}

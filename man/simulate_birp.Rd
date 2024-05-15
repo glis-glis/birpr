@@ -4,10 +4,57 @@
 \alias{simulate_birp}
 \title{This function simulates a birp_data object}
 \usage{
-simulate_birp()
+simulate_birp(
+  timepoints = c(1, 2, 3),
+  timesOfChange = c(),
+  gamma = NULL,
+  negativeBinomial = FALSE,
+  stochastic = FALSE,
+  numLocations = 2,
+  numMethods = 1,
+  numCovariatesEffort = 1,
+  numCovariatesDetection = 0,
+  n_bar = 1000,
+  a = NULL,
+  logSigma = NULL,
+  logPhi = NULL,
+  covariatesEffort = "gamma(1, 2)",
+  covariatesDetection = "normal(0, 1)",
+  proportionZeroEffort = 0
+)
 }
 \arguments{
-\item{filenames}{A vector of filenames specifying the input file(s) (one per method)}
+\item{timepoints}{A vector of integers that denote the time points at which the counts were obtained}
+
+\item{timesOfChange}{A numeric or integer vector specifying the times of change}
+
+\item{gamma}{A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero}
+
+\item{negativeBinomial}{A boolean indicating if the Poisson (default) or negative binomial model should be used}
+
+\item{stochastic}{A boolean indicating if the deterministic (default) or stochastic trend model should be used}
+
+\item{numLocations}{An integer denoting the number of locations at which the counts were obtained}
+
+\item{numMethods}{An integer denoting the number of methods with which the counts were obtained}
+
+\item{numCovariatesEffort}{An integer denoting the number of covariates for modeling the effort}
+
+\item{numCovariatesDetection}{An integer denoting the number of covariates for modeling the detection probabilities}
+
+\item{n_bar}{A single number (shared across methods) or a numeric vector (per method) denoting the average number of counts to be simulated}
+
+\item{a}{A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution}
+
+\item{logSigma}{A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1}
+
+\item{logPhi}{A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions}
+
+\item{covariatesEffort}{Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
+
+\item{covariatesDetection}{Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
+
+\item{proportionZeroEffort}{The proportion of effort covariates which are set to zero}
 }
 \value{
 An object of type birp_data
@@ -16,5 +63,5 @@ An object of type birp_data
 This function simulates a birp_data object
 }
 \examples{
-b <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
+data <- simulate_birp()
 }

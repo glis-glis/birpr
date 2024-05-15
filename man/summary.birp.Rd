@@ -18,8 +18,10 @@ No return value, called for side effects.
 Summarizing a birp object
 }
 \examples{
-b <- birp()
-print(b)
+data <- simulate_birp()
+est <- birp(data)
+summary(est)
+
 }
 \seealso{
 \code{\link{bexy}}

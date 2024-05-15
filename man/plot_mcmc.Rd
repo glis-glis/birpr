@@ -18,8 +18,9 @@ No return value, called for side effects
 Plotting the MCMC chains
 }
 \examples{
-b <- birp()
-plot_mcmc(b)
+data <- simulate_birp()
+est <- birp(data)
+plot_mcmc(est)
 }
 \seealso{
 \code{\link{birp}}

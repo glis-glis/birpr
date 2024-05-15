@@ -64,8 +64,9 @@ No return value, called for side effects.
 Plotting posterior estimates of epoch pairs
 }
 \examples{
-b <- birp()
-plot_epoch_pair(b)
+data <- simulate_birp(timepoints = 1:10, timesOfChange = 5)
+est <- birp(data, timesOfChange = 5)
+plot_epoch_pair(est)
 }
 \seealso{
 \code{\link{birp}}

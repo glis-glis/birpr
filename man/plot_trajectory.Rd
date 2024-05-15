@@ -73,8 +73,9 @@ No return value, called for side effects
 Plotting posterior trajectories
 }
 \examples{
-b <- birp()
-plot_trajectory(b)
+data <- simulate_birp()
+est <- birp(data)
+plot_trajectory(est)
 }
 \seealso{
 \code{\link{birp}}

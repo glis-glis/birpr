@@ -18,8 +18,9 @@ No return value, called for side effects.
 Printing a birp object
 }
 \examples{
-b <- birp()
-print(b)
+data <- simulate_birp()
+est <- birp(data)
+print(est)
 
 }
 \seealso{

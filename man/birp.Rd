@@ -10,11 +10,9 @@ birp(
   negativeBinomial = FALSE,
   stochastic = FALSE,
   assumeTrueDetectionProbability = FALSE,
-  prefixOutputCommandLine = NA,
   iterations = 1e+05,
   numBurnin = 10,
-  burnin = 1000,
-  thinning = 10
+  burnin = 1000
 )
 }
 \arguments{
@@ -28,7 +26,11 @@ birp(
 
 \item{assumeTrueDetectionProbability}{A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized}
 
-\item{prefixOutputCommandLine}{The prefix provided to command-line birp. Used to locate output files}
+\item{iterations}{The number of MCMC iterations to run}
+
+\item{numBurnin}{The number of burnin cycles to run}
+
+\item{burnin}{The number of MCMC iterations per burnin cycle}
 }
 \value{
 An object of class birp
@@ -37,5 +39,6 @@ An object of class birp
 This function creates a birp object by running the MCMC
 }
 \examples{
-b <- birp()
+data <- simulate_birp()
+est <- birp(data)
 }
