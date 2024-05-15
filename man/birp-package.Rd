@@ -1,6 +1,5 @@
 \name{birp-package}
 \alias{birp-package}
-\alias{birp}
 \docType{package}
 \title{\packageTitle{birp}}
 \description{\packageDescription{birp}}
