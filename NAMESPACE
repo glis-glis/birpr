@@ -10,3 +10,7 @@ importFrom("utils", "read.table", "data")
 S3method(print, birp)
 S3method(summary, birp)
 S3method(plot, birp)
+
+S3method(print, birp_data)
+S3method(summary, birp_data)
+S3method(plot, birp_data)

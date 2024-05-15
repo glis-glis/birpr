@@ -158,6 +158,85 @@
   return(rho)
 }
 
+#' Function to check if a file exists and generate error message if it was not found
+#' @param path A file path
+#' @param files A vector of character strings corresponding to file names found in the path
+#' @param patterns A vector of patterns to search for within 'files'
+#' @param allowMultiMatch Boolean indicating if multiple matches are allowed
+#' @param sep The field separator character of the input file
+#' @return A string denoting the filename(s)
+#' @keywords internal
+.checkFile.birp <- function(path, files, patterns, allowMultiMatch = FALSE, sep = "\t"){
+  filename <- files
+  for (p in 1:length(patterns)){
+    filename <- filename[grepl(patterns[p], filename)]
+  }
+  
+  if (length(filename) == 0){
+    stop(paste0("No file containing the pattern '", paste0(patterns, collapse = ","), "' found in directory '", path, "'!"))
+  }
+  if (!allowMultiMatch & length(filename) > 1){
+    stop(paste0("Multiple files containing the pattern '", paste0(patterns, collapse = ","), "' found in directory '", path, "'!"))
+  }
+  return(filename)
+}
+
+#' Function to open a file and generate error message if it was not found
+#' @param path A file path.
+#' @param files A vector of character strings corresponding to file names found in the path.
+#' @param patterns A vector of patterns to search for within 'files'.
+#' @param sep The field separator character of the input file
+#' @return A file connection.
+#' @keywords internal
+.openFile.birp <- function(path, files, patterns, sep = "\t"){
+  filename <- .checkFile.birp(path, files, patterns, sep = sep)
+  
+  if (file.size(paste0(path, filename)) == 3){ # empty file
+    return(data.frame())
+  }
+  f <- read.table(paste0(path, filename), header = TRUE, check.names = FALSE, sep = sep)
+  return(f)
+}
+
+#' Function to create an object of type birp 
+#' @param data An object of type birp_data
+#' @param meanVar A data frame containing the posterior mean and variance of all parameters
+#' @param trace A data frame containing the MCMC trace of all parameters
+#' @param gamma A data frame containing the posterior probabilities regarding gamma
+#' @param timepoints An integer vector containing the timepoints at which counts were obtained
+#' @param timesOfChange A numeric or integer vector specifying the times of change
+#' @return An object of type birp
+#' @keywords internal
+.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange){
+  # Calculate statistics on gamma
+  gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
+  trace_gamma <- as.matrix(trace[,grepl("gamma", names(trace))])
+  gamma_posterior_median <- apply(trace_gamma, 2, median)
+  gamma_posterior_q05 <- apply(trace_gamma, 2, quantile, probs=0.05)
+  gamma_posterior_q95 <- apply(trace_gamma, 2, quantile, probs=0.95)
+  matrix_gamma <- as.matrix(gamma[,2:ncol(gamma)])
+  prob_gamma_positive <- diag(matrix_gamma)
+  
+  # Define results
+  x <- list(data = data,
+            meanVar = meanVar,
+            trace = trace,
+            trace_gamma = trace_gamma,
+            gamma = gamma,
+            num_epochs = length(timesOfChange) + 1,
+            times_of_change = timesOfChange,
+            gamma_posterior_mean = gamma_posterior_mean,
+            gamma_posterior_median = gamma_posterior_median,
+            gamma_posterior_q05 = gamma_posterior_q05,
+            gamma_posterior_q95 = gamma_posterior_q95,
+            prob_gamma_positive = prob_gamma_positive,
+            timepoints = timepoints
+            )
+  class(x) <- "birp"
+  
+  return(x)
+}
+
 #---------------------------------------
 # Constructor
 #---------------------------------------
@@ -170,9 +249,13 @@
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
 #' @param assumeTrueDetectionProbability A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized
+#' @param iterations The number of MCMC iterations to run
+#' @param numBurnin The number of burnin cycles to run
+#' @param burnin The number of MCMC iterations per burnin cycle
 #' @return An object of class birp
 #' @examples 
-#' b <- birp()
+#' data <- simulate_birp()
+#' est <- birp(data)
 #' @export
 birp <- function(data,
                  timesOfChange = c(),
@@ -181,8 +264,7 @@ birp <- function(data,
                  assumeTrueDetectionProbability = FALSE,
                  iterations = 100000,
                  numBurnin = 10,
-                 burnin = 1000,
-                 thinning = 10
+                 burnin = 1000
                  ){
   # Check for valid arguments
   stopifnot(class(data) == "birp_data")
@@ -215,34 +297,45 @@ birp <- function(data,
   gamma <- res[[paste0(out, "_gammaSummaries.txt")]]
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
   
-  # Calculate statistics on gamma
-  gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
-  trace_gamma <- as.matrix(trace[,grepl("gamma", names(trace))])
-  gamma_posterior_median <- apply(trace_gamma, 2, median)
-  gamma_posterior_q05 <- apply(trace_gamma, 2, quantile, probs=0.05)
-  gamma_posterior_q95 <- apply(trace_gamma, 2, quantile, probs=0.95)
-  matrix_gamma <- as.matrix(gamma[,2:ncol(gamma)])
-  prob_gamma_positive <- diag(matrix_gamma)
+  # Create and return birp object
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange)
+  return(x)
+}
+
+#' Creating a Birp Object based on output files of command-line tool
+#'
+#' This function creates a birp object by reading the output files of the command-line tool
+#' @param path The path where all the output files of birp are located
+#' @return An object of class birp
+#' @examples 
+#' \donttest{
+#' est <- birp_from_command_line("/path/to/my/output/directory/")
+#' }
+#' @export
+birp_from_command_line <- function(path){
+  # Check for valid arguments
+  stopifnot(is.character(path))
   
-  # Define results
-  x <- list(data = data,
-            options = options,
-            meanVar = meanVar,
-            trace = trace,
-            trace_gamma = trace_gamma,
-            gamma = gamma,
-            num_epochs = length(timesOfChange) + 1,
-            times_of_change = timesOfChange,
-            gamma_posterior_mean = gamma_posterior_mean,
-            gamma_posterior_median = gamma_posterior_median,
-            gamma_posterior_q05 = gamma_posterior_q05,
-            gamma_posterior_q95 = gamma_posterior_q95,
-            prob_gamma_positive = prob_gamma_positive,
-            timepoints = timepoints,
-            res = res
-            )
-  class(x) <- "birp"
+  # Get all files in that directory
+  files <- list.files(path)
+  if (length(files) == 0){ stop(paste0("Directory ", path, " is empty!")) }
   
+  # Read the names of all (filtered) input files
+  namesCounts <- .checkFile.birp(path = path, files = files, patterns = "_filtered_counts.txt", 
+                                 allowMultiMatch = TRUE)
+  data <- birp_data_from_file(paste0(path, namesCounts), sep = "\t")
+  
+  # Read MCMC output files
+  meanVar <- .openFile.birp(path, files, "_meanVar.txt")
+  trace <- .openFile.birp(path, files, "_trace.txt")
+  gamma <- .openFile.birp(path, files, "_gammaSummaries.txt")
+  timepoints <- .openFile.birp(path, files, "_timepoints.txt")
+  
+  # Get times of change
+  timesOfChange <- meanVar[grepl("timesOfChange", meanVar$name),]$posterior_mean
+  
+  # Create and return birp object
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange)
   return(x)
 }
 
@@ -259,8 +352,9 @@ birp <- function(data,
 #' @export
 #' @seealso \code{\link{birp}}
 #' @examples
-#' b <- birp()
-#' print(b)
+#' data <- simulate_birp()
+#' est <- birp(data)
+#' print(est)
 #' 
 
 print.birp <- function(x, ...){
@@ -285,8 +379,10 @@ print.birp <- function(x, ...){
 #' @export
 #' @seealso \code{\link{bexy}}
 #' @examples
-#' b <- birp()
-#' print(b)
+#' data <- simulate_birp()
+#' est <- birp(data)
+#' summary(est)
+#' 
 summary.birp <- function(object, ...){
   print.birp(object, ...)
 }
@@ -316,8 +412,10 @@ summary.birp <- function(object, ...){
 #' @export
 #' @seealso \code{\link{birp}}
 #' @examples 
-#' b <- birp()
-#' plot(b)
+#' data <- simulate_birp()
+#' est <- birp(data)
+#' plot(est)
+
 plot.birp <- function(x,
                       shadingIncrease = NA,
                       shadingDecrease = "#f2c7c7",
@@ -395,8 +493,10 @@ plot.birp <- function(x,
 #' @export
 #' @seealso \code{\link{birp}}
 #' @examples 
-#' b <- birp()
-#' plot_epoch_pair(b)
+#' data <- simulate_birp(timepoints = 1:10, timesOfChange = 5)
+#' est <- birp(data, timesOfChange = 5)
+#' plot_epoch_pair(est)
+
 plot_epoch_pair <- function(x, 
                             epoch1 = 1,
                             epoch2 = 2,
@@ -498,8 +598,9 @@ plot_epoch_pair <- function(x,
 #' @seealso \code{\link{birp}}
 #' @importFrom grDevices gray
 #' @examples 
-#' b <- birp()
-#' plot_trajectory(b)
+#' data <- simulate_birp()
+#' est <- birp(data)
+#' plot_trajectory(est)
 
 plot_trajectory <- function(x, 
                             xlim = range(x$timepoints), 
@@ -615,10 +716,13 @@ plot_trajectory <- function(x,
 #' @export
 #' @seealso \code{\link{birp}}
 #' @examples 
-#' b <- birp()
-#' plot_mcmc(b)
+#' data <- simulate_birp()
+#' est <- birp(data)
+#' plot_mcmc(est)
+
 plot_mcmc <- function(x, col=c("black", "blue")){
   # Layout
+  on.exit(layout(matrix(1)))
   layout(matrix(1:(2*x$num_epochs), ncol = 2, byrow=TRUE), widths = c(2,1))
   
   # Plot MCMC and posterior for each epoch
@@ -626,8 +730,8 @@ plot_mcmc <- function(x, col=c("black", "blue")){
   
   for(e in 1:x$num_epochs){
     # Plot trace
-    xax <- 1:nrow(x$trace_gamma) * as.numeric(x$options$thinning)
-    plot(xax, x$trace_gamma[,e], xlab = "Iteration", ylab = bquote(gamma[.(e)]))
+    xax <- 1:nrow(x$trace_gamma)
+    plot(xax, x$trace_gamma[,e], xlab = "Iteration (thinned)", ylab = bquote(gamma[.(e)]))
 
     # Plot density
     plot(stats::density(x$trace_gamma[,e]),  main="", xlab=bquote(gamma[.(e)]), ylab="Posterior density")

@@ -27,7 +27,7 @@
 }
 
 #---------------------------------------
-# Constructor
+# Constructors
 #---------------------------------------
 
 #' Creating a Birp Data Object based on dataframe(s)
@@ -35,10 +35,13 @@
 #' This function creates a birp_data object
 #' @param data A single dataframe or a list of data frames (one per method)
 #' @return An object of type birp_data
-#' @examples
-#' b <- new_birp_data()
+#' 
 #' @export
-new_birp_data <- function(data){
+#' @examples
+#' df <- data.frame(timepoint = 1:10, location = rep(1, 10), counts = runif(10, 0, 100), covEffort = rnorm(10))
+#' data <- birp_data_from_data_frame(df)
+
+birp_data_from_data_frame <- function(data){
   if (is.data.frame(data)){ data <- list(data) }
   
   .validate.birp_data(data)
@@ -67,10 +70,6 @@ new_birp_data <- function(data){
   return(x)
 }
 
-#---------------------------------------
-# Constructor Helpers
-#---------------------------------------
-
 #' Creating a Birp Data Object based on counts and efforts for a single method
 #'
 #' This function creates a birp_data object
@@ -80,7 +79,7 @@ new_birp_data <- function(data){
 #' @param location_names Names to distinguish the locations
 #' @return An object of type birp_data
 #' @examples 
-#' b <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
+#' data <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
 #' @export
 birp_data <- function(counts, efforts, times, location_names = paste0("Location_", 1:nrow(counts))){
   # Check variables
@@ -117,7 +116,7 @@ birp_data <- function(counts, efforts, times, location_names = paste0("Location_
   names(dat) <- c("location", "timepoint", "counts", "covEffort")
   
   # call constructor of birp_data
-  b <- new_birp_data(dat)
+  b <- birp_data_from_data_frame(dat)
   
   return(b)
 }
@@ -129,10 +128,12 @@ birp_data <- function(counts, efforts, times, location_names = paste0("Location_
 #' @param method_names Names to distinguish the methods. If NA, method names will be derived from filenames
 #' @param sep The field separator character
 #' @return An object of type birp_data
-#' @examples 
-#' b <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
+#' @examples
+#' \donttest{
+#' data <- birp_data_from_file("myInputFile.txt")
+#' }
 #' @export
-birp_data_from_file <- function(filenames, method_names = NA, sep = ""){
+birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
   if (!is.na(method_names) & length(method_names) != length(filenames)){
      stop("Number of method names must match the number of filenames!")
   }
@@ -173,39 +174,45 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ""){
   }
   
   # call constructor of birp_data
-  b <- new_birp_data(dat)
+  b <- birp_data_from_data_frame(dat)
   
   return(b)
 }
 
 #' This function simulates a birp_data object
 #' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param gamma A numeric vector with gammas to simulate. If empty, all gamma will be set to zero.
-#' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
-#' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
+#' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
+#' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
+#' @param stochastic A boolean indicating if the deterministic (default) or stochastic trend model should be used
 #' @param timepoints A vector of integers that denote the time points at which the counts were obtained
 #' @param numLocations An integer denoting the number of locations at which the counts were obtained
 #' @param numMethods An integer denoting the number of methods with which the counts were obtained
 #' @param numCovariatesEffort An integer denoting the number of covariates for modeling the effort
 #' @param numCovariatesDetection An integer denoting the number of covariates for modeling the detection probabilities
-#' @param n_bar ???
-#' @param covariatesEffort ???
-#' @param covariatesDetection ???
-#' @param proportionZeroEffort ???
+#' @param n_bar A single number (shared across methods) or a numeric vector (per method) denoting the average number of counts to be simulated
+#' @param a A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution
+#' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
+#' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
+#' @param covariatesEffort Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
+#' @param covariatesDetection Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
+#' @param proportionZeroEffort The proportion of effort covariates which are set to zero
 #' @return An object of type birp_data
 #' @examples 
-#' b <- simulate_birp()
+#' data <- simulate_birp()
 #' @export
-simulate_birp <- function(timesOfChange = c(),
-                          gamma = c(),
+simulate_birp <- function(timepoints = c(1,2,3),
+                          timesOfChange = c(),
+                          gamma = NULL,
                           negativeBinomial = FALSE,
                           stochastic = FALSE,
-                          timepoints = c(1,2,3),
                           numLocations = 2,
                           numMethods = 1,
                           numCovariatesEffort = 1,
-                          numCovariatesDetection = 1,
+                          numCovariatesDetection = 0,
                           n_bar = 1000,
+                          a = NULL,
+                          logSigma = NULL,
+                          logPhi = NULL,
                           covariatesEffort = "gamma(1, 2)",
                           covariatesDetection = "normal(0, 1)",
                           proportionZeroEffort = 0
@@ -228,15 +235,16 @@ simulate_birp <- function(timesOfChange = c(),
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
   
-  # Assemble all output files
+  # Assemble all counts files that were generated
   names <- res[[paste0(out, "_simulated_allFilesGenerated")]]$V0
   all_df <- list()
-  for (i in 1:length(names)){
-    all_df[[names[i]]] <- res[[paste0(names[i])]]
+  for (i in 1:length(names)) { 
+    nice_name <- strsplit(names[i], split = paste0(out, "_"))[[1]][2]
+    all_df[[nice_name]] <- res[[names[i]]]
   }
   
   # Create and return birp_data instance
-  x <- new_birp_data(all_df)
+  x <- birp_data_from_data_frame(all_df)
   return(x)
 }
 
@@ -246,27 +254,27 @@ simulate_birp <- function(timesOfChange = c(),
 
 #' Printing a birp_data Object
 #' @param x The birp_data object to be printed.
-#' @param ... other parameters
+#' @param ... Other parameters passed to function
 #' @examples 
-#' dat <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
-#' print(dat)
+#' data <- simulate_birp()
+#' print(data)
 #' @export
 print.birp_data <- function(x, ...){
   cat("birp_data object for", length(x$method_names), "method(s),", length(x$locations), "location(s) and", length(x$times), "time points:\n");
   cat(" - methods: [", paste(x$method_names, collapse=", "), "]\n", sep="");
   cat(" - locations: [", paste(x$locations, collapse=", "), "]\n", sep="");
   cat(" - time points: [", paste(x$times, collapse=", "), "]\n", sep="");
-  cat(" - total number of data points: ", sum(sapply(data, length)) ,"\n", sep="");
+  cat(" - total number of data points: ", sum(sapply(x$data, nrow)),"\n", sep="");
   
   invisible(x)
 }
 
 #' This function summarizes a birp_data object
 #' @param x The birp_data object to be printed.
-#' @param ... Other parameters
+#' @param ... Other parameters passed to function
 #' @examples 
-#' dat <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
-#' summary(dat)
+#' data <- simulate_birp()
+#' summary(data)
 #' @export
 summary.birp_data <- function(x, ...){
   print.birp_data(x);
@@ -292,8 +300,8 @@ summary.birp_data <- function(x, ...){
 #' @param ylim Set the limits of the y-axis
 #' @param ... Additional parameters passed to plotting functions.
 #' @examples 
-#' dat <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5));
-#' plot(dat);
+#' data <- simulate_birp()
+#' plot(data)
 #' @export
 plot.birp_data <- function(x, 
                            col = 1:x$num_data_sets,
@@ -304,7 +312,7 @@ plot.birp_data <- function(x,
                            legend.x = "topright",
                            legend.y = NULL,
                            legend.bty = "o",
-                           xlim = range(x$times), 
+                           xlim = range(as.numeric(x$times)), 
                            ylim = NA, 
                            ...){
   col <- rep_len(col, x$num_data_sets)
@@ -329,8 +337,8 @@ plot.birp_data <- function(x,
       method_loc <- method[method$location == loc[j],]
       # Only keep non-zero efforts
       keep <- method_loc[,ix_effort] > 0
-      counts <- method_loc[keep, ix_counts]
-      efforts <- method_loc[keep, ix_effort]
+      counts <- as.numeric(method_loc[keep, ix_counts])
+      efforts <- as.numeric(method_loc[keep, ix_effort])
       times <- method_loc$timepoint[keep]
       # Store rate, timepoints and name
       rates[[counter]] <- list(rates = counts / efforts, times = times)
@@ -339,7 +347,7 @@ plot.birp_data <- function(x,
     }
   }
   
-  if (is.na(ylim)){ ylim <- range(unlist(sapply(rates, function(x) x$rates))) }
+  if (any(is.na(ylim))){ ylim <- range(unlist(sapply(rates, function(x) x$rates))) }
   
   # Open plot
   plot(0, type='n', xlim = xlim, xlab = xlab, ylab = ylab, ylim = ylim, ...)
