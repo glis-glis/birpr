@@ -55,6 +55,6 @@ else
 	cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars.win
 
 	# Make
-	make -j4 coreLib
+	make coreLib
 	cd ../../
 fi
