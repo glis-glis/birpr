@@ -286,7 +286,7 @@ birp <- function(data,
   options[["data"]] <- paste(data$method_names, collapse = ",")
   
   # Run MCMC
-  res <- birp::.birp_interface(options, data$data)
+  res <- .birp_interface(options, data$data)
   
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})

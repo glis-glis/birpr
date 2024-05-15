@@ -234,7 +234,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
   }
   
   # Run MCMC
-  res <- birp::.birp_interface(options, list(x = c()))
+  res <- .birp_interface(options, list(x = c()))
   
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
