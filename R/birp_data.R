@@ -244,6 +244,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
   all_df <- list()
   for (i in 1:length(names)) { 
     nice_name <- strsplit(names[i], split = paste0(out, "_"))[[1]][2]
+    nice_name <- strsplit(nice_name, split = ".txt")[[1]][1]
     all_df[[nice_name]] <- res[[names[i]]]
   }
   
@@ -308,24 +309,23 @@ summary.birp_data <- function(object, ...){
 #' plot(data)
 #' @export
 plot.birp_data <- function(x, 
-                           col = 1:x$num_data_sets,
+                           col = 1:length(x$locations),
                            lwd = 1,
-                           lty = 1,
+                           lty = 1:length(x$method_names),
                            xlab = "time",
                            ylab = "lambda",
                            legend.x = "topright",
                            legend.y = NULL,
                            legend.bty = "o",
-                           xlim = range(as.numeric(x$times)), 
-                           ylim = NA, 
+                           xlim = range(as.numeric(x$times)),
+                           ylim = NA,
                            ...){
-  col <- rep_len(col, x$num_data_sets)
+  col <- rep_len(col, length(x$locations))
   lwd <- rep_len(lwd, x$num_data_sets)
-  lty <- rep_len(lty, x$num_data_sets)
+  lty <- rep_len(lty, length(x$method_names))
   
   # Estimate rates: counts / efforts per method-location combination
   rates <- list()
-  names <- numeric(x$num_data_sets)
   counter <- 1
   # Loop over all methods
   for (i in 1:length(x$data)){
@@ -346,7 +346,6 @@ plot.birp_data <- function(x,
       times <- method_loc$timepoint[keep]
       # Store rate, timepoints and name
       rates[[counter]] <- list(rates = counts / efforts, times = times)
-      names[counter] <- paste(x$method_names[i], loc[i], sep = "_")
       counter <- counter + 1
     }
   }
@@ -354,16 +353,26 @@ plot.birp_data <- function(x,
   if (any(is.na(ylim))){ ylim <- range(unlist(sapply(rates, function(x) x$rates))) }
   
   # Open plot
-  plot(0, type='n', xlim = xlim, xlab = xlab, ylab = ylab, ylim = ylim, ...)
-  for (i in 1:x$num_data_sets){
-    lines(rates[[i]]$times, rates[[i]]$rates, col = col[i], lwd = lwd[i], lty = lty[i], type = 'b', ...)
+  plot(0, type='n', xlim = xlim, xlab = xlab, ylab = ylab, ylim = ylim)
+  counter <- 1
+  for (i in 1:length(x$data)){
+    method <- x$data[[i]]
+    loc <- unique(sort(method$location))
+    for (j in 1:length(loc)){
+      ix_loc <- which(x$locations == loc[j])
+      lines(rates[[counter]]$times, rates[[counter]]$rates, 
+            col = col[ix_loc], lwd = lwd[counter], lty = lty[i], type = 'b')
+      counter <- counter + 1
+    }
   }  
   
   # Add legend
   if(!is.na(legend.x)){
     legend(x = legend.x, y = legend.y, 
            bty = legend.bty, 
-           legend = names, 
-           lwd = lwd, lty = lty, col = col)
+           legend = c(x$method_names, x$locations), 
+           lwd = lwd, 
+           lty = c(lty, rep(1, length(x$locations))),
+           col = c(rep("black", length(x$method_names)), col))
   }
 }
