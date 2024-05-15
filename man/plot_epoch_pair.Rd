@@ -55,6 +55,8 @@ plot_epoch_pair(
 
 \item{print.p}{If \code{TRUE}, add text representing the posterior probability of a trend change}
 
+\item{add}{Boolean indicating if a lines should be added to an existing plot}
+
 \item{...}{additional parameters passed to the function}
 }
 \value{
@@ -64,8 +66,8 @@ No return value, called for side effects.
 Plotting posterior estimates of epoch pairs
 }
 \examples{
-data <- simulate_birp(timepoints = 1:10, timesOfChange = 5)
-est <- birp(data, timesOfChange = 5)
+data <- simulate_birp(timesOfChange = 2)
+est <- birp(data, timesOfChange = 2)
 plot_epoch_pair(est)
 }
 \seealso{

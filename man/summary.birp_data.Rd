@@ -4,10 +4,10 @@
 \alias{summary.birp_data}
 \title{This function summarizes a birp_data object}
 \usage{
-\method{summary}{birp_data}(x, ...)
+\method{summary}{birp_data}(object, ...)
 }
 \arguments{
-\item{x}{The birp_data object to be printed.}
+\item{object}{The birp_data object to be printed.}
 
 \item{...}{Other parameters passed to function}
 }

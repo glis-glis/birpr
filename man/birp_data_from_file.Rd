@@ -20,7 +20,7 @@ An object of type birp_data
 This function creates a birp_data object
 }
 \examples{
-\donttest{
+\dontrun{
 data <- birp_data_from_file("myInputFile.txt")
 }
 }

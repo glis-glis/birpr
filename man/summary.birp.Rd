@@ -24,5 +24,5 @@ summary(est)
 
 }
 \seealso{
-\code{\link{bexy}}
+\code{\link{birp}}
 }
