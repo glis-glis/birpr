@@ -308,7 +308,7 @@ birp <- function(data,
 #' @param path The path where all the output files of birp are located
 #' @return An object of class birp
 #' @examples 
-#' \donttest{
+#' \dontrun{
 #' est <- birp_from_command_line("/path/to/my/output/directory/")
 #' }
 #' @export
@@ -377,7 +377,7 @@ print.birp <- function(x, ...){
 #' @return No return value, called for side effects.
 #'
 #' @export
-#' @seealso \code{\link{bexy}}
+#' @seealso \code{\link{birp}}
 #' @examples
 #' data <- simulate_birp()
 #' est <- birp(data)
@@ -487,14 +487,15 @@ plot.birp <- function(x,
 #' @param zero.lwd The line width of the line at zero
 #' @param zero.lty The line type of the line at zero
 #' @param print.p If \code{TRUE}, add text representing the posterior probability of a trend change
+#' @param add Boolean indicating if a lines should be added to an existing plot
 #' @param ... additional parameters passed to the function
 #' @return No return value, called for side effects.
 #'
 #' @export
 #' @seealso \code{\link{birp}}
 #' @examples 
-#' data <- simulate_birp(timepoints = 1:10, timesOfChange = 5)
-#' est <- birp(data, timesOfChange = 5)
+#' data <- simulate_birp(timesOfChange = 2)
+#' est <- birp(data, timesOfChange = 2)
 #' plot_epoch_pair(est)
 
 plot_epoch_pair <- function(x, 

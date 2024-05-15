@@ -9,8 +9,10 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 -I${repoName}/genometools/core/ \
 -I${repoName}/stattools/core/ \
 -I${repoName}/core/ \
-$(SHLIB_OPENMP_CXXFLAGS) \
 -DUSE_RCPP
+
+
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
 
 PKG_LIBS    =  -L${repoName}/build -lcoreLib \

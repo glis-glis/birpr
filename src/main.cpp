@@ -3,7 +3,7 @@
 #include "coretools/Main/TMain.h"
 #include "TBirpCore.h"
 
-// [[Rcpp::export]]
+// [[Rcpp::export(.rfun)]]
 Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {
   
   // Create main by providing a program name, a version, an

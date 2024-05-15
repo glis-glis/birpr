@@ -38,7 +38,11 @@
 #' 
 #' @export
 #' @examples
-#' df <- data.frame(timepoint = 1:10, location = rep(1, 10), counts = runif(10, 0, 100), covEffort = rnorm(10))
+#' t <- 1:10
+#' l <- rep(1, 10)
+#' c <- runif(10, 0, 100)
+#' e <- rnorm(10)
+#' df <- data.frame(timepoint = t, location = l, counts = c, covEffort = e)
 #' data <- birp_data_from_data_frame(df)
 
 birp_data_from_data_frame <- function(data){
@@ -129,7 +133,7 @@ birp_data <- function(counts, efforts, times, location_names = paste0("Location_
 #' @param sep The field separator character
 #' @return An object of type birp_data
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data <- birp_data_from_file("myInputFile.txt")
 #' }
 #' @export
@@ -270,14 +274,14 @@ print.birp_data <- function(x, ...){
 }
 
 #' This function summarizes a birp_data object
-#' @param x The birp_data object to be printed.
+#' @param object The birp_data object to be printed.
 #' @param ... Other parameters passed to function
 #' @examples 
 #' data <- simulate_birp()
 #' summary(data)
 #' @export
-summary.birp_data <- function(x, ...){
-  print.birp_data(x);
+summary.birp_data <- function(object, ...){
+  print.birp_data(object);
 }
 
 #---------------------------------------
