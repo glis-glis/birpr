@@ -6,9 +6,9 @@
 \usage{
 \method{plot}{birp_data}(
   x,
-  col = 1:x$num_data_sets,
+  col = 1:length(x$locations),
   lwd = 1,
-  lty = 1,
+  lty = 1:length(x$method_names),
   xlab = "time",
   ylab = "lambda",
   legend.x = "topright",

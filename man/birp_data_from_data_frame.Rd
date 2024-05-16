@@ -20,6 +20,6 @@ t <- 1:10
 l <- rep(1, 10)
 c <- runif(10, 0, 100)
 e <- rnorm(10)
-df <- data.frame(timepoint = t, location = l, counts = c, covEffort = e)
+df <- data.frame(timepoint = t, location = l, counts = c, effort = e)
 data <- birp_data_from_data_frame(df)
 }
