@@ -22,7 +22,7 @@
     if (!("timepoint" %in% names(data[[i]]))) stop("Data frame should contain a column with name 'timepoint'")
     if (!("location" %in% names(data[[i]]))) stop("Data frame should contain a column with name 'location'")
     if (!any(grepl("counts", names(data[[i]])))) stop("Data frame should contain a column starting with 'counts'")
-    if (!any(grepl("covEffort", names(data[[i]])))) stop("Data frame should contain a column starting with 'covEffort'")
+    if (!any(grepl("covEffort", names(data[[i]])) | grepl("effort", names(data[[i]])))) stop("Data frame should contain a column starting with 'covEffort' or 'effort'")
   }
 }
 
@@ -42,7 +42,7 @@
 #' l <- rep(1, 10)
 #' c <- runif(10, 0, 100)
 #' e <- rnorm(10)
-#' df <- data.frame(timepoint = t, location = l, counts = c, covEffort = e)
+#' df <- data.frame(timepoint = t, location = l, counts = c, effort = e)
 #' data <- birp_data_from_data_frame(df)
 
 birp_data_from_data_frame <- function(data){
@@ -117,7 +117,7 @@ birp_data <- function(counts, efforts, times, location_names = paste0("Location_
       dat <- rbind(dat, c(location_names[j], times[k], counts[j,k], efforts[j,k]))
     }
   }
-  names(dat) <- c("location", "timepoint", "counts", "covEffort")
+  names(dat) <- c("location", "timepoint", "counts", "effort")
   
   # call constructor of birp_data
   b <- birp_data_from_data_frame(dat)
@@ -332,7 +332,7 @@ plot.birp_data <- function(x,
     method <- x$data[[i]]
     loc <- unique(sort(method$location))
     ix_counts <- which(grepl("counts", names(method)))
-    ix_effort <- which(grepl("covEffort", names(method)))
+    ix_effort <- which(grepl("covEffort", names(method)) | grepl("effort", names(method)))
     if (length(ix_counts) != 1) stop("Only support plotting birp_data for single-species (single column)!")
     if (length(ix_effort) != 1) stop("Only support plotting birp_data when effort is fixed (single column)!")
     # Loop over all locations for current method
