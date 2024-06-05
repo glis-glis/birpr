@@ -54,6 +54,7 @@ birp_data_from_data_frame <- function(data){
   method_names <- names(data)
   if (is.null(method_names)){
     method_names <- paste0("Method_", 1:length(data))
+    names(data) <- method_names
   }
   
   # Get times and locations
@@ -291,7 +292,7 @@ summary.birp_data <- function(object, ...){
 
 #' Plotting a birp_data Object
 #'
-#' This function plots MLE estimates of rate (lambda) estimates per time-point, method and location
+#' This function plots the counts per unit of effort per time-point, method and location
 #' @param x The birp data object to be printed.
 #' @param col A vector of colors, recycled to match the number of methods and locations
 #' @param lwd A vector of line width, recycled to match the number of methods and locations
@@ -313,7 +314,7 @@ plot.birp_data <- function(x,
                            lwd = 1,
                            lty = 1:length(x$method_names),
                            xlab = "time",
-                           ylab = "lambda",
+                           ylab = "counts per unit of effort",
                            legend.x = "topright",
                            legend.y = NULL,
                            legend.bty = "o",
