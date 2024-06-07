@@ -5,6 +5,7 @@
 
 // [[Rcpp::export(.birp_interface)]]
 Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {
+  coretools::instances::parameters().clear();
   
   // Create main by providing a program name, a version, an
   // affiliation, link to repo and contact email
