@@ -83,17 +83,17 @@
   return(substitute(gamma[epoch], list(epoch=epoch)))
 }
 
-#' Function to add text box to plot denoting P(gamma > 0 | x) or P(gamma < 0 | x) for single epochs
+#' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single epochs
 #' @param x A birp object
 #' @return No return value, called for side effects.
 #' @keywords internal
 .addTextSingleEpoch.birp <- function(x){
   diffFromBorder <- 0.01 * diff(par("usr")[1:2])
   if(x$prob_gamma_positive > 0.5){
-    ttext <- bquote(paste("P(", gamma, " > 0 | D) = ", .(round(x$prob_gamma_positive, 3))))
+    ttext <- bquote(paste("P(", gamma, " > 0 | n) = ", .(round(x$prob_gamma_positive, 3))))
     text(par("usr")[2] - diffFromBorder, par("usr")[4], adj = c(1, 1.5), labels = ttext)
   } else {
-    ttext <- bquote(paste("P(", gamma, " < 0 | x) = ", .(round(1 - x$prob_gamma_positive, 3))))
+    ttext <- bquote(paste("P(", gamma, " < 0 | n) = ", .(round(1 - x$prob_gamma_positive, 3))))
     text(par("usr")[1] + diffFromBorder, par("usr")[4], adj = c(0, 1.5), labels = ttext)
   }
 }
@@ -559,14 +559,14 @@ plot_epoch_pair <- function(x,
            par("usr")[4] - 0.03 * diff(par("usr")[3:4]), 
            pos = 4, 
            labels = substitute(
-               paste('P(', gamma[epoch1], ' < ', gamma[epoch2], ' | x) = ', q),
+               paste('P(', gamma[epoch1], ' < ', gamma[epoch2], ' | n) = ', q),
                list(epoch1 = epoch1, epoch2 = epoch2, q = round(q, digits=4))))
     } else {
       text(par("usr")[2] - 0.005 * diff(par("usr")[1:2]), 
            par("usr")[3] + 0.03 * diff(par("usr")[3:4]), 
            pos = 2, 
            labels = substitute(
-             paste('P(', gamma[epoch1], ' > ', gamma[epoch2], ' | x) = ', q),
+             paste('P(', gamma[epoch1], ' > ', gamma[epoch2], ' | n) = ', q),
              list(epoch1 = epoch1, epoch2 = epoch2, q = round(1 - q, digits=4))))
     }
   }
