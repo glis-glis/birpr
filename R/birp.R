@@ -297,6 +297,9 @@ birp <- function(data,
   gamma <- res[[paste0(out, "_gammaSummaries.txt")]]
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
   
+  # Get times of change: might have changed from original input as birp removes pre- or postdating TOCs
+  timesOfChange <- meanVar[grepl("timesOfChange", meanVar$name),]$posterior_mean
+  
   # Create and return birp object
   x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange)
   return(x)
