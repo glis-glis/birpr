@@ -38,11 +38,7 @@
 #' 
 #' @export
 #' @examples
-#' t <- 1:10
-#' l <- rep(1, 10)
-#' c <- runif(10, 0, 100)
-#' e <- rnorm(10)
-#' df <- data.frame(timepoint = t, location = l, counts = c, effort = e)
+#' df <- data.frame(timepoint = 1:10, location = rep(1, 10), counts =  runif(10, 0, 100), effort = rexp(10), CI_group = "intervention")
 #' data <- birp_data_from_data_frame(df)
 
 birp_data_from_data_frame <- function(data){
@@ -58,8 +54,23 @@ birp_data_from_data_frame <- function(data){
   }
   
   # Get times and locations
-  times <- sort(unique(unlist(sapply(data, function(x) x$timepoint))))
-  locations <- sort(unique(unlist(sapply(data, function(x) x$location))))
+  times <- unique(sort(unlist(sapply(data, function(x) x$timepoint))))
+  locations <- unique(sort(unlist(sapply(data, function(x) x$location))))
+  
+  # Get control-intervention groups (optional)
+  CI_groups <- unique(sort(unlist(sapply(data, function(x) x$CI_group))))
+  if (is.null(CI_groups)){ CI_groups <- "group_1" }
+  
+  # Get CI group per location
+  tmp <- c()
+  for (i in 1:length(data)){ tmp <- rbind(tmp, unique(cbind(data[[i]]$location, data[[i]]$CI_group))) }
+  CI_group_per_location <- numeric(length(locations))
+  for (i in 1:nrow(tmp)){ # check if each location is assigned to a single group only
+    if (sum(tmp[i,1] == tmp[,1] & tmp[i,2] != tmp[,2]) > 0){ 
+      stop(paste0("Location ", tmp[i,1], " is assigned to multiple control-intervention groups! Please assign a location to a single group only."))
+    }
+    CI_group_per_location[locations == tmp[i,1]] <- tmp[i,2]
+  }
   
   # Get number of data sets (location-method-combination)
   num_data_sets <- sum(sapply(data, function(x) length(unique(x$location))))
@@ -68,6 +79,8 @@ birp_data_from_data_frame <- function(data){
             method_names = method_names,
             times = times,
             locations = locations,
+            CI_groups = CI_groups,
+            CI_group_per_location = CI_group_per_location,
             num_data_sets = num_data_sets
             )
   class(x) <- "birp_data"
@@ -81,12 +94,13 @@ birp_data_from_data_frame <- function(data){
 #' @param counts An J x K matrix of the observed counts. Each of the J rows corresponds to a location obtained at each of K times (columns)
 #' @param efforts An J x K matrix of the effort conducted to observe the counts
 #' @param times A vector giving the K time points at which counts were obtained
-#' @param location_names Names to distinguish the locations
+#' @param CI_groups The name of the control-intervention (CI) group for each location. By default, all locations belong to the same group (group_1)
+#' @param location_names Names to distinguish the locations. By default, locations are named after their row index in counts
 #' @return An object of type birp_data
 #' @examples 
 #' data <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
 #' @export
-birp_data <- function(counts, efforts, times, location_names = paste0("Location_", 1:nrow(counts))){
+birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names = NULL){
   # Check variables
   if (any(counts < 0, na.rm = T) | any(efforts < 0, na.rm = T))  stop("Counts and efforts can not be negative!")
   if (any(is.na(times))) stop("NA in times are not allowed!")
@@ -106,7 +120,13 @@ birp_data <- function(counts, efforts, times, location_names = paste0("Location_
   if (!is.matrix(efforts)){
     efforts <- as.matrix(efforts)
   }
+  
+  # Assign default values go CI_groups and location_names, if necessary
+  if (is.null(CI_groups)){ CI_groups <- rep("group_1", nrow(counts)) }
+  if (is.null(location_names)){ location_names <- paste0("Location_", 1:nrow(counts)) }
+  
   if (sum(dim(counts) == dim(efforts)) != 2) stop("Counts and efforts must have the same dimensionality!")
+  if (length(CI_groups) != nrow(counts)) stop("Length of CI_groups must match the number of rows of counts!")
   if (length(location_names) != nrow(counts)) stop("Length of location_names must match the number of rows of counts!")
   if (length(times) != ncol(counts)) stop("Length of times must match the number of columns of counts!")
   
@@ -115,10 +135,10 @@ birp_data <- function(counts, efforts, times, location_names = paste0("Location_
   for (j in 1:nrow(counts)){
     for (k in 1:ncol(counts)){
       if (is.na(counts[j,k]) | is.na(efforts[j,k])){ next; } # ignore counts or efforts with NA
-      dat <- rbind(dat, c(location_names[j], times[k], counts[j,k], efforts[j,k]))
+      dat <- rbind(dat, c(location_names[j], times[k], CI_groups[j], counts[j,k], efforts[j,k]))
     }
   }
-  names(dat) <- c("location", "timepoint", "counts", "effort")
+  names(dat) <- c("location", "timepoint", "CI_group", "counts", "effort")
   
   # call constructor of birp_data
   b <- birp_data_from_data_frame(dat)
@@ -189,9 +209,10 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
 #' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if the deterministic (default) or stochastic trend model should be used
-#' @param timepoints A vector of integers that denote the time points at which the counts were obtained
-#' @param numLocations An integer denoting the number of locations at which the counts were obtained
-#' @param numMethods An integer denoting the number of methods with which the counts were obtained
+#' @param timepoints A vector of integers that denote the time points
+#' @param numLocations An integer denoting the number of locations
+#' @param numMethods An integer denoting the number of methods
+#' @param numCIGroups An integer denoting the number of control-intervention (CI) groups
 #' @param numCovariatesEffort An integer denoting the number of covariates for modeling the effort
 #' @param numCovariatesDetection An integer denoting the number of covariates for modeling the detection probabilities
 #' @param n_bar A single number (shared across methods) or a numeric vector (per method) denoting the average number of counts to be simulated
@@ -212,6 +233,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
                           stochastic = FALSE,
                           numLocations = 2,
                           numMethods = 1,
+                          numCIGroups = 1,
                           numCovariatesEffort = 1,
                           numCovariatesDetection = 0,
                           n_bar = 1000,
@@ -266,10 +288,11 @@ simulate_birp <- function(timepoints = c(1,2,3),
 #' print(data)
 #' @export
 print.birp_data <- function(x, ...){
-  cat("birp_data object for", length(x$method_names), "method(s),", length(x$locations), "location(s) and", length(x$times), "time points:\n");
+  cat("birp_data object for", length(x$method_names), "method(s),", length(x$locations), "location(s),", length(x$CI_groups), "control-intervention (CI) group(s) and", length(x$times), "time points:\n");
   cat(" - methods: [", paste(x$method_names, collapse=", "), "]\n", sep="");
   cat(" - locations: [", paste(x$locations, collapse=", "), "]\n", sep="");
   cat(" - time points: [", paste(x$times, collapse=", "), "]\n", sep="");
+  cat(" - control-intervention (CI) groups: [", paste(x$CI_groups, collapse=", "), "]\n", sep="");
   cat(" - total number of data points: ", sum(sapply(x$data, nrow)),"\n", sep="");
   
   invisible(x)
@@ -313,6 +336,7 @@ plot.birp_data <- function(x,
                            col = 1:length(x$locations),
                            lwd = 1,
                            lty = 1:length(x$method_names),
+                           pch = 1:length(x$CI_groups),
                            xlab = "time",
                            ylab = "counts per unit of effort",
                            legend.x = "topright",
@@ -324,6 +348,7 @@ plot.birp_data <- function(x,
   col <- rep_len(col, length(x$locations))
   lwd <- rep_len(lwd, x$num_data_sets)
   lty <- rep_len(lty, length(x$method_names))
+  pch <- rep_len(pch, length(x$CI_groups))
   
   # Estimate rates: counts / efforts per method-location combination
   rates <- list()
@@ -361,8 +386,9 @@ plot.birp_data <- function(x,
     loc <- unique(sort(method$location))
     for (j in 1:length(loc)){
       ix_loc <- which(x$locations == loc[j])
+      ix_group <- which(x$CI_group_per_location[ix_loc] == x$CI_groups)
       lines(rates[[counter]]$times, rates[[counter]]$rates, 
-            col = col[ix_loc], lwd = lwd[counter], lty = lty[i], type = 'b')
+            col = col[ix_loc], lwd = lwd[counter], lty = lty[i], pch = pch[ix_group], type = 'b')
       counter <- counter + 1
     }
   }  
@@ -371,9 +397,10 @@ plot.birp_data <- function(x,
   if(!is.na(legend.x)){
     legend(x = legend.x, y = legend.y, 
            bty = legend.bty, 
-           legend = c(x$method_names, x$locations), 
+           legend = c(x$method_names, x$locations, x$CI_groups), 
            lwd = lwd, 
-           lty = c(lty, rep(1, length(x$locations))),
-           col = c(rep("black", length(x$method_names)), col))
+           lty = c(lty, rep(1, length(x$locations) + length(x$CI_groups))),
+           col = c(rep("black", length(x$method_names)), col, rep("black", length(x$CI_groups))),
+           pch = c(rep(1, length(x$locations) + length(x$method_names)), pch))
   }
 }

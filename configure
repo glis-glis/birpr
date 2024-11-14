@@ -40,7 +40,8 @@ if [ -d $repoName ]; then
 	cd ../
 else
 	git clone https://madleina@bitbucket.org/wegmannlab/${repoName}.git
-
+	git checkout madleina/BACI # TODO: change after merging!
+	
 	# Run CMake
 	cd $repoName && mkdir -p build && cd build
 	${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON -DPARALLEL=OFF .. > cmake_log.txt

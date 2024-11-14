@@ -76,18 +76,18 @@
 }
 
 #' Function to generate a nice axis label with greek gamma and subscript
-#' @param epoch The epoch in the subscript
+#' @param index The index in the subscript
 #' @return A string
 #' @keywords internal
-.getLabelGamma.birp <- function(epoch){
-  return(substitute(gamma[epoch], list(epoch=epoch)))
+.getLabelGamma.birp <- function(x, index){
+  return(substitute(gamma[name], list(name=x$gamma_names[index])))
 }
 
-#' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single epochs
+#' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single gammas
 #' @param x A birp object
 #' @return No return value, called for side effects.
 #' @keywords internal
-.addTextSingleEpoch.birp <- function(x){
+.addTextSingleGamma.birp <- function(x){
   diffFromBorder <- 0.01 * diff(par("usr")[1:2])
   if(x$prob_gamma_positive > 0.5){
     ttext <- bquote(paste("P(", gamma, " > 0 | n) = ", .(round(x$prob_gamma_positive, 3))))
@@ -98,10 +98,10 @@
   }
 }
 
-#' Function to add legend to plot denoting epochs
+#' Function to add legend to plot denoting gammas
 #' @param x A birp object
 #' @param legend Add a legend to the plot
-#' @param dens A list containing the densities for each epoch
+#' @param dens A list containing the densities for each gamma
 #' @param xlim The x-limits (x1, x2) of the plot
 #' @param col Line color, one per epoch
 #' @param lwd Line width, one per epoch
@@ -109,13 +109,13 @@
 #' @param ... additional parameters passed to the function.
 #' @return No return value, called for side effects.
 #' @keywords internal
-.addLegendMultiEpoch.birp <- function(x, legend, dens, xlim, col, lwd, lty, ...){
+.addLegendMultiGamma.birp <- function(x, legend, dens, xlim, col, lwd, lty, ...){
   # Add legend
   # Check if highest density is left or right of plot
   max.y <- max(dens[[1]]$y)
   max.x <- dens[[1]]$x[dens[[1]]$y == max(dens[[1]]$y)]
-  if (x$num_epochs > 1){
-    for (e in 2:x$num_epochs){
+  if (x$num_gamma > 1){
+    for (e in 2:x$num_gamma){
       if (max(dens[[e]]$y) > max.y){
         max.y <- max(dens[[e]]$y)
         max.x <- dens[[e]]$x[dens[[e]]$y == max(dens[[e]]$y)]
@@ -188,13 +188,13 @@
 #' @param sep The field separator character of the input file
 #' @return A file connection.
 #' @keywords internal
-.openFile.birp <- function(path, files, patterns, sep = "\t"){
+.openFile.birp <- function(path, files, patterns, sep = "\t", header = TRUE){
   filename <- .checkFile.birp(path, files, patterns, sep = sep)
   
   if (file.size(paste0(path, filename)) == 3){ # empty file
     return(data.frame())
   }
-  f <- read.table(paste0(path, filename), header = TRUE, check.names = FALSE, sep = sep)
+  f <- read.table(paste0(path, filename), header = header, check.names = FALSE, sep = sep)
   return(f)
 }
 
@@ -205,9 +205,10 @@
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
+#' @param BACI A matrix specifying the BACI configuration
 #' @return An object of type birp
 #' @keywords internal
-.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange){
+.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI){
   # Calculate statistics on gamma
   gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
   trace_gamma <- as.matrix(trace[,grepl("gamma", names(trace))])
@@ -224,7 +225,10 @@
             trace_gamma = trace_gamma,
             gamma = gamma,
             num_epochs = length(timesOfChange) + 1,
+            gamma_names = names(gamma)[2:ncol(gamma)],
+            num_gamma = length(names(gamma)) - 1,
             times_of_change = timesOfChange,
+            BACI = BACI,
             gamma_posterior_mean = gamma_posterior_mean,
             gamma_posterior_median = gamma_posterior_median,
             gamma_posterior_q05 = gamma_posterior_q05,
@@ -298,10 +302,13 @@ birp <- function(data,
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
   
   # Get times of change: might have changed from original input as birp removes pre- or postdating TOCs
-  timesOfChange <- meanVar[grepl("timesOfChange", meanVar$name),]$posterior_mean
+  timesOfChange <- res[[paste0(out, "_timesOfChange.txt")]][,1]
+  
+  # Get BACI configuration
+  BACI <- res[[paste0(out, "_BACI_configuration.txt")]]
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange)
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI)
   return(x)
 }
 
@@ -335,10 +342,13 @@ birp_from_command_line <- function(path){
   timepoints <- .openFile.birp(path, files, "_timepoints.txt")
   
   # Get times of change
-  timesOfChange <- meanVar[grepl("timesOfChange", meanVar$name),]$posterior_mean
+  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = F)[,1]
+  
+  # Get BACI file
+  BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = F)
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange)
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI)
   return(x)
 }
 
@@ -365,6 +375,7 @@ print.birp <- function(x, ...){
   if (x$num_epochs > 1){ # only for print multi-epoch
     cat(" - times of change: [", paste0(x$times_of_change, collapse = ", "), "]\n", sep = "")
   }
+  cat(" - Gamma: [", paste0(x$gamma_names, collapse=", "), "]\n", sep = "")
   cat(" - Posterior mean of gamma: [", paste0(x$gamma_posterior_mean, collapse=", "), "]\n", sep = "")
   cat(" - Posterior median of gamma: [", paste0(x$gamma_posterior_median, collapse=", "), "]\n", sep = "")
   cat(" - Posterior 5% quantile of gamma: [", paste0(x$gamma_posterior_q05, collapse=", "), "]\n", sep = "")
@@ -399,9 +410,9 @@ summary.birp <- function(object, ...){
 #' @param x A birp object
 #' @param shadingIncrease Shading color for the range gamma > 0. If \code{NA}, shading is omitted
 #' @param shadingDecrease Shading color for the range gamma < 0. If \code{NA}, shading is omitted
-#' @param col Line color, one per epoch. If a single value is provided, it is recycled to match the number of epochs.
-#' @param lwd Line width, one per epoch. If a single value is provided, it is recycled to match the number of epochs.
-#' @param lty Line type, one per epoch. If a single value is provided, it is recycled to match the number of epochs.
+#' @param col Line color, one per gamma. If a single value is provided, it is recycled to match the number of gammas.
+#' @param lwd Line width, one per gamma. If a single value is provided, it is recycled to match the number of gammas.
+#' @param lty Line type, one per gamma. If a single value is provided, it is recycled to match the number of gammas.
 #' @param xlim The x-limits (x1, x2) of the plot. If NA, these are determined automatically
 #' @param ylim The y-limits (y1, y2) of the plot. If NA, these are determined automatically
 #' @param add If \code{TRUE}, posterior density is added to currently open plot. If FALSE, a new plot is opened.
@@ -424,23 +435,23 @@ plot.birp <- function(x,
                       shadingDecrease = "#f2c7c7",
                       col = "black",
                       lwd = 1,
-                      lty = 1:x$num_epochs,
+                      lty = 1:x$num_gamma,
                       xlim = NA,
                       ylim = NA,
                       add = FALSE,
                       xlab = expression(gamma),
                       ylab = "Posterior density",
-                      legend = paste("Epoch", 1:x$num_epochs),
+                      legend = x$gamma_names,
                       lineAtZero = TRUE,
                       ...){
   # Recycle col, lwd and lty
-  col <- rep_len(col, x$num_epochs)
-  lwd <- rep_len(lwd, x$num_epochs)
-  lty <- rep_len(lty, x$num_epochs)
+  col <- rep_len(col, x$num_gamma)
+  lwd <- rep_len(lwd, x$num_gamma)
+  lty <- rep_len(lty, x$num_gamma)
   
   # Calculate all densities
-  dens <- list(x$num_epochs)
-  for (e in 1:x$num_epochs){
+  dens <- list(x$num_gamma)
+  for (e in 1:x$num_gamma){
     dens[[e]] <- stats::density(x$trace_gamma[,e])
   }
   
@@ -465,19 +476,19 @@ plot.birp <- function(x,
  
   # Add legend?
   if (!any(is.na(legend))){
-    if (x$num_epochs == 1){
-      .addTextSingleEpoch.birp(x)
+    if (x$num_gamma == 1){
+      .addTextSingleGamma.birp(x)
     } else {
-      .addLegendMultiEpoch.birp(x, legend, dens, xlim, col, lwd, lty, ...)
+      .addLegendMultiGamma.birp(x, legend, dens, xlim, col, lwd, lty, ...)
     }
   }
 }
 
-#' Plotting posterior estimates of epoch pairs
+#' Plotting posterior estimates of gamma pairs
 #'
 #' @param x A birp object
-#' @param epoch1 The index of the first epoch to plot
-#' @param epoch2 The index of the second epoch to plot
+#' @param epoch1 The index of the first gamma to plot
+#' @param epoch2 The index of the second gamma to plot
 #' @param xlab A label for the x axis
 #' @param ylab A label for the y axis
 #' @param xlim The x-limits (x1, x2) of the plot. Note that x1 > x2 is allowed and leads to a "reversed axis". The default value, NULL, indicates that the range of the finite values to be plotted should be used
@@ -502,11 +513,11 @@ plot.birp <- function(x,
 #' plot_epoch_pair(est)
 
 plot_epoch_pair <- function(x, 
-                            epoch1 = 1,
-                            epoch2 = 2,
-                            xlab = .getLabelGamma.birp(epoch1),
-                            ylab = .getLabelGamma.birp(epoch2),
-                            xlim = range(x$trace_gamma[,c(epoch1, epoch2)]),
+                            gamma1 = 1,
+                            gamma2 = 2,
+                            xlab = .getLabelGamma.birp(x, gamma1),
+                            ylab = .getLabelGamma.birp(x, gamma2),
+                            xlim = range(x$trace_gamma[,c(gamma1, gamma2)]),
                             ylim = xlim,
                             col = "deeppink",
                             diag.col = "black",
@@ -519,16 +530,16 @@ plot_epoch_pair <- function(x,
                             add = FALSE,
                             ...){
   # check if x has at least 2 epochs
-  if (x$num_epochs < 2) {
-    stop("Need at least 2 epochs!")
+  if (x$num_gamma < 2) {
+    stop("Need at least 2 gamma!")
   }
   
   # Check parameters
-  if (epoch1 < 1 | epoch1 > x$num_epochs){ stop("Epoch ", epoch1, " does not exist!") }
-  if (epoch2 < 1 | epoch2 > x$num_epochs){ stop("Epoch ", epoch2, " does not exist!") }
+  if (gamma1 < 1 | gamma1 > x$num_gamma){ stop("Gamma ", gamma1, " does not exist!") }
+  if (gamma2 < 1 | gamma2 > x$num_gamma){ stop("Gamma ", gamma2, " does not exist!") }
   
   # Obtain density estimates
-  dens <- MASS::kde2d(x$trace_gamma[,epoch1], x$trace_gamma[,epoch2])
+  dens <- MASS::kde2d(x$trace_gamma[,gamma1], x$trace_gamma[,gamma2])
   
   #make 2D density plot
   contour(dens$x, dens$y, dens$z, 
@@ -553,8 +564,8 @@ plot_epoch_pair <- function(x,
     }
   }
   
-  # Print P(gamma.epoch1 < gamma.epoch2)
-  q <- sum(x$trace_gamma[,epoch1] < x$trace_gamma[,epoch2]) / nrow(x$trace_gamma)
+  # Print P(gamma1 < gamma2)
+  q <- sum(x$trace_gamma[,gamma1] < x$trace_gamma[,gamma2]) / nrow(x$trace_gamma)
   
   if (!add & print.p){
     if (q < 0.5){
@@ -562,15 +573,15 @@ plot_epoch_pair <- function(x,
            par("usr")[4] - 0.03 * diff(par("usr")[3:4]), 
            pos = 4, 
            labels = substitute(
-               paste('P(', gamma[epoch1], ' < ', gamma[epoch2], ' | n) = ', q),
-               list(epoch1 = epoch1, epoch2 = epoch2, q = round(q, digits=4))))
+               paste('P(', gamma[name1], ' < ', gamma[name2], ' | n) = ', q),
+               list(name1 = x$gamma_names[gamma1], name2 = x$gamma_names[gamma2], q = round(q, digits=4))))
     } else {
       text(par("usr")[2] - 0.005 * diff(par("usr")[1:2]), 
            par("usr")[3] + 0.03 * diff(par("usr")[3:4]), 
            pos = 2, 
            labels = substitute(
-             paste('P(', gamma[epoch1], ' > ', gamma[epoch2], ' | n) = ', q),
-             list(epoch1 = epoch1, epoch2 = epoch2, q = round(1 - q, digits=4))))
+             paste('P(', gamma[name1], ' > ', gamma[name2], ' | n) = ', q),
+             list(name1 = x$gamma_names[gamma1], name2 = x$gamma_names[gamma2], q = round(1 - q, digits=4))))
     }
   }
 }
@@ -578,7 +589,7 @@ plot_epoch_pair <- function(x,
 #' Plotting posterior trajectories
 #'
 #' @param x A birp object
-#' @param xlim The x limits (x1, x2) of the plot. Note that x1 > x2 is allowed and leads to a "reversed axis". The default value, NULL, indicates that the range of the finite values to be plotted should be used.
+#' @param CI_group The index of the control-intervention (CI) group to plot. By default, the first group is plotted.
 #' @param n_points Number of points
 #' @param quantiles Which quantiles to plot
 #' @param quantile.col Colors of the quantiles
@@ -607,7 +618,7 @@ plot_epoch_pair <- function(x,
 #' plot_trajectory(est)
 
 plot_trajectory <- function(x, 
-                            xlim = range(x$timepoints), 
+                            CI_group = 1,
                             n_points = 1000, 
                             quantiles = c(0.99, 0.9, 0.5, 0.25), 
                             quantile.col = "gray"(seq(1, 0, length.out = length(quantiles)+2)[2:(length(quantiles)+1)]), 
@@ -628,48 +639,43 @@ plot_trajectory <- function(x,
   # Check parameters
   if(max(quantiles) > 1.0){ stop("Provided quantiles must be <= 1.0!") }
   if(min(quantiles) <= 0.0){ stop("Provided quantiles must be > 0.0!") }
-  if(sum(xlim < 0) > 0){ stop("xlim range must be positive!") }
-  if(xlim[2] <= xlim[1]){ stop("xlim range is zero or inverted!") }
+
+  # Get gammas of CI group
+  relevant_gamma_names <- as.character(x$BACI[CI_group,])
+  # Get indices of gamma: compact repetitive gamma in a single value (e.g. 1,1,2,2,1 --> 1,2,1)
+  gamma.cols <- rle(as.numeric(sapply(relevant_gamma_names, function(name) which(x$gamma_names == name))))$values
+  
+  # Get relevant epochs
+  xlim <- range(x$timepoints)
+  if (length(unique(gamma.cols)) == 1){
+    # single epoch
+    times_of_change <- c()
+  } else {
+    times_of_change <- x$times_of_change[gamma.cols[gamma.cols != length(x$gamma_names)]] # there is no TOC for last gamma
+  }
   
   # Prepare calculations of means
-  epoch_ranges <- c(xlim[1], x$times_of_change[x$times_of_change > xlim[1] & x$times_of_change < xlim[2]], xlim[2])
+  epoch_ranges <- c(xlim[1], times_of_change[times_of_change > xlim[1] & times_of_change < xlim[2]], xlim[2])
   epoch_length <- epoch_ranges[2:length(epoch_ranges)] - epoch_ranges[1:(length(epoch_ranges)-1)]
-  rho <- .calculateRho.birp(epoch_ranges, x$times_of_change)
+  rho <- .calculateRho.birp(epoch_ranges, times_of_change)
   num_epochs <- length(epoch_length)
-  
-  # Which epochs are relevant?
-  if (x$num_epochs == 1){
-    first.gamma.col <- 1
-  } else if(xlim[1] >= max(x$times_of_change)){
-    first.gamma.col <- length(x$times_of_change) + 1
-  } else {
-    first.gamma.col <- min(which(c(x$times_of_change > xlim[1])))
-  }
-  if (x$num_epochs == 1){
-    last.gamma.col <- 1
-  } else if(xlim[2] <= min(x$times_of_change)){
-    last.gamma.col <- 1
-  } else {
-    last.gamma.col <- max(which(x$times_of_change < epoch_ranges[length(epoch_ranges)]))+1
-  }
-  gamma.cols <- first.gamma.col:last.gamma.col
-  
+
   # Prepare points at which to calculate rates
   xvals <- seq(xlim[1], xlim[2], length.out = n_points)
-  rho_x <- .calculateRho.birp(xvals, x$times_of_change)
+  rho_x <- .calculateRho.birp(xvals, times_of_change)
   mcmc_length <- nrow(x$trace)
   rates <- matrix(0, ncol = length(xvals), nrow = mcmc_length - 1)
   
   for (i in 2:mcmc_length){
     # Calculate mean to normalize / align
     # Prevent underflow by normalizing with mean
-    change <- rho %*% x$trace_gamma[i,]
+    change <- rho %*% x$trace_gamma[i,gamma.cols]
     meanLog <- mean(change)
     change <- exp(change - meanLog)
     average <- sum((change[2:(num_epochs+1),1] - change[1:num_epochs]) / x$trace_gamma[i,gamma.cols] / epoch_length)
     
     # Calc normalized rates
-    rates[i-1,] <- rho_x %*% x$trace_gamma[i,] - log(average) - meanLog
+    rates[i-1,] <- rho_x %*% x$trace_gamma[i,gamma.cols] - log(average) - meanLog
   }
   
   if(!log){
@@ -685,7 +691,7 @@ plot_trajectory <- function(x,
   
   # Add epochs
   if(!is.na(epoch.lwd) & epoch.lwd>0){
-    for(t in x$times_of_change[x$times_of_change > xlim[1] & x$times_of_change < xlim[2]]){
+    for(t in times_of_change[times_of_change > xlim[1] & times_of_change < xlim[2]]){
       lines(rep(t, 2), par("usr")[3:4], col = epoch.col, lwd = epoch.lwd, lty = epoch.lty)
     }
   }
@@ -732,13 +738,13 @@ plot_mcmc <- function(x, col=c("black", "blue")){
   # Plot MCMC and posterior for each epoch
   mcmc_len <- nrow(x$trace)
   
-  for(e in 1:x$num_epochs){
+  for(i in 1:x$num_gamma){
     # Plot trace
     xax <- 1:nrow(x$trace_gamma)
-    plot(xax, x$trace_gamma[,e], xlab = "Iteration (thinned)", ylab = bquote(gamma[.(e)]))
+    plot(xax, x$trace_gamma[,i], xlab = "Iteration (thinned)", ylab = bquote(gamma[.(i)]))
 
     # Plot density
-    plot(stats::density(x$trace_gamma[,e]),  main="", xlab=bquote(gamma[.(e)]), ylab="Posterior density")
+    plot(stats::density(x$trace_gamma[,i]),  main="", xlab=bquote(gamma[.(i)]), ylab="Posterior density")
   }
 }
 
