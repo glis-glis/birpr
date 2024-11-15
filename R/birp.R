@@ -80,7 +80,7 @@
 #' @return A string
 #' @keywords internal
 .getLabelGamma.birp <- function(x, index){
-  return(substitute(gamma[name], list(name=x$gamma_names[index])))
+  return(substitute(paste(gamma[index], ' (', name, ')'), list(index=index, name=x$gamma_names[index])))
 }
 
 #' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single gammas
@@ -206,9 +206,10 @@
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param BACI A matrix specifying the BACI configuration
+#' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
 #' @return An object of type birp
 #' @keywords internal
-.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI){
+.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups){
   # Calculate statistics on gamma
   gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
   trace_gamma <- as.matrix(trace[,grepl("gamma", names(trace))])
@@ -227,8 +228,9 @@
             num_epochs = length(timesOfChange) + 1,
             gamma_names = names(gamma)[2:ncol(gamma)],
             num_gamma = length(names(gamma)) - 1,
-            times_of_change = timesOfChange,
+            times_of_change = as.numeric(timesOfChange),
             BACI = BACI,
+            CI_groups = CI_groups$CI_groups,
             gamma_posterior_mean = gamma_posterior_mean,
             gamma_posterior_median = gamma_posterior_median,
             gamma_posterior_q05 = gamma_posterior_q05,
@@ -300,15 +302,16 @@ birp <- function(data,
   trace <- res[[paste0(out, "_trace.txt")]]
   gamma <- res[[paste0(out, "_gammaSummaries.txt")]]
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
+  CI_groups <- res[[paste0(out, "_CI_groups.txt")]]
   
   # Get times of change: might have changed from original input as birp removes pre- or postdating TOCs
-  timesOfChange <- res[[paste0(out, "_timesOfChange.txt")]][,1]
+  timesOfChange <- res[[paste0(out, "_timesOfChange.txt")]]
   
   # Get BACI configuration
   BACI <- res[[paste0(out, "_BACI_configuration.txt")]]
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI)
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups)
   return(x)
 }
 
@@ -340,15 +343,16 @@ birp_from_command_line <- function(path){
   trace <- .openFile.birp(path, files, "_trace.txt")
   gamma <- .openFile.birp(path, files, "_gammaSummaries.txt")
   timepoints <- .openFile.birp(path, files, "_timepoints.txt")
+  CI_groups <- .openFile.birp(path, files, "_CI_groups.txt", header = T)
   
   # Get times of change
-  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = F)[,1]
+  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = F)
   
   # Get BACI file
   BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = F)
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI)
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups)
   return(x)
 }
 
@@ -469,7 +473,7 @@ plot.birp <- function(x,
   }
   
   # Plot densities
-  for (e in 1:x$num_epochs){
+  for (e in 1:x$num_gamma){
     lines(dens[[e]], col = col[e], lwd = lwd[e], lty = lty[e], ...)
   }
   
@@ -574,14 +578,14 @@ plot_epoch_pair <- function(x,
            pos = 4, 
            labels = substitute(
                paste('P(', gamma[name1], ' < ', gamma[name2], ' | n) = ', q),
-               list(name1 = x$gamma_names[gamma1], name2 = x$gamma_names[gamma2], q = round(q, digits=4))))
+               list(name1 = gamma1, name2 = gamma2, q = round(q, digits=4))))
     } else {
       text(par("usr")[2] - 0.005 * diff(par("usr")[1:2]), 
            par("usr")[3] + 0.03 * diff(par("usr")[3:4]), 
            pos = 2, 
            labels = substitute(
              paste('P(', gamma[name1], ' > ', gamma[name2], ' | n) = ', q),
-             list(name1 = x$gamma_names[gamma1], name2 = x$gamma_names[gamma2], q = round(1 - q, digits=4))))
+             list(name1 = gamma1, name2 = gamma2, q = round(1 - q, digits=4))))
     }
   }
 }
@@ -635,23 +639,32 @@ plot_trajectory <- function(x,
                             log = FALSE,
                             xlab = "Time",
                             ylab = paste(c("log", "Relative Density")[c(log, TRUE)], collapse=" "),
+                            main = x$CI_groups[CI_group],
                             ...){
+  if (CI_group > length(x$CI_groups)){
+    stop(paste0("Invalid CI_group index ", CI_group, "!"))
+  }
+  
   # Check parameters
   if(max(quantiles) > 1.0){ stop("Provided quantiles must be <= 1.0!") }
   if(min(quantiles) <= 0.0){ stop("Provided quantiles must be > 0.0!") }
 
   # Get gammas of CI group
   relevant_gamma_names <- as.character(x$BACI[CI_group,])
-  # Get indices of gamma: compact repetitive gamma in a single value (e.g. 1,1,2,2,1 --> 1,2,1)
-  gamma.cols <- rle(as.numeric(sapply(relevant_gamma_names, function(name) which(x$gamma_names == name))))$values
+  # Get indices of gamma
+  gamma.cols <- as.numeric(sapply(relevant_gamma_names, function(name) which(x$gamma_names == name)))
   
-  # Get relevant epochs
   xlim <- range(x$timepoints)
-  if (length(unique(gamma.cols)) == 1){
-    # single epoch
-    times_of_change <- c()
-  } else {
-    times_of_change <- x$times_of_change[gamma.cols[gamma.cols != length(x$gamma_names)]] # there is no TOC for last gamma
+  times_of_change <- x$times_of_change
+  
+  # Get times of change that should be marked in plot
+  highlight_times_of_change <- c()
+  if (x$num_epochs > 1){
+    for (i in 2:x$num_epochs){
+      if (gamma.cols[i] != gamma.cols[i-1]){
+        highlight_times_of_change <- c(highlight_times_of_change, x$times_of_change[i-1])
+      }
+    }
   }
   
   # Prepare calculations of means
@@ -687,11 +700,11 @@ plot_trajectory <- function(x,
   quant <- apply(rates, 2, quantile, probs = probs)
   
   # Open plot
-  plot(0, type = 'n', xlim = xlim, ylim = range(quant, na.rm = TRUE), xlab = xlab, ylab = ylab, ...)
+  plot(0, type = 'n', xlim = xlim, ylim = range(quant, na.rm = TRUE), xlab = xlab, ylab = ylab, main = main, ...)
   
   # Add epochs
   if(!is.na(epoch.lwd) & epoch.lwd>0){
-    for(t in times_of_change[times_of_change > xlim[1] & times_of_change < xlim[2]]){
+    for(t in highlight_times_of_change[highlight_times_of_change > xlim[1] & highlight_times_of_change < xlim[2]]){
       lines(rep(t, 2), par("usr")[3:4], col = epoch.col, lwd = epoch.lwd, lty = epoch.lty)
     }
   }
@@ -733,7 +746,7 @@ plot_trajectory <- function(x,
 plot_mcmc <- function(x, col=c("black", "blue")){
   # Layout
   on.exit(layout(matrix(1)))
-  layout(matrix(1:(2*x$num_epochs), ncol = 2, byrow=TRUE), widths = c(2,1))
+  layout(matrix(1:(2*x$num_gamma), ncol = 2, byrow=TRUE), widths = c(2,1))
   
   # Plot MCMC and posterior for each epoch
   mcmc_len <- nrow(x$trace)
