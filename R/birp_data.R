@@ -255,11 +255,19 @@ simulate_birp <- function(timepoints = c(1,2,3),
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
   for (i in 1:length(args)){
+    if (names(args)[i] == "BACI") next # skip BACI: no command-line argument
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
-  # Run MCMC
-  res <- .birp_interface(options, list(x = c()))
+  # Add input BACI names
+  data <- list(x = c())
+  if (!is.null(BACI)){
+    options[["BACI"]] <- "BACI"
+    data <- list(BACI = BACI)
+  }
+
+  # Run simulation
+  res <- .birp_interface(options, data)
   
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
