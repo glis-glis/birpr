@@ -215,7 +215,7 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @param numCIGroups An integer denoting the number of control-intervention (CI) groups
 #' @param numCovariatesEffort An integer denoting the number of covariates for modeling the effort
 #' @param numCovariatesDetection An integer denoting the number of covariates for modeling the detection probabilities
-#' @param BACI A matrix defining the before-after control-intervention (BACI) layout
+#' @param BACI A matrix or a dataframe defining the before-after control-intervention (BACI) layout
 #' @param n_bar A single number (shared across methods) or a numeric vector (per method) denoting the average number of counts to be simulated
 #' @param a A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution
 #' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
@@ -260,14 +260,14 @@ simulate_birp <- function(timepoints = c(1,2,3),
   }
   
   # Add input BACI names
-  data <- list(x = c())
+  rcpp_data <- list(x = c())
   if (!is.null(BACI)){
     options[["BACI"]] <- "BACI"
-    data <- list(BACI = BACI)
+    rcpp_data <- list(BACI = BACI)
   }
 
   # Run simulation
-  res <- .birp_interface(options, data)
+  res <- .birp_interface(options, rcpp_data)
   
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})

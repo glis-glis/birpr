@@ -254,6 +254,7 @@
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
+#' @param BACI A matrix or a dataframe defining the before-after control-intervention (BACI) layout
 #' @param assumeTrueDetectionProbability A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized
 #' @param iterations The number of MCMC iterations to run
 #' @param numBurnin The number of burnin cycles to run
@@ -267,6 +268,7 @@ birp <- function(data,
                  timesOfChange = c(),
                  negativeBinomial = FALSE,
                  stochastic = FALSE,
+                 BACI = NULL,
                  assumeTrueDetectionProbability = FALSE,
                  iterations = 100000,
                  numBurnin = 10,
@@ -285,14 +287,22 @@ birp <- function(data,
   options <- list(task = "infer", out = out)
   for (i in 1:length(args)){
     if (names(args)[i] == "data") next # skip data: no command-line argument
+    if (names(args)[i] == "BACI") next # skip BACI: no command-line argument
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
   # Add input data names
+  rcpp_data <- data$data
   options[["data"]] <- paste(data$method_names, collapse = ",")
   
+  # Add BACI (if provided)
+  if (!is.null(BACI)){
+    options[["BACI"]] <- "BACI"
+    rcpp_data$BACI <- BACI
+  }
+  
   # Run MCMC
-  res <- .birp_interface(options, data$data)
+  res <- .birp_interface(options, rcpp_data)
   
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
