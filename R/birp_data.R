@@ -59,7 +59,10 @@ birp_data_from_data_frame <- function(data){
   
   # Get control-intervention groups (optional)
   CI_groups <- unique(sort(unlist(sapply(data, function(x) x$CI_group))))
-  if (is.null(CI_groups)){ CI_groups <- "group_1" }
+  if (is.null(CI_groups)){ 
+    CI_groups <- "group_1"
+    for (i in 1:length(data)){ data[[i]]$CI_group <- CI_groups }
+  }
   
   # Get CI group per location
   tmp <- c()
