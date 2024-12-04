@@ -205,7 +205,7 @@
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param BACI A matrix specifying the BACI configuration
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c(1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group and the second row represents the intervention group
 #' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
 #' @return An object of type birp
 #' @keywords internal
@@ -254,7 +254,7 @@
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
-#' @param BACI A matrix or a dataframe defining the before-after control-intervention (BACI) layout
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c(1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group and the second row represents the intervention group
 #' @param assumeTrueDetectionProbability A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized
 #' @param iterations The number of MCMC iterations to run
 #' @param numBurnin The number of burnin cycles to run

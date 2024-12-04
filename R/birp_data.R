@@ -218,8 +218,9 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @param numCIGroups An integer denoting the number of control-intervention (CI) groups
 #' @param numCovariatesEffort An integer denoting the number of covariates for modeling the effort
 #' @param numCovariatesDetection An integer denoting the number of covariates for modeling the detection probabilities
-#' @param BACI A matrix or a dataframe defining the before-after control-intervention (BACI) layout
-#' @param n_bar A single number (shared across methods) or a numeric vector (per method) denoting the average number of counts to be simulated
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c(1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group and the second row represents the intervention group
+#' @param n_bar A numeric value denoting the average number of counts to be simulated
+#' @param N_0 A numeric value denoting the expected number of observations at the first time point. If NULL, n_bar will be used instead
 #' @param a A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution
 #' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
 #' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
@@ -242,6 +243,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
                           numCovariatesDetection = 0,
                           BACI = NULL,
                           n_bar = 1000,
+                          N_0 = NULL,
                           a = NULL,
                           logSigma = NULL,
                           logPhi = NULL,
