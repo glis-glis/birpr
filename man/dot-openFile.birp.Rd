@@ -4,7 +4,7 @@
 \alias{.openFile.birp}
 \title{Function to open a file and generate error message if it was not found}
 \usage{
-.openFile.birp(path, files, patterns, sep = "\\t")
+.openFile.birp(path, files, patterns, sep = "\\t", header = TRUE)
 }
 \arguments{
 \item{path}{A file path.}

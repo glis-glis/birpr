@@ -2,15 +2,15 @@
 % Please edit documentation in R/birp.R
 \name{plot_epoch_pair}
 \alias{plot_epoch_pair}
-\title{Plotting posterior estimates of epoch pairs}
+\title{Plotting posterior estimates of gamma pairs}
 \usage{
 plot_epoch_pair(
   x,
-  epoch1 = 1,
-  epoch2 = 2,
-  xlab = .getLabelGamma.birp(epoch1),
-  ylab = .getLabelGamma.birp(epoch2),
-  xlim = range(x$trace_gamma[, c(epoch1, epoch2)]),
+  gamma1 = 1,
+  gamma2 = 2,
+  xlab = .getLabelGamma.birp(x, gamma1),
+  ylab = .getLabelGamma.birp(x, gamma2),
+  xlim = range(x$trace_gamma[, c(gamma1, gamma2)]),
   ylim = xlim,
   col = "deeppink",
   diag.col = "black",
@@ -27,9 +27,9 @@ plot_epoch_pair(
 \arguments{
 \item{x}{A birp object}
 
-\item{epoch1}{The index of the first epoch to plot}
+\item{gamma1}{The index of the first gamma to plot}
 
-\item{epoch2}{The index of the second epoch to plot}
+\item{gamma2}{The index of the second gamma to plot}
 
 \item{xlab}{A label for the x axis}
 
@@ -63,7 +63,7 @@ plot_epoch_pair(
 No return value, called for side effects.
 }
 \description{
-Plotting posterior estimates of epoch pairs
+Plotting posterior estimates of gamma pairs
 }
 \examples{
 data <- simulate_birp(timesOfChange = 2)

@@ -4,10 +4,10 @@
 \alias{.getLabelGamma.birp}
 \title{Function to generate a nice axis label with greek gamma and subscript}
 \usage{
-.getLabelGamma.birp(epoch)
+.getLabelGamma.birp(x, index)
 }
 \arguments{
-\item{epoch}{The epoch in the subscript}
+\item{index}{The index in the subscript}
 }
 \value{
 A string

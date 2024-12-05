@@ -4,12 +4,7 @@
 \alias{birp_data}
 \title{Creating a Birp Data Object based on counts and efforts for a single method}
 \usage{
-birp_data(
-  counts,
-  efforts,
-  times,
-  location_names = paste0("Location_", 1:nrow(counts))
-)
+birp_data(counts, efforts, times, CI_groups = NULL, location_names = NULL)
 }
 \arguments{
 \item{counts}{An J x K matrix of the observed counts. Each of the J rows corresponds to a location obtained at each of K times (columns)}
@@ -18,7 +13,9 @@ birp_data(
 
 \item{times}{A vector giving the K time points at which counts were obtained}
 
-\item{location_names}{Names to distinguish the locations}
+\item{CI_groups}{The name of the control-intervention (CI) group for each location. By default, all locations belong to the same group (group_1)}
+
+\item{location_names}{Names to distinguish the locations. By default, locations are named after their row index in counts}
 }
 \value{
 An object of type birp_data

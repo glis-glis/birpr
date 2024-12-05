@@ -9,8 +9,9 @@
   col = 1:length(x$locations),
   lwd = 1,
   lty = 1:length(x$method_names),
+  pch = 1:length(x$CI_groups),
   xlab = "time",
-  ylab = "lambda",
+  ylab = "counts per unit of effort",
   legend.x = "topright",
   legend.y = NULL,
   legend.bty = "o",
@@ -27,6 +28,8 @@
 \item{lwd}{A vector of line width, recycled to match the number of methods and locations}
 
 \item{lty}{A vector of line types, recycled to match the number of methods and locations}
+
+\item{pch}{A vector of plotting characters, recycled to match the number of control/intervention groups}
 
 \item{xlab}{The label of the x-axis}
 
@@ -45,7 +48,7 @@
 \item{...}{Additional parameters passed to plotting functions.}
 }
 \description{
-This function plots MLE estimates of rate (lambda) estimates per time-point, method and location
+This function plots the counts per unit of effort per time-point, method and location
 }
 \examples{
 data <- simulate_birp()

@@ -6,7 +6,7 @@
 \usage{
 plot_trajectory(
   x,
-  xlim = range(x$timepoints),
+  CI_group = 1,
   n_points = 1000,
   quantiles = c(0.99, 0.9, 0.5, 0.25),
   quantile.col = gray(seq(1, 0, length.out = length(quantiles) + 2)[2:(length(quantiles)
@@ -24,13 +24,14 @@ plot_trajectory(
   log = FALSE,
   xlab = "Time",
   ylab = paste(c("log", "Relative Density")[c(log, TRUE)], collapse = " "),
+  main = x$CI_groups[CI_group],
   ...
 )
 }
 \arguments{
 \item{x}{A birp object}
 
-\item{xlim}{The x limits (x1, x2) of the plot. Note that x1 > x2 is allowed and leads to a "reversed axis". The default value, NULL, indicates that the range of the finite values to be plotted should be used.}
+\item{CI_group}{The index of the control-intervention (CI) group to plot. By default, the first group is plotted.}
 
 \item{n_points}{Number of points}
 
@@ -56,13 +57,15 @@ plot_trajectory(
 
 \item{times.lwd}{Line width that represents times of change}
 
-\item{times.lty}{Line type that represents times of change.}
+\item{times.lty}{Line type that represents times of change}
 
 \item{log}{Plot relative densities in log}
 
 \item{xlab}{A label for the x axis}
 
 \item{ylab}{A label for the y axis}
+
+\item{main}{A title for the plot}
 
 \item{...}{additional parameters passed to the function}
 }

@@ -10,13 +10,13 @@
   shadingDecrease = "#f2c7c7",
   col = "black",
   lwd = 1,
-  lty = 1:x$num_epochs,
+  lty = 1:x$num_gamma,
   xlim = NA,
   ylim = NA,
   add = FALSE,
   xlab = expression(gamma),
   ylab = "Posterior density",
-  legend = paste("Epoch", 1:x$num_epochs),
+  legend = x$gamma_names,
   lineAtZero = TRUE,
   ...
 )
@@ -28,11 +28,11 @@
 
 \item{shadingDecrease}{Shading color for the range gamma < 0. If \code{NA}, shading is omitted}
 
-\item{col}{Line color, one per epoch. If a single value is provided, it is recycled to match the number of epochs.}
+\item{col}{Line color, one per gamma. If a single value is provided, it is recycled to match the number of gammas.}
 
-\item{lwd}{Line width, one per epoch. If a single value is provided, it is recycled to match the number of epochs.}
+\item{lwd}{Line width, one per gamma. If a single value is provided, it is recycled to match the number of gammas.}
 
-\item{lty}{Line type, one per epoch. If a single value is provided, it is recycled to match the number of epochs.}
+\item{lty}{Line type, one per gamma. If a single value is provided, it is recycled to match the number of gammas.}
 
 \item{xlim}{The x-limits (x1, x2) of the plot. If NA, these are determined automatically}
 

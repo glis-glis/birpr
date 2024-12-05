@@ -16,10 +16,6 @@ An object of type birp_data
 This function creates a birp_data object
 }
 \examples{
-t <- 1:10
-l <- rep(1, 10)
-c <- runif(10, 0, 100)
-e <- rnorm(10)
-df <- data.frame(timepoint = t, location = l, counts = c, effort = e)
+df <- data.frame(timepoint = 1:10, location = rep(1, 10), counts =  runif(10, 0, 100), effort = rexp(10), CI_group = "intervention")
 data <- birp_data_from_data_frame(df)
 }

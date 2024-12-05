@@ -335,6 +335,7 @@ summary.birp_data <- function(object, ...){
 #' @param col A vector of colors, recycled to match the number of methods and locations
 #' @param lwd A vector of line width, recycled to match the number of methods and locations
 #' @param lty A vector of line types, recycled to match the number of methods and locations
+#' @param pch A vector of plotting characters, recycled to match the number of control/intervention groups
 #' @param xlab The label of the x-axis
 #' @param ylab The label of the y-axis
 #' @param legend.x The x coordinate to position the legend. Use legend.x=NA to omit legend

@@ -205,7 +205,7 @@
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c(1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group and the second row represents the intervention group
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
 #' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
 #' @return An object of type birp
 #' @keywords internal
@@ -501,8 +501,8 @@ plot.birp <- function(x,
 #' Plotting posterior estimates of gamma pairs
 #'
 #' @param x A birp object
-#' @param epoch1 The index of the first gamma to plot
-#' @param epoch2 The index of the second gamma to plot
+#' @param gamma1 The index of the first gamma to plot
+#' @param gamma2 The index of the second gamma to plot
 #' @param xlab A label for the x axis
 #' @param ylab A label for the y axis
 #' @param xlim The x-limits (x1, x2) of the plot. Note that x1 > x2 is allowed and leads to a "reversed axis". The default value, NULL, indicates that the range of the finite values to be plotted should be used
@@ -616,10 +616,11 @@ plot_epoch_pair <- function(x,
 #' @param epoch.lty Line type to represent the epochs
 #' @param times.col Color to represent the times of change
 #' @param times.lwd Line width that represents times of change
-#' @param times.lty Line type that represents times of change.
+#' @param times.lty Line type that represents times of change
 #' @param log Plot relative densities in log
 #' @param xlab A label for the x axis
 #' @param ylab A label for the y axis
+#' @param main A title for the plot
 #' @param ... additional parameters passed to the function
 #' @return No return value, called for side effects
 #'

@@ -12,9 +12,12 @@ simulate_birp(
   stochastic = FALSE,
   numLocations = 2,
   numMethods = 1,
+  numCIGroups = 1,
   numCovariatesEffort = 1,
   numCovariatesDetection = 0,
+  BACI = NULL,
   n_bar = 1000,
+  N_0 = NULL,
   a = NULL,
   logSigma = NULL,
   logPhi = NULL,
@@ -24,7 +27,7 @@ simulate_birp(
 )
 }
 \arguments{
-\item{timepoints}{A vector of integers that denote the time points at which the counts were obtained}
+\item{timepoints}{A vector of integers that denote the time points}
 
 \item{timesOfChange}{A numeric or integer vector specifying the times of change}
 
@@ -34,15 +37,21 @@ simulate_birp(
 
 \item{stochastic}{A boolean indicating if the deterministic (default) or stochastic trend model should be used}
 
-\item{numLocations}{An integer denoting the number of locations at which the counts were obtained}
+\item{numLocations}{An integer denoting the number of locations}
 
-\item{numMethods}{An integer denoting the number of methods with which the counts were obtained}
+\item{numMethods}{An integer denoting the number of methods}
+
+\item{numCIGroups}{An integer denoting the number of control-intervention (CI) groups}
 
 \item{numCovariatesEffort}{An integer denoting the number of covariates for modeling the effort}
 
 \item{numCovariatesDetection}{An integer denoting the number of covariates for modeling the detection probabilities}
 
-\item{n_bar}{A single number (shared across methods) or a numeric vector (per method) denoting the average number of counts to be simulated}
+\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. For simulations, these must be named "Group_0", "Group_1" etc. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)}
+
+\item{n_bar}{A numeric value denoting the average number of counts to be simulated}
+
+\item{N_0}{A numeric value denoting the expected number of observations at the first time point. If NULL, n_bar will be used instead}
 
 \item{a}{A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution}
 
