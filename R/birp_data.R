@@ -348,7 +348,7 @@ simulate_birp_from_results <- function(x,
   
   # Add values for all parameters that were estimated (posterior mean)
   for (i in 1:nrow(x$meanVar)){
-    options[[x$meanVar$name[i]]] <- x$meanVar$posterior_mean[i]
+    .addToList.birp(options, x$meanVar$name[i], x$meanVar$posterior_mean[i])
   }
   
   # Run simulation
