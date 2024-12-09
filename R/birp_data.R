@@ -337,7 +337,7 @@ simulate_birp_from_results <- function(x,
   }
   
   # Add input data names
-  rcpp_data <- x$data
+  rcpp_data <- x$data$data
   options[["data"]] <- paste(x$data$method_names, collapse = ",")
   
   # Add BACI (if provided)
