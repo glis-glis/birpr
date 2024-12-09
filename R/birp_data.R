@@ -343,7 +343,7 @@ simulate_birp_from_results <- function(x,
   # Add BACI (if provided)
   if (!is.null(x$BACI)){
     options[["BACI"]] <- "BACI"
-    rcpp_data$BACI <- BACI
+    rcpp_data$BACI <- x$BACI
   }
   
   # Add values for all parameters that were estimated (posterior mean)
@@ -358,8 +358,8 @@ simulate_birp_from_results <- function(x,
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
   
   # Assemble all counts files that were generated; return birp_data instance
-  x <- .getDataAllMethods.birp_data(out, "simulated", res)
-  return(x)
+  data <- .getDataAllMethods.birp_data(out, "simulated", res)
+  return(data)
 }
 
 #---------------------------------------
