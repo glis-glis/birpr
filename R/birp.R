@@ -199,13 +199,13 @@
 }
 
 #' Function to create an object of type birp 
-#' @param data An object of type birp_data
+#' @param data An object of type birp_data, corresponding to filtered data used for inference
 #' @param meanVar A data frame containing the posterior mean and variance of all parameters
 #' @param trace A data frame containing the MCMC trace of all parameters
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
 #' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
 #' @return An object of type birp
 #' @keywords internal
@@ -314,6 +314,9 @@ birp <- function(data,
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
   CI_groups <- res[[paste0(out, "_CI_groups.txt")]]
   
+  # Read filtered data and convert to birp data object
+  filtered_data <- .getDataAllMethods.birp_data(out, "filtered", res)
+  
   # Get times of change: might have changed from original input as birp removes pre- or postdating TOCs
   timesOfChange <- res[[paste0(out, "_timesOfChange.txt")]]
   
@@ -321,7 +324,7 @@ birp <- function(data,
   BACI <- res[[paste0(out, "_BACI_configuration.txt")]]
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups)
+  x <- .createObjBirp.birp(filtered_data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups)
   return(x)
 }
 

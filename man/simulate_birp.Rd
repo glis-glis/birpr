@@ -2,32 +2,38 @@
 % Please edit documentation in R/birp_data.R
 \name{simulate_birp}
 \alias{simulate_birp}
-\title{This function simulates a birp_data object}
+\title{This function simulates a birp_data object for tidy data}
 \usage{
 simulate_birp(
-  timepoints = c(1, 2, 3),
+  data,
   timesOfChange = c(),
   gamma = NULL,
   negativeBinomial = FALSE,
   stochastic = FALSE,
-  numLocations = 2,
-  numMethods = 1,
-  numCIGroups = 1,
-  numCovariatesEffort = 1,
-  numCovariatesDetection = 0,
   BACI = NULL,
   n_bar = 1000,
   N_0 = NULL,
   a = NULL,
   logSigma = NULL,
-  logPhi = NULL,
-  covariatesEffort = "gamma(1, 2)",
-  covariatesDetection = "normal(0, 1)",
-  proportionZeroEffort = 0
+  logPhi = NULL
+)
+
+simulate_birp(
+  data,
+  timesOfChange = c(),
+  gamma = NULL,
+  negativeBinomial = FALSE,
+  stochastic = FALSE,
+  BACI = NULL,
+  n_bar = 1000,
+  N_0 = NULL,
+  a = NULL,
+  logSigma = NULL,
+  logPhi = NULL
 )
 }
 \arguments{
-\item{timepoints}{A vector of integers that denote the time points}
+\item{data}{A birp_data object, where the dimensions (methods, locations, timepoints) as well as all effort and detection probability covariates will be used for simulation}
 
 \item{timesOfChange}{A numeric or integer vector specifying the times of change}
 
@@ -37,17 +43,7 @@ simulate_birp(
 
 \item{stochastic}{A boolean indicating if the deterministic (default) or stochastic trend model should be used}
 
-\item{numLocations}{An integer denoting the number of locations}
-
-\item{numMethods}{An integer denoting the number of methods}
-
-\item{numCIGroups}{An integer denoting the number of control-intervention (CI) groups}
-
-\item{numCovariatesEffort}{An integer denoting the number of covariates for modeling the effort}
-
-\item{numCovariatesDetection}{An integer denoting the number of covariates for modeling the detection probabilities}
-
-\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. For simulations, these must be named "Group_0", "Group_1" etc. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)}
+\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. For simulations, these must be named "Group_0", "Group_1" etc. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)}
 
 \item{n_bar}{A numeric value denoting the average number of counts to be simulated}
 
@@ -59,6 +55,18 @@ simulate_birp(
 
 \item{logPhi}{A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions}
 
+\item{timepoints}{A vector of integers that denote the time points}
+
+\item{numLocations}{An integer denoting the number of locations}
+
+\item{numMethods}{An integer denoting the number of methods}
+
+\item{numCIGroups}{An integer denoting the number of control-intervention (CI) groups}
+
+\item{numCovariatesEffort}{An integer denoting the number of covariates for modeling the effort}
+
+\item{numCovariatesDetection}{An integer denoting the number of covariates for modeling the detection probabilities}
+
 \item{covariatesEffort}{Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
 
 \item{covariatesDetection}{Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
@@ -67,10 +75,15 @@ simulate_birp(
 }
 \value{
 An object of type birp_data
+
+An object of type birp_data
 }
 \description{
-This function simulates a birp_data object
+This function simulates a birp_data object for tidy data
+
+This function simulates a birp_data object for ragged data with the same dimensions at the input data
 }
 \examples{
+data <- simulate_birp()
 data <- simulate_birp()
 }

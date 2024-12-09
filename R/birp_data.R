@@ -26,6 +26,22 @@
   }
 }
 
+#' This function reads data for all methods into a list
+#' @param out A string corresponding to the output prefix
+#' @param res A list of dataframes from Rcpp
+#' @return An instance of birp_data
+#' @keywords internal
+.getDataAllMethods.birp_data <- function(out, what, res){
+  names <- res[[paste0(out, "_", what, "_allFilesGenerated.txt")]]$V0
+  all_df <- list()
+  for (i in 1:length(names)) { 
+    nice_name <- strsplit(names[i], split = paste0(out, "_"))[[1]][2]
+    nice_name <- strsplit(nice_name, split = ".txt")[[1]][1]
+    all_df[[nice_name]] <- res[[names[i]]]
+  }
+  return(birp_data_from_data_frame(all_df)) 
+}
+
 #---------------------------------------
 # Constructors
 #---------------------------------------
@@ -207,7 +223,7 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
   return(b)
 }
 
-#' This function simulates a birp_data object
+#' This function simulates a birp_data object for tidy data
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
 #' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
@@ -277,17 +293,74 @@ simulate_birp <- function(timepoints = c(1,2,3),
   # Properly format Rcpp data frames
   res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
   
-  # Assemble all counts files that were generated
-  names <- res[[paste0(out, "_simulated_allFilesGenerated")]]$V0
-  all_df <- list()
-  for (i in 1:length(names)) { 
-    nice_name <- strsplit(names[i], split = paste0(out, "_"))[[1]][2]
-    nice_name <- strsplit(nice_name, split = ".txt")[[1]][1]
-    all_df[[nice_name]] <- res[[names[i]]]
+  # Assemble all counts files that were generated; return birp_data instance
+  x <- .getDataAllMethods.birp_data(out, "simulated", res)
+  return(x)
+}
+
+#' This function simulates a birp_data object for ragged data with the same dimensions at the input data
+#' @param data A birp_data object, where the dimensions (methods, locations, timepoints) as well as all effort and detection probability covariates will be used for simulation
+#' @param timesOfChange A numeric or integer vector specifying the times of change
+#' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
+#' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
+#' @param stochastic A boolean indicating if the deterministic (default) or stochastic trend model should be used
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. For simulations, these must be named "Group_0", "Group_1" etc. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
+#' @param n_bar A numeric value denoting the average number of counts to be simulated
+#' @param N_0 A numeric value denoting the expected number of observations at the first time point. If NULL, n_bar will be used instead
+#' @param a A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution
+#' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
+#' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
+#' @return An object of type birp_data
+#' @examples 
+#' data <- simulate_birp()
+#' @export
+simulate_birp <- function(data,
+                          timesOfChange = c(),
+                          gamma = NULL,
+                          negativeBinomial = FALSE,
+                          stochastic = FALSE,
+                          BACI = NULL,
+                          n_bar = 1000,
+                          N_0 = NULL,
+                          a = NULL,
+                          logSigma = NULL,
+                          logPhi = NULL
+                          ) {
+  # Check for valid arguments
+  stopifnot(class(data) == "birp_data")
+  
+  # Create named list of function arguments 
+  args <- c(as.list(environment()))
+  
+  # Get temporary directory where output will be written
+  out <- tempfile()
+  
+  # Parse options and convert to string
+  options <- list(task = "simulate", out = out)
+  for (i in 1:length(args)){
+    if (names(args)[i] == "data") next # skip data: no command-line argument
+    if (names(args)[i] == "BACI") next # skip BACI: no command-line argument
+    options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
-  # Create and return birp_data instance
-  x <- birp_data_from_data_frame(all_df)
+  # Add input data names
+  rcpp_data <- data$data
+  options[["simulationFile"]] <- paste(data$method_names, collapse = ",")
+  
+  # Add BACI (if provided)
+  if (!is.null(BACI)){
+    options[["BACI"]] <- "BACI"
+    rcpp_data$BACI <- BACI
+  }
+  
+  # Run simulation
+  res <- .birp_interface(options, rcpp_data)
+  
+  # Properly format Rcpp data frames
+  res <- sapply(res, function(x) {if(is.list(x)){ return(list2DF(x))}})
+  
+  # Assemble all counts files that were generated; return birp_data instance
+  x <- .getDataAllMethods.birp_data(out, "simulated", res)
   return(x)
 }
 
