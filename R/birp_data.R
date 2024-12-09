@@ -298,7 +298,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
   return(x)
 }
 
-#' This function simulates a birp_data object for ragged data with the same dimensions at the input data
+#' This function simulates a birp_data object for potentially ragged data with the same dimensions at the input data
 #' @param data A birp_data object, where the dimensions (methods, locations, timepoints) as well as all effort and detection probability covariates will be used for simulation
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
@@ -312,20 +312,21 @@ simulate_birp <- function(timepoints = c(1,2,3),
 #' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
 #' @return An object of type birp_data
 #' @examples 
-#' data <- simulate_birp()
+#' data  <- simulate_birp()
+#' data2 <- simulate_birp_from_data(data)
 #' @export
-simulate_birp <- function(data,
-                          timesOfChange = c(),
-                          gamma = NULL,
-                          negativeBinomial = FALSE,
-                          stochastic = FALSE,
-                          BACI = NULL,
-                          n_bar = 1000,
-                          N_0 = NULL,
-                          a = NULL,
-                          logSigma = NULL,
-                          logPhi = NULL
-                          ) {
+simulate_birp_from_data <- function(data,
+                            timesOfChange = c(),
+                            gamma = NULL,
+                            negativeBinomial = FALSE,
+                            stochastic = FALSE,
+                            BACI = NULL,
+                            n_bar = 1000,
+                            N_0 = NULL,
+                            a = NULL,
+                            logSigma = NULL,
+                            logPhi = NULL
+                            ) {
   # Check for valid arguments
   stopifnot(class(data) == "birp_data")
   
