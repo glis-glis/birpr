@@ -340,11 +340,14 @@ simulate_birp_from_results <- function(x,
   rcpp_data <- x$data$data
   options[["data"]] <- paste(x$data$method_names, collapse = ",")
   
-  # Add BACI (if provided)
-  if (!is.null(x$BACI)){
+  # Add BACI (if needed)
+  if (length(x$data$CI_groups) > 1 & length(x$times_of_change) > 0){
     options[["BACI"]] <- "BACI"
     rcpp_data$BACI <- x$BACI
   }
+  
+  # Add times of change
+  .addToList.birp(options, "timesOfChange", x$times_of_change)
   
   # Add values for all parameters that were estimated (posterior mean)
   for (i in 1:nrow(x$meanVar)){
