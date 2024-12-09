@@ -298,37 +298,30 @@ simulate_birp <- function(timepoints = c(1,2,3),
   return(x)
 }
 
-#' This function simulates a birp_data object for potentially ragged data with the same dimensions at the input data
-#' @param data A birp_data object, where the dimensions (methods, locations, timepoints) as well as all effort and detection probability covariates will be used for simulation
-#' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
+#' This function simulates a birp_data object using all parameter estimates, dimensionality (methods, locations, timepoints) and the total number of counts nu_ij of a birp object
+#' @param x An object of type birp
 #' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if the deterministic (default) or stochastic trend model should be used
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. For simulations, these must be named "Group_0", "Group_1" etc. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
-#' @param n_bar A numeric value denoting the average number of counts to be simulated
-#' @param N_0 A numeric value denoting the expected number of observations at the first time point. If NULL, n_bar will be used instead
-#' @param a A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution
+#' @param mu A numeric vector denoting the values of mu to be used for the negative binomial model, where the size is given by the number of method-location combinations. If NULL, all mu_i for one method i are set to the (number of locations)^(-1) for that method
+#' @param b A numeric vector denoting the values of b to be used for the negative binomial model (one per method). If NULL, all b_i are set to 1
 #' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
 #' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
 #' @return An object of type birp_data
 #' @examples 
 #' data  <- simulate_birp()
-#' data2 <- simulate_birp_from_data(data)
+#' x <- birp(data)
+#' data2 <- simulate_birp_from_results(x)
 #' @export
-simulate_birp_from_data <- function(data,
-                            timesOfChange = c(),
-                            gamma = NULL,
-                            negativeBinomial = FALSE,
-                            stochastic = FALSE,
-                            BACI = NULL,
-                            n_bar = 1000,
-                            N_0 = NULL,
-                            a = NULL,
-                            logSigma = NULL,
-                            logPhi = NULL
-                            ) {
+simulate_birp_from_results <- function(x,
+                              negativeBinomial = FALSE,
+                              stochastic = FALSE,
+                              mu = NULL,
+                              b = NULL,
+                              logSigma = NULL,
+                              logPhi = NULL
+                              ) {
   # Check for valid arguments
-  stopifnot(class(data) == "birp_data")
+  stopifnot(class(x) == "birp")
   
   # Create named list of function arguments 
   args <- c(as.list(environment()))
@@ -339,19 +332,23 @@ simulate_birp_from_data <- function(data,
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
   for (i in 1:length(args)){
-    if (names(args)[i] == "data") next # skip data: no command-line argument
-    if (names(args)[i] == "BACI") next # skip BACI: no command-line argument
+    if (names(args)[i] == "x") next # skip x: no command-line argument
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
   # Add input data names
-  rcpp_data <- data$data
-  options[["simulationFile"]] <- paste(data$method_names, collapse = ",")
+  rcpp_data <- x$data
+  options[["data"]] <- paste(x$data$method_names, collapse = ",")
   
   # Add BACI (if provided)
-  if (!is.null(BACI)){
+  if (!is.null(x$BACI)){
     options[["BACI"]] <- "BACI"
     rcpp_data$BACI <- BACI
+  }
+  
+  # Add values for all parameters that were estimated (posterior mean)
+  for (i in 1:nrow(x$meanVar)){
+    options[[x$meanVar$name[i]]] <- x$meanVar$posterior_mean[i]
   }
   
   # Run simulation
