@@ -347,11 +347,19 @@ simulate_birp_from_results <- function(x,
   }
   
   # Add times of change
-  .addToList.birp(options, "timesOfChange", x$times_of_change)
+  options <- .addToList.birp(options, "timesOfChange", x$times_of_change)
   
   # Add values for all parameters that were estimated (posterior mean)
-  for (i in 1:nrow(x$meanVar)){
-    .addToList.birp(options, x$meanVar$name[i], x$meanVar$posterior_mean[i])
+  paramNames <- c("gamma", paste0("alpha_", x$data$method_names), paste0("beta0_", x$data$method_names), paste0("beta_", x$data$method_names), "mu", "N", "b_", "logPhi", "logSigma")
+  for (i in 1:length(paramNames)){
+    if (paramNames[i] %in% names(options)){ next; } # don't overwrite logPhi, logSigma, mu or b
+    if (!negativeBinomial & (paramNames[i] == "b" | paramNames[i] == "mu")){ next }
+    if (!stochastic & (paramNames[i] == "logSigma" | paramNames[i] == "logPhi")){ next }
+    
+    rows <- grepl(paramNames[i], paste0("^", x$meanVar$name))
+    if (any(rows)){
+      options <- .addToList.birp(options, paramNames[i], x$meanVar$posterior_mean[rows])
+    }
   }
   
   # Run simulation
