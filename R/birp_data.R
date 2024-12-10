@@ -36,21 +36,10 @@
   all_df <- list()
   for (i in 1:length(names)) { 
     nice_name <- strsplit(names[i], split = paste0(out, "_"))[[1]][2]
-    nice_name <- strsplit(nice_name, split = ".txt")[[1]][1]
+    nice_name <- strsplit(nice_name, split = paste0("_", what, "_counts.txt"))[[1]][1]
     all_df[[nice_name]] <- res[[names[i]]]
   }
   return(birp_data_from_data_frame(all_df)) 
-}
-
-#' This function returns all parameter names as inferred by birp
-#' @param method_names A character vector with the method names
-#' @return A character vector with all parameter names
-#' @keywords internal
-.getParameterNames.birp <- function(method_names){
-  # remove "filtered_counts" from method_names
-  short_method_names <- as.character(sapply(method_names, function(x) return(strsplit(x, "_filtered_counts")[[1]][1])))
-  
-  return(c("gamma", paste0("alpha_", short_method_names), paste0("beta0_", short_method_names), paste0("beta_", x$data$method_names), "mu", "N", "b", "logPhi", "logSigma"))
 }
 
 #---------------------------------------
