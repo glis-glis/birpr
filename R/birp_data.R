@@ -42,6 +42,17 @@
   return(birp_data_from_data_frame(all_df)) 
 }
 
+#' This function returns all parameter names as inferred by birp
+#' @param method_names A character vector with the method names
+#' @return A character vector with all parameter names
+#' @keywords internal
+.getParameterNames.birp <- function(method_names){
+  # remove "filtered_counts" from method_names
+  short_method_names <- sapply(method_names, function(x) return(strsplit(x, "_filtered_counts")[[1]][1]))
+  
+  return(c("gamma", paste0("alpha_", short_method_names), paste0("beta0_", short_method_names), paste0("beta_", x$data$method_names), "mu", "N", "b", "logPhi", "logSigma"))
+}
+
 #---------------------------------------
 # Constructors
 #---------------------------------------
@@ -350,10 +361,10 @@ simulate_birp_from_results <- function(x,
   options <- .addToList.birp(options, "timesOfChange", x$times_of_change)
   
   # Add values for all parameters that were estimated (posterior mean)
-  paramNames <- c("gamma", paste0("alpha_", x$data$method_names), paste0("beta0_", x$data$method_names), paste0("beta_", x$data$method_names), "mu", "N", "b_", "logPhi", "logSigma")
+  paramNames <- .getParameterNames.birp(x$data$method_names)
   for (i in 1:length(paramNames)){
     if (paramNames[i] %in% names(options)){ next; } # don't overwrite logPhi, logSigma, mu or b
-    if (!negativeBinomial & (paramNames[i] == "b" | paramNames[i] == "mu")){ next }
+    if (!negativeBinomial & (paramNames[i] == "b" | paramNames[i] == "mu" | paramNames[i] == "N")){ next }
     if (!stochastic & (paramNames[i] == "logSigma" | paramNames[i] == "logPhi")){ next }
     
     rows <- grepl(paramNames[i], paste0("^", x$meanVar$name))
