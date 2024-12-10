@@ -351,7 +351,18 @@ simulate_birp_from_results <- function(x,
   
   # Add values for all parameters that were estimated (posterior mean)
   options[["initVals"]] <- "state"
-  rcpp_data$state <- x$state
+  # Make sure state does not contain unnecessary parameters
+  state <- x$state
+  if (!negativeBinomial){
+    state <- state[state[,1] != "b",]
+    state <- state[state[,1] != "N",]
+    state <- state[state[,1] != "mu",]
+  }
+  if (!stochastic){
+    state <- state[state[,1] != "logSigma",]
+    state <- state[state[,1] != "logPhi",]
+  }
+  rcpp_data$state <- state
   
   # Run simulation
   res <- .birp_interface(options, rcpp_data)
