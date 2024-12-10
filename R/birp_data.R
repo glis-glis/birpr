@@ -48,7 +48,7 @@
 #' @keywords internal
 .getParameterNames.birp <- function(method_names){
   # remove "filtered_counts" from method_names
-  short_method_names <- sapply(method_names, function(x) return(strsplit(x, "_filtered_counts")[[1]][1]))
+  short_method_names <- as.character(sapply(method_names, function(x) return(strsplit(x, "_filtered_counts")[[1]][1])))
   
   return(c("gamma", paste0("alpha_", short_method_names), paste0("beta0_", short_method_names), paste0("beta_", x$data$method_names), "mu", "N", "b", "logPhi", "logSigma"))
 }
@@ -367,7 +367,7 @@ simulate_birp_from_results <- function(x,
     if (!negativeBinomial & (paramNames[i] == "b" | paramNames[i] == "mu" | paramNames[i] == "N")){ next }
     if (!stochastic & (paramNames[i] == "logSigma" | paramNames[i] == "logPhi")){ next }
     
-    rows <- grepl(paramNames[i], paste0("^", x$meanVar$name))
+    rows <- grepl(paste0("^", paramNames[i]), x$meanVar$name)
     if (any(rows)){
       options <- .addToList.birp(options, paramNames[i], x$meanVar$posterior_mean[rows])
     }
