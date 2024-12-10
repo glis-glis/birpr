@@ -207,9 +207,10 @@
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
 #' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
+#' @param state A data frame containing the posterior mean values of all parameters inferred by birp
 #' @return An object of type birp
 #' @keywords internal
-.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups){
+.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state){
   # Calculate statistics on gamma
   gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
   trace_gamma <- as.matrix(trace[,grepl("gamma", names(trace))])
@@ -231,6 +232,7 @@
             times_of_change = as.numeric(timesOfChange),
             BACI = BACI,
             CI_groups = CI_groups$CI_groups,
+            state = state,
             gamma_posterior_mean = gamma_posterior_mean,
             gamma_posterior_median = gamma_posterior_median,
             gamma_posterior_q05 = gamma_posterior_q05,
@@ -313,6 +315,7 @@ birp <- function(data,
   gamma <- res[[paste0(out, "_gammaSummaries.txt")]]
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
   CI_groups <- res[[paste0(out, "_CI_groups.txt")]]
+  state <- res[[paste0(out, "_state.txt")]]
   
   # Read filtered data and convert to birp data object
   filtered_data <- .getDataAllMethods.birp_data(out, "filtered", res)
@@ -324,7 +327,7 @@ birp <- function(data,
   BACI <- res[[paste0(out, "_BACI_configuration.txt")]]
   
   # Create and return birp object
-  x <- .createObjBirp.birp(filtered_data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups)
+  x <- .createObjBirp.birp(filtered_data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state)
   return(x)
 }
 
@@ -357,6 +360,7 @@ birp_from_command_line <- function(path){
   gamma <- .openFile.birp(path, files, "_gammaSummaries.txt")
   timepoints <- .openFile.birp(path, files, "_timepoints.txt")
   CI_groups <- .openFile.birp(path, files, "_CI_groups.txt", header = T)
+  state <- .openFile.birp(path, files, "_state.txt", header = T)
   
   # Get times of change
   timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = F)
@@ -365,7 +369,7 @@ birp_from_command_line <- function(path){
   BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = F)
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups)
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state)
   return(x)
 }
 
