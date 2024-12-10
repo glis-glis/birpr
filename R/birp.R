@@ -373,6 +373,52 @@ birp_from_command_line <- function(path){
   return(x)
 }
 
+
+#' Assess whether the negative binomial model is justified
+#' @param x A birp object
+#' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
+#' @param numRep The number of replicates to run
+#' @param cutoff The fraction of replicates for which b_Pois > b_x
+#' @return A boolean value. If TRUE, the estimated b are not different from what would be expected under a Poisson model, and it is thus better to use the Poisson model instead of the Negative binomial model. 
+#' @examples 
+#' data <- simulate_birp()
+#' est <- birp(data)
+#' assess_NB(est)
+#' @export
+assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.95){
+  b_Pois <- matrix(0, nrow = numRep, ncol = length(x$data$method_names))
+  b_names <- x$meanVar$name[grepl("^b_", x$meanVar$name)]
+  b_x <- x$meanVar$posterior_mean[grepl("^b_", x$meanVar$name)]
+  for (i in 1:numRep){
+    # simulate under Poisson assumption
+    sim <- simulate_birp_from_results(x, negativeBinomial = F, stochastic = stochastic)
+    
+    # infer NB
+    est <- birp(sim, timesOfChange = x$times_of_change, 
+              negativeBinomial = T, stochastic = stochastic,
+              BACI = x$BACI)
+    
+    # get estimate of b (per method)
+    b_Pois[i,] <- est$meanVar$posterior_mean[grepl("^b_", est$meanVar$name)]
+  }
+  
+  # visualize
+  for (i in 1:ncol(b_Pois)){
+    dens <- density(b_Pois[,i])
+    plot(dens, xlim = range(c(dens$x, b_x)), xlab = b_names[i], ylab = "Density", main = b_names[i])
+    abline(v = b_x[i], col = "red", lty = 2)
+  }
+  
+  # calculate the fraction of replicates where b_Pois > b_x
+  frac <- numeric(length(x$data$method_names))
+  for (i in 1:ncol(b_Pois)){
+    frac[i] <- sum(b_Pois[,i] > b_x[i]) / numRep
+  }
+
+  # if all methods have a larger b under Poisson than the one that was estimated -> it is fair to do Poisson
+  return(all(frac > cutoff))
+}
+
 #---------------------------------------
 # Methods for printing
 #---------------------------------------
