@@ -374,21 +374,28 @@ birp_from_command_line <- function(path){
 }
 
 
-#' Assess whether the negative binomial model is justified
-#' @param x A birp object
+#' Assess whether it is possible to use the Poisson model instead of the Negative Binomial (NB) model
+#' @param x A birp object, estimated under a negative binomial model.
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
 #' @param numRep The number of replicates to run
 #' @param cutoff The fraction of replicates for which b_Pois > b_x
-#' @return A boolean value. If TRUE, the estimated b are not different from what would be expected under a Poisson model, and it is thus better to use the Poisson model instead of the Negative binomial model. 
+#' @return A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data)
 #' assess_NB(est)
 #' @export
-assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.95){
-  b_Pois <- matrix(0, nrow = numRep, ncol = length(x$data$method_names))
+assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05){
+  # get estimated b from negative binomial model
   b_names <- x$meanVar$name[grepl("^b_", x$meanVar$name)]
   b_x <- x$meanVar$posterior_mean[grepl("^b_", x$meanVar$name)]
+  
+  # check if x was estimated with NB
+  if (length(b_names) == 0){
+    stop("Birp object does not contain any information on estimated overdispersion parameter b. Was it estimated using the negative binomial model (negativeBinomial = T)?")
+  } 
+  
+  b_Pois <- matrix(0, nrow = numRep, ncol = length(x$data$method_names))
   for (i in 1:numRep){
     # simulate under Poisson assumption
     sim <- simulate_birp_from_results(x, negativeBinomial = F, stochastic = stochastic)
@@ -415,8 +422,18 @@ assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.95){
     frac[i] <- sum(b_Pois[,i] > b_x[i]) / numRep
   }
 
-  # if all methods have a larger b under Poisson than the one that was estimated -> it is fair to do Poisson
-  return(all(frac > cutoff))
+  # per method: check if fraction of replicates where b_Pois > b_x is smaller than cutoff
+  # null hypothesis = Poisson
+  # if the b from the Negative Binomial model is at the right tail -> most b from Poisson are smaller -> keep NB assumption
+  # if the b from the Negative Binomial model is within the distribution of the b from Poisson -> switch to Poisson
+  keep_NB <- frac < cutoff
+  if (any(keep_NB)){
+    cat("Rejected null hypothesis (Poisson) with for methods", paste0(x$data$method_names[keep_NB], collapse = ", "), "with p-values", paste0(frac[keep_NB], collapse = ", "), ". It is recommended to keep the NB model to account for overdispersion.")
+  } else {
+    cat("Could not reject null hypothesis (Poisson) with for all methods", paste0(x$data$method_names, collapse = ", "), "with p-values", paste0(frac, collapse = ", "), ". It is recommended to rerun birp under the Poisson model (negativeBinomial = F) to gain power.")
+  }
+  
+  return(list(keep_NB = any(keep_NB), keep_NB_per_method = keep_NB, frac = frac))
 }
 
 #---------------------------------------

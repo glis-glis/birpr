@@ -12,7 +12,8 @@
   timepoints,
   timesOfChange,
   BACI,
-  CI_groups
+  CI_groups,
+  state
 )
 }
 \arguments{
@@ -31,6 +32,8 @@
 \item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)}
 
 \item{CI_groups}{A character vector specifying the names of the control-intervention (CI) group}
+
+\item{state}{A data frame containing the posterior mean values of all parameters inferred by birp}
 }
 \value{
 An object of type birp
