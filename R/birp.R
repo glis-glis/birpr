@@ -379,13 +379,14 @@ birp_from_command_line <- function(path){
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
 #' @param numRep The number of replicates to run
 #' @param cutoff The fraction of replicates for which b_Pois > b_x
+#' @param plot A boolean indicating if the distribution of b should be plotted.
 #' @return A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data)
 #' assess_NB(est)
 #' @export
-assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05){
+assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
   # get estimated b from negative binomial model
   b_names <- x$meanVar$name[grepl("^b_", x$meanVar$name)]
   b_x <- x$meanVar$posterior_mean[grepl("^b_", x$meanVar$name)]
@@ -410,12 +411,14 @@ assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05){
   }
   
   # visualize
-  for (i in 1:ncol(b_Pois)){
-    dens <- density(b_Pois[,i])
-    plot(dens, xlim = range(c(dens$x, b_x)), xlab = b_names[i], ylab = "Density", main = b_names[i])
-    abline(v = b_x[i], col = "red", lty = 2)
+  if (plot){
+    for (i in 1:ncol(b_Pois)){
+      dens <- density(b_Pois[,i])
+      plot(dens, xlim = range(c(dens$x, b_x)), xlab = b_names[i], ylab = "Density", main = b_names[i])
+      abline(v = b_x[i], col = "red", lty = 2)
+    }
   }
-  
+
   # calculate the fraction of replicates where b_Pois > b_x
   frac <- numeric(length(x$data$method_names))
   for (i in 1:ncol(b_Pois)){
@@ -433,7 +436,7 @@ assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05){
     cat("Could not reject null hypothesis (Poisson) with for all methods", paste0(x$data$method_names, collapse = ", "), "with p-values", paste0(frac, collapse = ", "), ". It is recommended to rerun birp under the Poisson model (negativeBinomial = F) to gain power.")
   }
   
-  return(list(keep_NB = any(keep_NB), keep_NB_per_method = keep_NB, frac = frac))
+  return(list(keep_NB = any(keep_NB), keep_NB_per_method = keep_NB, frac = frac, b_Pois = b_Pois, b_x = b_x))
 }
 
 #---------------------------------------
