@@ -47,7 +47,7 @@ simulate_birp(
 
 \item{numCovariatesDetection}{An integer denoting the number of covariates for modeling the detection probabilities}
 
-\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. For simulations, these must be named "Group_0", "Group_1" etc. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)}
+\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)}
 
 \item{n_bar}{A numeric value denoting the average number of counts to be simulated}
 

@@ -205,7 +205,7 @@
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)
 #' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
 #' @param state A data frame containing the posterior mean values of all parameters inferred by birp
 #' @return An object of type birp
@@ -256,7 +256,7 @@
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("Group_0", "Group_1", 1,1,1,2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (Group_0) and the second row represents the intervention group (Group_1)
+#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)
 #' @param assumeTrueDetectionProbability A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized
 #' @param iterations The number of MCMC iterations to run
 #' @param numBurnin The number of burnin cycles to run
@@ -383,7 +383,7 @@ birp_from_command_line <- function(path){
 #' @return A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
 #' @examples 
 #' data <- simulate_birp()
-#' est <- birp(data)
+#' est <- birp(data, negativeBinomial = T)
 #' assess_NB(est)
 #' @export
 assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
@@ -393,7 +393,7 @@ assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
   
   # check if x was estimated with NB
   if (length(b_names) == 0){
-    stop("Birp object does not contain any information on estimated overdispersion parameter b. Was it estimated using the negative binomial model (negativeBinomial = T)?")
+    stop("Birp object does not contain any information on estimated overdispersion parameter b. Please make sure it was inferred under the negative binomial model (negativeBinomial = T).")
   } 
   
   b_Pois <- matrix(0, nrow = numRep, ncol = length(x$data$method_names))
@@ -401,10 +401,15 @@ assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
     # simulate under Poisson assumption
     sim <- simulate_birp_from_results(x, negativeBinomial = F, stochastic = stochastic)
     
-    # infer NB
-    est <- birp(sim, timesOfChange = x$times_of_change, 
-              negativeBinomial = T, stochastic = stochastic,
-              BACI = x$BACI)
+    # infer NB (with BACI only if necessary to avoid warning)
+    if (length(x$data$CI_groups) > 1 & length(x$times_of_change) > 0){
+      est <- birp(sim, timesOfChange = x$times_of_change, 
+                  negativeBinomial = T, stochastic = stochastic,
+                  BACI = x$BACI)
+    } else {
+      est <- birp(sim, timesOfChange = x$times_of_change, 
+                  negativeBinomial = T, stochastic = stochastic)
+    }
     
     # get estimate of b (per method)
     b_Pois[i,] <- est$meanVar$posterior_mean[grepl("^b_", est$meanVar$name)]

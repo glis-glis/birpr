@@ -4,7 +4,7 @@
 \alias{assess_NB}
 \title{Assess whether it is possible to use the Poisson model instead of the Negative Binomial (NB) model}
 \usage{
-assess_NB(x, stochastic = F, numRep = 100, cutoff = 0.05)
+assess_NB(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T)
 }
 \arguments{
 \item{x}{A birp object, estimated under a negative binomial model.}
@@ -14,6 +14,8 @@ assess_NB(x, stochastic = F, numRep = 100, cutoff = 0.05)
 \item{numRep}{The number of replicates to run}
 
 \item{cutoff}{The fraction of replicates for which b_Pois > b_x}
+
+\item{plot}{A boolean indicating if the distribution of b should be plotted.}
 }
 \value{
 A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
