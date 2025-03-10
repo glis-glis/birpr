@@ -123,7 +123,6 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
   # Check variables
   if (any(counts < 0, na.rm = T) | any(efforts < 0, na.rm = T))  stop("Counts and efforts can not be negative!")
   if (any(is.na(times))) stop("NA in times are not allowed!")
-  if (any(times < 0)) stop("Time points can not be negative!")
   if (any(efforts == 0 & counts > 0)) stop("Counts can not be > 0 if effort = 0!")
   
   # Check dimensionality
