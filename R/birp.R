@@ -383,7 +383,7 @@ birp_from_command_line <- function(path){
 #' @return A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
 #' @examples 
 #' data <- simulate_birp()
-#' est <- birp(data, negativeBinomial = T)
+#' est <- birp(data, negativeBinomial = TRUE)
 #' assess_NB(est)
 #' @export
 assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){

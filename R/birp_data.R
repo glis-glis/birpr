@@ -54,7 +54,13 @@
 #' 
 #' @export
 #' @examples
-#' df <- data.frame(timepoint = 1:10, location = rep(1, 10), counts =  runif(10, 0, 100), effort = rexp(10), CI_group = "intervention")
+#' df <- data.frame(
+#'   timepoint = 1:10,
+#'   location = rep(1, 10),
+#'   counts = runif(10, 0, 100),
+#'   effort = rexp(10),
+#'   CI_group = "intervention"
+#' )
 #' data <- birp_data_from_data_frame(df)
 
 birp_data_from_data_frame <- function(data){
