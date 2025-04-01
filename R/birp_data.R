@@ -54,7 +54,13 @@
 #' 
 #' @export
 #' @examples
-#' df <- data.frame(timepoint = 1:10, location = rep(1, 10), counts =  runif(10, 0, 100), effort = rexp(10), CI_group = "intervention")
+#' df <- data.frame(
+#'   timepoint = 1:10,
+#'   location = rep(1, 10),
+#'   counts = runif(10, 0, 100),
+#'   effort = rexp(10),
+#'   CI_group = "intervention"
+#' )
 #' data <- birp_data_from_data_frame(df)
 
 birp_data_from_data_frame <- function(data){
@@ -123,7 +129,6 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
   # Check variables
   if (any(counts < 0, na.rm = T) | any(efforts < 0, na.rm = T))  stop("Counts and efforts can not be negative!")
   if (any(is.na(times))) stop("NA in times are not allowed!")
-  if (any(times < 0)) stop("Time points can not be negative!")
   if (any(efforts == 0 & counts > 0)) stop("Counts can not be > 0 if effort = 0!")
   
   # Check dimensionality
