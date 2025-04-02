@@ -5,7 +5,6 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 -I${repoName}/coretools/fast_float/include/ \
 -I${repoName}/coretools/fmt/include/ \
 -I${repoName}/coretools/json/include/ \
--I${repoName}/coretools/armadillo/include/ \
 -I${repoName}/genometools/core/ \
 -I${repoName}/stattools/core/ \
 -I${repoName}/core/ \
@@ -20,6 +19,5 @@ PKG_LIBS    =  -L${repoName}/build -lcoreLib \
 -L${repoName}/build/_deps/genometools-build -lgenometools \
 -L${repoName}/build/_deps/coretools-build -lcoretools \
 -L${repoName}/build/_deps/fmt-build -lfmt \
--L${repoName}/build/_deps/armadillo-build -larmadillo \
 $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) \
-XXXARMALIBSXXX
+-lz -lgfortran -lquadmath
