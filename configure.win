@@ -36,7 +36,6 @@ if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
 # Clone repository
 cd src/
 if [ -d $repoName ]; then
-        echo "Already exists: `pwd`"
 	cd ../
 else
 	git clone --depth 1 https://madleina@bitbucket.org/wegmannlab/${repoName}.git
@@ -49,8 +48,11 @@ else
 	# Get Armadillo libraries from cmake output
 	arma_libs=$(cat cmake_log.txt | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
 
-	# Write Makevars
-	cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars
+	# Append extra libraries needed for Windows
+	arma_libs=$(echo $arma_libs -lz -lgfortran -lquadmath)
+
+	# Write Makevars.win
+	cat ../../Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > ../../Makevars.win
 
 	# Make
 	make coreLib
