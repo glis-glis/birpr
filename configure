@@ -55,4 +55,4 @@ fi
 arma_libs=$(cat src/${repoName}/build/cmake_log.txt | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
 
 # Write Makevars
-cat Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > Makevars
+cat src/Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > src/Makevars
