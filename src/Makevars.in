@@ -1,5 +1,5 @@
 
-repoName=birp
+repoName=birp_cpp
 
 PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 -I${repoName}/coretools/fast_float/include/ \
