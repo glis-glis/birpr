@@ -1,2 +1,31 @@
 #!/bin/sh
 rm -f src/Makevars
+
+rm -rf src/birp/coretools/armadillo/examples/
+rm -rf src/birp/coretools/fmt/test/
+rm -rf src/birp/coretools/fast_float/.github
+rm -rf src/birp/coretools/fmt/.github
+rm -rf src/birp/coretools/json/.github
+rm -rf src/birp/coretools/json/.reuse
+
+rm -f src/birp/coretools/fast_float/.bazelrc
+rm -f src/birp/coretools/fast_float/.cirrus.yml
+rm -f src/birp/coretools/fast_float/.clang-format
+rm -f src/birp/coretools/fast_float/.travis.yml
+rm -f src/birp/coretools/fmt/.clang-format
+rm -f src/birp/coretools/fmt/support/bazel/.bazelversion
+rm -f src/birp/coretools/json/.cirrus.yml
+rm -f src/birp/coretools/json/.clang-format
+rm -f src/birp/coretools/json/.clang-tidy
+rm -f src/birp/coretools/json/.lgtm.yml
+rm -f src/birp/coretools/json/CITATION.cff
+
+rm -f src/birp/build/Makefile
+rm -f src/birp/build/_deps/armadillo-build/Makefile
+rm -f src/birp/build/_deps/coretools-build/Makefile
+rm -f src/birp/build/_deps/fmt-build/Makefile
+rm -f src/birp/build/_deps/genometools-build/Makefile
+rm -f src/birp/build/_deps/json-build/Makefile
+rm -f src/birp/build/_deps/stattools-build/Makefile
+rm -f src/birp/coretools/armadillo/tests2/Makefile
+rm -f src/birp/coretools/json/Makefile

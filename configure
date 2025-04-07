@@ -3,7 +3,7 @@
 # Inspired from: https://cloud.r-project.org/doc/manuals/r-devel/R-exts.html#Using-cmake-1
 
 # Define project
-repoName=birp_cpp
+repoName=birp
 
 # Find C++
 CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
@@ -42,7 +42,7 @@ else
 
 	# Run CMake
 	cd $repoName && mkdir -p build && cd build
-	${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON -DPARALLEL=OFF -G "Unix Makefiles" .. > cmake_log.txt
+	${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON -DPARALLEL=OFF .. > cmake_log.txt
 	cat cmake_log.txt
 	
 	# Make
