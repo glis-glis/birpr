@@ -4,6 +4,7 @@
 
 # Define project
 repoName=birp_cpp
+commit=bd4782322fe4a9eb3755130a4c46203a2d4376f3
 
 # Find C++
 CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
@@ -38,7 +39,15 @@ cd src/
 if [ -d $repoName ]; then
         echo "Already exists: `pwd`"
 else
-	git clone --depth 1 https://madleina@bitbucket.org/wegmannlab/${repoName}.git
+  # Get URL from bitbucket: birp_cpp -> Downloads -> Branches -> master -> gz
+  wget https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
+  tar -xvzf ${commit}.tar.gz
+  
+  # Move contents to $repoName
+  mkdir $repoName
+  extracted_dir=$(tar -tzf ${commit}.tar.gz | head -n1)
+  mv ${extracted_dir}* $repoName
+  rm -r $extracted_dir
 
 	# Run CMake
 	cd $repoName && mkdir -p build && cd build

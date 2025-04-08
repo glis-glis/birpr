@@ -1,7 +1,7 @@
 #!/bin/sh
 rm -f src/Makevars
 
-rm -rf src/birp_cpp/coretools/armadillo/examples/
+rm -rf src/birp_cpp/coretools/arma/examples/
 rm -rf src/birp_cpp/coretools/fmt/test/
 rm -rf src/birp_cpp/coretools/fast_float/.github
 rm -rf src/birp_cpp/coretools/fmt/.github
@@ -27,5 +27,5 @@ rm -f src/birp_cpp/build/_deps/fmt-build/Makefile
 rm -f src/birp_cpp/build/_deps/genometools-build/Makefile
 rm -f src/birp_cpp/build/_deps/json-build/Makefile
 rm -f src/birp_cpp/build/_deps/stattools-build/Makefile
-rm -f src/birp_cpp/coretools/armadillo/tests2/Makefile
+rm -f src/birp_cpp/coretools/arma/tests2/Makefile
 rm -f src/birp_cpp/coretools/json/Makefile
