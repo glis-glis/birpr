@@ -11,3 +11,4 @@
 ^src/libs/coretools/fast_float/.cirrus.yml
 ^src/libs/coretools/fast_float/.clang-format
 ^src/libs/coretools/fast_float/.travis.yml
+^cran-comments\.md$
