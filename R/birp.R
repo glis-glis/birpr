@@ -138,7 +138,7 @@
 #' @return An integer or numeric vector with starting points for each epoch
 #' @keywords internal
 .getEpochStarts.birp <- function(times, times_of_change){
-  return(c(0, times_of_change, max(times[length(times)], times_of_change + 1)))
+  return(c(min(times), times_of_change, max(times[length(times)], times_of_change + 1)))
 }
 
 #' Function to calculate rho 
@@ -199,7 +199,7 @@
 }
 
 #' Function to create an object of type birp 
-#' @param data An object of type birp_data, corresponding to filtered data used for inference
+#' @param data An object of type \link{birp_data}, corresponding to filtered data used for inference
 #' @param meanVar A data frame containing the posterior mean and variance of all parameters
 #' @param trace A data frame containing the MCMC trace of all parameters
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
@@ -220,6 +220,14 @@
   matrix_gamma <- as.matrix(gamma[,2:ncol(gamma)])
   prob_gamma_positive <- diag(matrix_gamma)
   
+  # Calculate statistics on logSigma (if stochastic)
+  log_sigma_posterior_mean <- NULL
+  sigma_posterior_mean <- NULL
+  if (any(grepl("logSigma", meanVar$name))){
+    log_sigma_posterior_mean <- meanVar$posterior_mean[grepl("logSigma", meanVar$name)]
+    sigma_posterior_mean <- mean(exp(trace$logSigma)) # as mean(exp(x)) != exp(mean(x))
+  }
+  
   # Define results
   x <- list(data = data,
             meanVar = meanVar,
@@ -238,6 +246,8 @@
             gamma_posterior_q05 = gamma_posterior_q05,
             gamma_posterior_q95 = gamma_posterior_q95,
             prob_gamma_positive = prob_gamma_positive,
+            log_sigma_posterior_mean = log_sigma_posterior_mean,
+            sigma_posterior_mean = sigma_posterior_mean,
             timepoints = timepoints
             )
   class(x) <- "birp"
@@ -252,7 +262,7 @@
 #' Creating a Birp Object
 #'
 #' This function creates a birp object by running the MCMC
-#' @param data A birp_data object
+#' @param data A \link{birp_data} object
 #' @param timesOfChange A numeric or integer vector specifying the times of change
 #' @param negativeBinomial A boolean indicating if Poisson (default) or negative binomial model should be used
 #' @param stochastic A boolean indicating if deterministic (default) or stochastic trend model should be used
@@ -261,6 +271,8 @@
 #' @param iterations The number of MCMC iterations to run
 #' @param numBurnin The number of burnin cycles to run
 #' @param burnin The number of MCMC iterations per burnin cycle
+#' @param thinning Integer value specifying the thinning interval for recording the MCMC trace. Only every \code{thinning}th iteration will be retained (e.g., \code{thinning = 1} records every iteration, \code{thinning = 2} records every second iteration, and so on).
+#' @param quiet Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.
 #' @return An object of class birp
 #' @examples 
 #' data <- simulate_birp()
@@ -274,7 +286,9 @@ birp <- function(data,
                  assumeTrueDetectionProbability = FALSE,
                  iterations = 100000,
                  numBurnin = 10,
-                 burnin = 1000
+                 burnin = 1000,
+                 thinning = 10, 
+                 quiet = FALSE
                  ){
   # Check for valid arguments
   stopifnot(class(data) == "birp_data")
@@ -283,7 +297,7 @@ birp <- function(data,
   args <- c(as.list(environment()))
   
   # Get temporary directory where output will be written
-  out <- tempfile()
+  out <- file.path(tempdir(), "birp")
 
   # Parse options and convert to string
   options <- list(task = "infer", out = out)
@@ -384,7 +398,7 @@ birp_from_command_line <- function(path){
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data, negativeBinomial = TRUE)
-#' assess_NB(est, numRep = 5)
+#' res_assess <- assess_NB(est, numRep = 5)
 #' @export
 assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
   # get estimated b from negative binomial model
@@ -678,7 +692,7 @@ plot_epoch_pair <- function(x,
   }
 }
 
-#' Plotting posterior trajectories
+#' Plotting posterior trends
 #'
 #' @param x A birp object
 #' @param CI_group The index of the control-intervention (CI) group to plot. By default, the first group is plotted.
@@ -708,9 +722,9 @@ plot_epoch_pair <- function(x,
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data)
-#' plot_trajectory(est)
+#' plot_trend(est)
 
-plot_trajectory <- function(x, 
+plot_trend <- function(x, 
                             CI_group = 1,
                             n_points = 1000, 
                             quantiles = c(0.99, 0.9, 0.5, 0.25), 

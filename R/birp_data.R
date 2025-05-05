@@ -51,8 +51,8 @@
 #' Creating a Birp Data Object based on dataframe(s)
 #'
 #' This function creates a birp_data object
-#' @param data A single dataframe or a list of data frames (one per method)
-#' @return An object of type birp_data
+#' @param data A single dataframe or a list of data frames (one per method). Each dataframe should consist of five columns: timepoint, location, counts, effort and CI_group. The rows of the dataframe correspond to the counts and efforts obtained at one particular timepoint, location and for one particular control-intervention (CI) group.
+#' @return An object of type \link{birp_data}
 #' 
 #' @export
 #' @examples
@@ -178,7 +178,7 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
 #' @param filenames A vector of filenames specifying the input file(s) (one per method)
 #' @param method_names Names to distinguish the methods. If NA, method names will be derived from filenames
 #' @param sep The field separator character
-#' @return An object of type birp_data
+#' @return An object of type \link{birp_data}
 #' @examples
 #' \dontrun{
 #' data <- birp_data_from_file("myInputFile.txt")
@@ -249,7 +249,8 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @param covariatesEffort Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
 #' @param covariatesDetection Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
 #' @param proportionZeroEffort The proportion of effort covariates which are set to zero
-#' @return An object of type birp_data
+#' @param quiet Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.
+#' @return An object of type \link{birp_data}
 #' @examples 
 #' data <- simulate_birp()
 #' @export
@@ -271,13 +272,14 @@ simulate_birp <- function(timepoints = c(1,2,3),
                           logPhi = NULL,
                           covariatesEffort = "gamma(1, 2)",
                           covariatesDetection = "normal(0, 1)",
-                          proportionZeroEffort = 0
+                          proportionZeroEffort = 0,
+                          quiet = FALSE
                           ) {
   # Create named list of function arguments 
   args <- c(as.list(environment()))
   
   # Get temporary directory where output will be written
-  out <- tempfile()
+  out <- file.path(tempdir(), "birp")
   
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
@@ -312,7 +314,8 @@ simulate_birp <- function(timepoints = c(1,2,3),
 #' @param b A numeric vector denoting the values of b to be used for the negative binomial model (one per method). If NULL, all b_i are set to 1
 #' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
 #' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
-#' @return An object of type birp_data
+#' @param quiet Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.
+#' @return An object of type \link{birp_data}
 #' @examples 
 #' data  <- simulate_birp()
 #' x <- birp(data)
@@ -324,7 +327,8 @@ simulate_birp_from_results <- function(x,
                               mu = NULL,
                               b = NULL,
                               logSigma = NULL,
-                              logPhi = NULL
+                              logPhi = NULL,
+                              quiet = FALSE
                               ) {
   # Check for valid arguments
   stopifnot(class(x) == "birp")
@@ -333,7 +337,7 @@ simulate_birp_from_results <- function(x,
   args <- c(as.list(environment()))
   
   # Get temporary directory where output will be written
-  out <- tempfile()
+  out <- file.path(tempdir(), "birp")
   
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
