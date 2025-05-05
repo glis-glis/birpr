@@ -26,5 +26,5 @@ Assess whether it is possible to use the Poisson model instead of the Negative B
 \examples{
 data <- simulate_birp()
 est <- birp(data, negativeBinomial = TRUE)
-assess_NB(est)
+assess_NB(est, numRep = 5)
 }

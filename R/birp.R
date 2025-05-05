@@ -384,7 +384,7 @@ birp_from_command_line <- function(path){
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data, negativeBinomial = TRUE)
-#' assess_NB(est)
+#' assess_NB(est, numRep = 5)
 #' @export
 assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
   # get estimated b from negative binomial model

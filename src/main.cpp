@@ -1,7 +1,7 @@
 
-#include <Rcpp.h>
-#include "coretools/Main/TMain.h"
 #include "TBirpCore.h"
+#include "coretools/Main/TMain.h"
+#include <Rcpp.h>
 
 // [[Rcpp::export(.birp_interface)]]
 Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {

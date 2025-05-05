@@ -4,7 +4,7 @@
 
 # Define project
 repoName=birp_cpp
-commit=bd4782322fe4a9eb3755130a4c46203a2d4376f3
+commit=b2efd53f9e5b69d30b465971415529b7e610a950
 
 # Find C++
 CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
@@ -34,36 +34,67 @@ if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
 if test -z "$CMAKE"; then CMAKE=/Applications/CMake.app/Contents/bin/cmake; fi
 if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
 
-# Clone repository
 cd src/
-if [ -d $repoName ]; then
-        echo "Already exists: `pwd`"
-else
-  # Get URL from bitbucket: birp_cpp -> Downloads -> Branches -> master -> gz
-  wget https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
-  tar -xvzf ${commit}.tar.gz
-  
-  # Move contents to $repoName
-  mkdir $repoName
-  extracted_dir=$(tar -tzf ${commit}.tar.gz | head -n1)
-  mv ${extracted_dir}* $repoName
-  rm -r $extracted_dir
 
-	# Run CMake
-	cd $repoName && mkdir -p build && cd build
-	${CMAKE} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON -DRCPP=ON -DPARALLEL=OFF -G "Unix Makefiles" .. > cmake_log.txt
-	cat cmake_log.txt
-	
-	# Make
-	make coreLib
-	cd ../../
+# Download into libs directory (if necessary)
+mkdir -p libs && cd libs/
+
+if [ -z "$( ls -A )" ]; then
+  # Download repo, using wget or curl
+  if command -v wget > /dev/null; then
+    wget https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
+  elif command -v curl > /dev/null; then
+    curl -O https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
+  else
+    echo "Error: Neither curl nor wget is available"
+    exit 1
+  fi
+
+  tar -xvzf ${commit}.tar.gz
+
+  # Move contents to libs
+  extracted_dir=$(tar -tzf ${commit}.tar.gz | head -n1)
+  mv ${extracted_dir}* ./
+  rm -r $extracted_dir ${commit}.tar.gz
+fi
+cd .. # leave libs
+
+# Get Rcpp include directory
+RCPP_INCLUDE=$("${R_HOME}/bin/Rscript" --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))")
+if [ -z "$RCPP_INCLUDE" ]; then
+  echo "Failed to determine Rcpp include path"
+  exit 1
 fi
 
+# Get RcppArmadillo include directory
+RCPP_ARMADILLO_INCLUDE=$("${R_HOME}/bin/Rscript" --vanilla --slave -e \
+  "stopifnot(require('RcppArmadillo', quietly=TRUE)); cat(system.file('include', package = 'RcppArmadillo'))")
+if [ -z "$RCPP_ARMADILLO_INCLUDE" ]; then
+  echo "Failed to determine RcppArmadillo include path"
+  exit 1
+fi
 
-# Get Armadillo libraries from cmake output
-arma_libs=$(cat ${repoName}/build/cmake_log.txt | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
+# Run CMake from build directory
+mkdir build && cd build
+${CMAKE} -S ../libs/ \
+-DCMAKE_BUILD_TYPE=Release \
+-DBUILD_SHARED_LIBS:bool=OFF \
+-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
+-DRCPP=ON \
+-DRCPP_INCLUDE_DIRS="${RCPP_INCLUDE}" \
+-DRCPP_ARMADILLO_INCLUDE_DIRS="${RCPP_ARMADILLO_INCLUDE}"
 
-# Write Makevars
-cat Makevars.in | sed "s|XXXARMALIBSXXX|$arma_libs|g" > Makevars
+# Make
+make coreLib
+cd .. # leave build
 
-cd ..
+# Delete unneeded files and directories that cause warnings in check
+find build -name Makefile -delete
+rm -rf libs/coretools/fast_float/tests/
+rm -rf libs/coretools/fast_float/benchmarks/
+rm -rf libs/coretools/fast_float/fuzz/
+rm -rf libs/coretools/tests/
+rm -rf libs/stattools/tests/
+rm -rf build/CMakeFiles/
+
+cd .. # leave src

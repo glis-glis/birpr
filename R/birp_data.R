@@ -35,7 +35,9 @@
   names <- res[[paste0(out, "_", what, "_allFilesGenerated.txt")]]$V0
   all_df <- list()
   for (i in 1:length(names)) { 
-    nice_name <- strsplit(names[i], split = paste0(out, "_"))[[1]][2]
+    bn_out <- basename(out)
+    bn_name <- basename(names[i])
+    nice_name <- strsplit(bn_name, split = paste0(bn_out, "_"))[[1]][2]
     nice_name <- strsplit(nice_name, split = paste0("_", what, "_counts.txt"))[[1]][1]
     all_df[[nice_name]] <- res[[names[i]]]
   }
@@ -210,8 +212,7 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
     if (!is.na(method_names)){
       method_name <- method_names[i]
     } else {
-      tmp <- strsplit(filenames[i], "/")[[1]]
-      tmp <- tmp[length(tmp)]
+      tmp <- basename(filenames[i])
       tmp <- strsplit(tmp, "\\.")[[1]]
       method_name <- paste(tmp[-length(tmp)], collapse = "_")
       if (method_name %in% names(dat)){

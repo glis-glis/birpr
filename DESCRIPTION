@@ -2,20 +2,19 @@ Package: birp
 Type: Package
 Title: Testing for Population Trends Using Low-Cost Ecological Count Data
 Version: 0.0.1
-Date: 2024-04-22
+Date: 2025-04-10
 Authors@R: c(person("Madleina", "Caduff", 
                      role = c("aut", "cre"),
                      email = "madleina.caduff@unifr.ch"),
-             person("Liam", "Singer",
-                     role = "aut"),
              person("Daniel", "Wegmann",
-                     role = "aut",
-                     email = "daniel.wegmann@unifr.ch")
+                     role = c("aut"),
+                     email = "daniel.wegmann@unifr.ch"),
+             person("Liam", "Singer",
+                     role = "aut")
              )
-Maintainer: Daniel Wegmann <daniel.wegmann@unifr.ch>
 Description: Provides functions to test for population trends and changes in population trends from sparse and noisy ecological count data.
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.12), MASS
-LinkingTo: Rcpp
+LinkingTo: Rcpp, RcppArmadillo
 Encoding: UTF-8
 RoxygenNote: 7.3.1
