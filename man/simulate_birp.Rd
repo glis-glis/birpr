@@ -23,7 +23,8 @@ simulate_birp(
   logPhi = NULL,
   covariatesEffort = "gamma(1, 2)",
   covariatesDetection = "normal(0, 1)",
-  proportionZeroEffort = 0
+  proportionZeroEffort = 0,
+  quiet = FALSE
 )
 }
 \arguments{
@@ -64,9 +65,11 @@ simulate_birp(
 \item{covariatesDetection}{Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
 
 \item{proportionZeroEffort}{The proportion of effort covariates which are set to zero}
+
+\item{quiet}{Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.}
 }
 \value{
-An object of type birp_data
+An object of type \link{birp_data}
 }
 \description{
 This function simulates a birp_data object for tidy data

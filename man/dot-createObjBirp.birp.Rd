@@ -17,7 +17,7 @@
 )
 }
 \arguments{
-\item{data}{An object of type birp_data, corresponding to filtered data used for inference}
+\item{data}{An object of type \link{birp_data}, corresponding to filtered data used for inference}
 
 \item{meanVar}{A data frame containing the posterior mean and variance of all parameters}
 

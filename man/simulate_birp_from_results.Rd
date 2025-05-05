@@ -11,7 +11,8 @@ simulate_birp_from_results(
   mu = NULL,
   b = NULL,
   logSigma = NULL,
-  logPhi = NULL
+  logPhi = NULL,
+  quiet = FALSE
 )
 }
 \arguments{
@@ -28,9 +29,11 @@ simulate_birp_from_results(
 \item{logSigma}{A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1}
 
 \item{logPhi}{A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions}
+
+\item{quiet}{Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.}
 }
 \value{
-An object of type birp_data
+An object of type \link{birp_data}
 }
 \description{
 This function simulates a birp_data object using all parameter estimates, dimensionality (methods, locations, timepoints) and the total number of counts nu_ij of a birp object

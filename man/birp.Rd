@@ -13,11 +13,13 @@ birp(
   assumeTrueDetectionProbability = FALSE,
   iterations = 1e+05,
   numBurnin = 10,
-  burnin = 1000
+  burnin = 1000,
+  thinning = 10,
+  quiet = FALSE
 )
 }
 \arguments{
-\item{data}{A birp_data object}
+\item{data}{A \link{birp_data} object}
 
 \item{timesOfChange}{A numeric or integer vector specifying the times of change}
 
@@ -34,6 +36,10 @@ birp(
 \item{numBurnin}{The number of burnin cycles to run}
 
 \item{burnin}{The number of MCMC iterations per burnin cycle}
+
+\item{thinning}{Integer value specifying the thinning interval for recording the MCMC trace. Only every \code{thinning}th iteration will be retained (e.g., \code{thinning = 1} records every iteration, \code{thinning = 2} records every second iteration, and so on).}
+
+\item{quiet}{Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.}
 }
 \value{
 An object of class birp

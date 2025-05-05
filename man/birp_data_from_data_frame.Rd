@@ -7,10 +7,10 @@
 birp_data_from_data_frame(data)
 }
 \arguments{
-\item{data}{A single dataframe or a list of data frames (one per method)}
+\item{data}{A single dataframe or a list of data frames (one per method). Each dataframe should consist of five columns: timepoint, location, counts, effort and CI_group. The rows of the dataframe correspond to the counts and efforts obtained at one particular timepoint, location and for one particular control-intervention (CI) group.}
 }
 \value{
-An object of type birp_data
+An object of type \link{birp_data}
 }
 \description{
 This function creates a birp_data object

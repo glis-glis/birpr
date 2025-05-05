@@ -14,7 +14,7 @@ birp_data_from_file(filenames, method_names = NA, sep = ",")
 \item{sep}{The field separator character}
 }
 \value{
-An object of type birp_data
+An object of type \link{birp_data}
 }
 \description{
 This function creates a birp_data object
