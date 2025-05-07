@@ -129,7 +129,7 @@ birp_data_from_data_frame <- function(data){
 #' @export
 birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names = NULL){
   # Check variables
-  if (any(counts < 0, na.rm = T) | any(efforts < 0, na.rm = T))  stop("Counts and efforts can not be negative!")
+  if (any(counts < 0, na.rm = TRUE) | any(efforts < 0, na.rm = TRUE))  stop("Counts and efforts can not be negative!")
   if (any(is.na(times))) stop("NA in times are not allowed!")
   if (any(efforts == 0 & counts > 0)) stop("Counts can not be > 0 if effort = 0!")
   
@@ -392,6 +392,7 @@ simulate_birp_from_results <- function(x,
 #' Printing a birp_data Object
 #' @param x The birp_data object to be printed.
 #' @param ... Other parameters passed to function
+#' @return No return value, called for side effects
 #' @examples 
 #' data <- simulate_birp()
 #' print(data)
@@ -410,6 +411,7 @@ print.birp_data <- function(x, ...){
 #' This function summarizes a birp_data object
 #' @param object The birp_data object to be printed.
 #' @param ... Other parameters passed to function
+#' @return No return value, called for side effects
 #' @examples 
 #' data <- simulate_birp()
 #' summary(data)
@@ -438,6 +440,7 @@ summary.birp_data <- function(object, ...){
 #' @param xlim Set the limits of the x-axis
 #' @param ylim Set the limits of the y-axis
 #' @param ... Additional parameters passed to plotting functions.
+#' @return No return value, called for side effects
 #' @examples 
 #' data <- simulate_birp()
 #' plot(data)

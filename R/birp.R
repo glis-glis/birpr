@@ -351,9 +351,7 @@ birp <- function(data,
 #' @param path The path where all the output files of birp are located
 #' @return An object of class birp
 #' @examples 
-#' \dontrun{
-#' est <- birp_from_command_line("/path/to/my/output/directory/")
-#' }
+#' est <- birp_from_command_line(file.path(system.file("extdata", package = "birp"), ""))
 #' @export
 birp_from_command_line <- function(path){
   # Check for valid arguments
@@ -373,14 +371,14 @@ birp_from_command_line <- function(path){
   trace <- .openFile.birp(path, files, "_trace.txt")
   gamma <- .openFile.birp(path, files, "_gammaSummaries.txt")
   timepoints <- .openFile.birp(path, files, "_timepoints.txt")
-  CI_groups <- .openFile.birp(path, files, "_CI_groups.txt", header = T)
-  state <- .openFile.birp(path, files, "_state.txt", header = T)
+  CI_groups <- .openFile.birp(path, files, "_CI_groups.txt", header = TRUE)
+  state <- .openFile.birp(path, files, "_state.txt", header = TRUE)
   
   # Get times of change
-  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = F)
+  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = FALSE)
   
   # Get BACI file
-  BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = F)
+  BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = FALSE)
   
   # Create and return birp object
   x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state)
@@ -400,29 +398,29 @@ birp_from_command_line <- function(path){
 #' est <- birp(data, negativeBinomial = TRUE)
 #' res_assess <- assess_NB(est, numRep = 5)
 #' @export
-assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
+assess_NB <- function(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot = TRUE){
   # get estimated b from negative binomial model
   b_names <- x$meanVar$name[grepl("^b_", x$meanVar$name)]
   b_x <- x$meanVar$posterior_mean[grepl("^b_", x$meanVar$name)]
   
   # check if x was estimated with NB
   if (length(b_names) == 0){
-    stop("Birp object does not contain any information on estimated overdispersion parameter b. Please make sure it was inferred under the negative binomial model (negativeBinomial = T).")
+    stop("Birp object does not contain any information on estimated overdispersion parameter b. Please make sure it was inferred under the negative binomial model (negativeBinomial = TRUE).")
   } 
   
   b_Pois <- matrix(0, nrow = numRep, ncol = length(x$data$method_names))
   for (i in 1:numRep){
     # simulate under Poisson assumption
-    sim <- simulate_birp_from_results(x, negativeBinomial = F, stochastic = stochastic)
+    sim <- simulate_birp_from_results(x, negativeBinomial = FALSE, stochastic = stochastic)
     
     # infer NB (with BACI only if necessary to avoid warning)
     if (length(x$data$CI_groups) > 1 & length(x$times_of_change) > 0){
       est <- birp(sim, timesOfChange = x$times_of_change, 
-                  negativeBinomial = T, stochastic = stochastic,
+                  negativeBinomial = TRUE, stochastic = stochastic,
                   BACI = x$BACI)
     } else {
       est <- birp(sim, timesOfChange = x$times_of_change, 
-                  negativeBinomial = T, stochastic = stochastic)
+                  negativeBinomial = TRUE, stochastic = stochastic)
     }
     
     # get estimate of b (per method)
@@ -452,7 +450,7 @@ assess_NB <- function(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T){
   if (any(keep_NB)){
     cat("Rejected null hypothesis (Poisson) with for methods", paste0(x$data$method_names[keep_NB], collapse = ", "), "with p-values", paste0(frac[keep_NB], collapse = ", "), ". It is recommended to keep the NB model to account for overdispersion.")
   } else {
-    cat("Could not reject null hypothesis (Poisson) with for all methods", paste0(x$data$method_names, collapse = ", "), "with p-values", paste0(frac, collapse = ", "), ". It is recommended to rerun birp under the Poisson model (negativeBinomial = F) to gain power.")
+    cat("Could not reject null hypothesis (Poisson) with for all methods", paste0(x$data$method_names, collapse = ", "), "with p-values", paste0(frac, collapse = ", "), ". It is recommended to rerun birp under the Poisson model (negativeBinomial = FALSE) to gain power.")
   }
   
   return(list(keep_NB = any(keep_NB), keep_NB_per_method = keep_NB, frac = frac, b_Pois = b_Pois, b_x = b_x))
