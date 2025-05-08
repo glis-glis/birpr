@@ -11,6 +11,9 @@
 
 \item{...}{Other parameters passed to function}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 This function summarizes a birp_data object
 }

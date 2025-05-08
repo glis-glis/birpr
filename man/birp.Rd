@@ -15,7 +15,7 @@ birp(
   numBurnin = 10,
   burnin = 1000,
   thinning = 10,
-  quiet = FALSE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -39,7 +39,7 @@ birp(
 
 \item{thinning}{Integer value specifying the thinning interval for recording the MCMC trace. Only every \code{thinning}th iteration will be retained (e.g., \code{thinning = 1} records every iteration, \code{thinning = 2} records every second iteration, and so on).}
 
-\item{quiet}{Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.}
+\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
 }
 \value{
 An object of class birp

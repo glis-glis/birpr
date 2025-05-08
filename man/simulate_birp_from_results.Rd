@@ -12,7 +12,7 @@ simulate_birp_from_results(
   b = NULL,
   logSigma = NULL,
   logPhi = NULL,
-  quiet = FALSE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -30,7 +30,7 @@ simulate_birp_from_results(
 
 \item{logPhi}{A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions}
 
-\item{quiet}{Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.}
+\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
 }
 \value{
 An object of type \link{birp_data}

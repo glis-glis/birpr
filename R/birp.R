@@ -162,17 +162,18 @@
 #' @param path A file path
 #' @param files A vector of character strings corresponding to file names found in the path
 #' @param patterns A vector of patterns to search for within 'files'
-#' @param allowMultiMatch Boolean indicating if multiple matches are allowed
+#' @param allowMultiMatch Logical. If \code{TRUE}, multiple matches are allowed
 #' @param sep The field separator character of the input file
+#' @param mustExist Logical. If \code{TRUE}, an exception is raised if the file does not exist
 #' @return A string denoting the filename(s)
 #' @keywords internal
-.checkFile.birp <- function(path, files, patterns, allowMultiMatch = FALSE, sep = "\t"){
+.checkFile.birp <- function(path, files, patterns, allowMultiMatch = FALSE, sep = "\t", mustExist = TRUE){
   filename <- files
   for (p in 1:length(patterns)){
     filename <- filename[grepl(patterns[p], filename)]
   }
   
-  if (length(filename) == 0){
+  if (mustExist & length(filename) == 0){
     stop(paste0("No file containing the pattern '", paste0(patterns, collapse = ","), "' found in directory '", path, "'!"))
   }
   if (!allowMultiMatch & length(filename) > 1){
@@ -186,12 +187,12 @@
 #' @param files A vector of character strings corresponding to file names found in the path.
 #' @param patterns A vector of patterns to search for within 'files'.
 #' @param sep The field separator character of the input file
+#' @param mustExist Logical. If \code{TRUE}, an exception is raised if the file does not exist
 #' @return A file connection.
 #' @keywords internal
-.openFile.birp <- function(path, files, patterns, sep = "\t", header = TRUE){
-  filename <- .checkFile.birp(path, files, patterns, sep = sep)
-  
-  if (file.size(paste0(path, filename)) == 3){ # empty file
+.openFile.birp <- function(path, files, patterns, sep = "\t", header = TRUE, mustExist = TRUE){
+  filename <- .checkFile.birp(path, files, patterns, sep = sep, mustExist = mustExist)
+  if (length(filename) == 0 | file.size(paste0(path, filename)) == 3){ # empty file
     return(data.frame())
   }
   f <- read.table(paste0(path, filename), header = header, check.names = FALSE, sep = sep)
@@ -272,7 +273,7 @@
 #' @param numBurnin The number of burnin cycles to run
 #' @param burnin The number of MCMC iterations per burnin cycle
 #' @param thinning Integer value specifying the thinning interval for recording the MCMC trace. Only every \code{thinning}th iteration will be retained (e.g., \code{thinning = 1} records every iteration, \code{thinning = 2} records every second iteration, and so on).
-#' @param quiet Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.
+#' @param verbose Logical. If \code{FALSE}, the console output is suppressed
 #' @return An object of class birp
 #' @examples 
 #' data <- simulate_birp()
@@ -288,7 +289,7 @@ birp <- function(data,
                  numBurnin = 10,
                  burnin = 1000,
                  thinning = 10, 
-                 quiet = FALSE
+                 verbose = TRUE
                  ){
   # Check for valid arguments
   stopifnot(class(data) == "birp_data")
@@ -375,7 +376,7 @@ birp_from_command_line <- function(path){
   state <- .openFile.birp(path, files, "_state.txt", header = TRUE)
   
   # Get times of change
-  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = FALSE)
+  timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = FALSE, mustExist = FALSE)
   
   # Get BACI file
   BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = FALSE)

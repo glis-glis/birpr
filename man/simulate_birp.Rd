@@ -24,7 +24,7 @@ simulate_birp(
   covariatesEffort = "gamma(1, 2)",
   covariatesDetection = "normal(0, 1)",
   proportionZeroEffort = 0,
-  quiet = FALSE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -66,7 +66,7 @@ simulate_birp(
 
 \item{proportionZeroEffort}{The proportion of effort covariates which are set to zero}
 
-\item{quiet}{Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.}
+\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
 }
 \value{
 An object of type \link{birp_data}

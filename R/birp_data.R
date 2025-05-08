@@ -180,9 +180,7 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
 #' @param sep The field separator character
 #' @return An object of type \link{birp_data}
 #' @examples
-#' \dontrun{
-#' data <- birp_data_from_file("myInputFile.txt")
-#' }
+#' data <- birp_data_from_file(filenames = file.path(system.file("extdata", package = "birp"), "birp_Method_1_simulated_counts.txt"), sep = "\t")
 #' @export
 birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
   if (!is.na(method_names) & length(method_names) != length(filenames)){
@@ -249,7 +247,7 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @param covariatesEffort Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
 #' @param covariatesDetection Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
 #' @param proportionZeroEffort The proportion of effort covariates which are set to zero
-#' @param quiet Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.
+#' @param verbose Logical. If \code{FALSE}, the console output is suppressed
 #' @return An object of type \link{birp_data}
 #' @examples 
 #' data <- simulate_birp()
@@ -273,7 +271,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
                           covariatesEffort = "gamma(1, 2)",
                           covariatesDetection = "normal(0, 1)",
                           proportionZeroEffort = 0,
-                          quiet = FALSE
+                          verbose = TRUE
                           ) {
   # Create named list of function arguments 
   args <- c(as.list(environment()))
@@ -314,7 +312,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
 #' @param b A numeric vector denoting the values of b to be used for the negative binomial model (one per method). If NULL, all b_i are set to 1
 #' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
 #' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
-#' @param quiet Logical. If \code{TRUE}, suppresses progress messages and minimizes console output.
+#' @param verbose Logical. If \code{FALSE}, the console output is suppressed
 #' @return An object of type \link{birp_data}
 #' @examples 
 #' data  <- simulate_birp()
@@ -328,7 +326,7 @@ simulate_birp_from_results <- function(x,
                               b = NULL,
                               logSigma = NULL,
                               logPhi = NULL,
-                              quiet = FALSE
+                              verbose = TRUE
                               ) {
   # Check for valid arguments
   stopifnot(class(x) == "birp")

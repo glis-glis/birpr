@@ -11,6 +11,9 @@
 
 \item{...}{Other parameters passed to function}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 Printing a birp_data Object
 }

@@ -4,7 +4,14 @@
 \alias{.openFile.birp}
 \title{Function to open a file and generate error message if it was not found}
 \usage{
-.openFile.birp(path, files, patterns, sep = "\\t", header = TRUE)
+.openFile.birp(
+  path,
+  files,
+  patterns,
+  sep = "\\t",
+  header = TRUE,
+  mustExist = TRUE
+)
 }
 \arguments{
 \item{path}{A file path.}
@@ -14,6 +21,8 @@
 \item{patterns}{A vector of patterns to search for within 'files'.}
 
 \item{sep}{The field separator character of the input file}
+
+\item{mustExist}{Logical. If \code{TRUE}, an exception is raised if the file does not exist}
 }
 \value{
 A file connection.

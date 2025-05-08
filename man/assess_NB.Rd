@@ -4,7 +4,7 @@
 \alias{assess_NB}
 \title{Assess whether it is possible to use the Poisson model instead of the Negative Binomial (NB) model}
 \usage{
-assess_NB(x, stochastic = F, numRep = 100, cutoff = 0.05, plot = T)
+assess_NB(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot = TRUE)
 }
 \arguments{
 \item{x}{A birp object, estimated under a negative binomial model.}

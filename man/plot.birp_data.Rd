@@ -47,6 +47,9 @@
 
 \item{...}{Additional parameters passed to plotting functions.}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 This function plots the counts per unit of effort per time-point, method and location
 }
