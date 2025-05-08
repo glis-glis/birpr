@@ -1,6 +1,6 @@
 
 ## Resubmission
-Thank you for your comments. This is a resubmission. In this version I have:
+This is a resubmission. Thank you for your comments. In this version I have:
 
 * Omitted the redundant "Provides functions to" from the description.
 * Added more details about package functionality and implemented methods in the Description text.

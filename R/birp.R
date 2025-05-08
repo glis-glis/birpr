@@ -192,10 +192,9 @@
 #' @keywords internal
 .openFile.birp <- function(path, files, patterns, sep = "\t", header = TRUE, mustExist = TRUE){
   filename <- .checkFile.birp(path, files, patterns, sep = sep, mustExist = mustExist)
-  if (length(filename) == 0 | file.size(paste0(path, filename)) == 3){ # empty file
-    return(data.frame())
-  }
-  f <- read.table(paste0(path, filename), header = header, check.names = FALSE, sep = sep)
+  if (length(filename) == 0){ return(data.frame()) }
+  if (file.size(file.path(path, filename)) == 3){ return(data.frame()) } # empty file
+  f <- read.table(file.path(path, filename), header = header, check.names = FALSE, sep = sep)
   return(f)
 }
 
@@ -352,7 +351,7 @@ birp <- function(data,
 #' @param path The path where all the output files of birp are located
 #' @return An object of class birp
 #' @examples 
-#' est <- birp_from_command_line(file.path(system.file("extdata", package = "birp"), ""))
+#' est <- birp_from_command_line(file.path(system.file("extdata", package = "birp")))
 #' @export
 birp_from_command_line <- function(path){
   # Check for valid arguments
@@ -365,7 +364,7 @@ birp_from_command_line <- function(path){
   # Read the names of all (filtered) input files
   namesCounts <- .checkFile.birp(path = path, files = files, patterns = "_filtered_counts.txt", 
                                  allowMultiMatch = TRUE)
-  data <- birp_data_from_file(paste0(path, namesCounts), sep = "\t")
+  data <- birp_data_from_file(file.path(path, namesCounts), sep = "\t")
   
   # Read MCMC output files
   meanVar <- .openFile.birp(path, files, "_meanVar.txt")

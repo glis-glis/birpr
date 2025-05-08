@@ -16,5 +16,5 @@ An object of class birp
 This function creates a birp object by reading the output files of the command-line tool
 }
 \examples{
-est <- birp_from_command_line(file.path(system.file("extdata", package = "birp"), ""))
+est <- birp_from_command_line(file.path(system.file("extdata", package = "birp")))
 }
