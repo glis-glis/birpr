@@ -20,5 +20,6 @@ An object of type \link{birp_data}
 This function creates a birp_data object
 }
 \examples{
-data <- birp_data_from_file(filenames = file.path(system.file("extdata", package = "birp"), "birp_Method_1_simulated_counts.txt"), sep = "\t")
+filenames <- file.path(system.file("extdata", package = "birp"), "birp_Method_1_simulated_counts.txt")
+data <- birp_data_from_file(filenames = filenames, sep = "\t")
 }
