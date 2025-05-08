@@ -180,7 +180,8 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
 #' @param sep The field separator character
 #' @return An object of type \link{birp_data}
 #' @examples
-#' filenames <- file.path(system.file("extdata", package = "birp"), "birp_Method_1_simulated_counts.txt")
+#' dir <- system.file("extdata", package = "birp")
+#' filenames <- file.path(dir, "birp_Method_1_simulated_counts.txt")
 #' data <- birp_data_from_file(filenames = filenames, sep = "\t")
 #' @export
 birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
