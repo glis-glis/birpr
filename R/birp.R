@@ -392,13 +392,14 @@ birp_from_command_line <- function(path){
 #' @param numRep The number of replicates to run
 #' @param cutoff The fraction of replicates for which b_Pois > b_x
 #' @param plot A boolean indicating if the distribution of b should be plotted.
+#' @param verbose Logical. If \code{FALSE}, the console output is suppressed
 #' @return A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data, negativeBinomial = TRUE)
 #' res_assess <- assess_NB(est, numRep = 5)
 #' @export
-assess_NB <- function(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot = TRUE){
+assess_NB <- function(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot = TRUE, verbose = TRUE){
   # get estimated b from negative binomial model
   b_names <- x$meanVar$name[grepl("^b_", x$meanVar$name)]
   b_x <- x$meanVar$posterior_mean[grepl("^b_", x$meanVar$name)]
@@ -411,16 +412,16 @@ assess_NB <- function(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot =
   b_Pois <- matrix(0, nrow = numRep, ncol = length(x$data$method_names))
   for (i in 1:numRep){
     # simulate under Poisson assumption
-    sim <- simulate_birp_from_results(x, negativeBinomial = FALSE, stochastic = stochastic)
+    sim <- simulate_birp_from_results(x, negativeBinomial = FALSE, stochastic = stochastic, verbose = verbose)
     
     # infer NB (with BACI only if necessary to avoid warning)
     if (length(x$data$CI_groups) > 1 & length(x$times_of_change) > 0){
       est <- birp(sim, timesOfChange = x$times_of_change, 
                   negativeBinomial = TRUE, stochastic = stochastic,
-                  BACI = x$BACI)
+                  BACI = x$BACI, verbose = verbose)
     } else {
       est <- birp(sim, timesOfChange = x$times_of_change, 
-                  negativeBinomial = TRUE, stochastic = stochastic)
+                  negativeBinomial = TRUE, stochastic = stochastic, verbose = verbose)
     }
     
     # get estimate of b (per method)
@@ -448,9 +449,9 @@ assess_NB <- function(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot =
   # if the b from the Negative Binomial model is within the distribution of the b from Poisson -> switch to Poisson
   keep_NB <- frac < cutoff
   if (any(keep_NB)){
-    cat("Rejected null hypothesis (Poisson) with for methods", paste0(x$data$method_names[keep_NB], collapse = ", "), "with p-values", paste0(frac[keep_NB], collapse = ", "), ". It is recommended to keep the NB model to account for overdispersion.")
+    message("Rejected null hypothesis (Poisson) with for methods", paste0(x$data$method_names[keep_NB], collapse = ", "), "with p-values", paste0(frac[keep_NB], collapse = ", "), ". It is recommended to keep the NB model to account for overdispersion.")
   } else {
-    cat("Could not reject null hypothesis (Poisson) with for all methods", paste0(x$data$method_names, collapse = ", "), "with p-values", paste0(frac, collapse = ", "), ". It is recommended to rerun birp under the Poisson model (negativeBinomial = FALSE) to gain power.")
+    message("Could not reject null hypothesis (Poisson) with for all methods", paste0(x$data$method_names, collapse = ", "), "with p-values", paste0(frac, collapse = ", "), ". It is recommended to rerun birp under the Poisson model (negativeBinomial = FALSE) to gain power.")
   }
   
   return(list(keep_NB = any(keep_NB), keep_NB_per_method = keep_NB, frac = frac, b_Pois = b_Pois, b_x = b_x))

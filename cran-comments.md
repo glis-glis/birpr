@@ -1,5 +1,12 @@
 
-## Resubmission
+## Resubmission 2
+This is a resubmission. Thank you for your comments. In this version I have:
+
+* Replaced instances of cat() by message() to make them suppressable.
+* Removed gzstream.cpp, as this was an artefact that was never used.
+* Added contributors.
+
+## Resubmission 1
 This is a resubmission. Thank you for your comments. In this version I have:
 
 * Omitted the redundant "Provides functions to" from the description.

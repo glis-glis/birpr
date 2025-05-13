@@ -1,0 +1,12 @@
+
+
+---------------------------------------
+
+This package includes the fast_float library:
+https://github.com/fastfloat/fast_float
+
+This repo (v8.0.2) was forked and slightly modified to be compatible with the CRAN rules.
+This version is hosted on:
+https://bitbucket.org/wegmannlab/fast_float/
+
+fast_float is licensed under either of Apache License, Version 2.0 or MIT license or BOOST license. 
