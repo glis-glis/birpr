@@ -1,3 +1,9 @@
+# birp 0.0.3
+
+Addressed CRAN comments, specifically:
+* Added more contributors and inst/AUTHORS to explain code contributions in detail.
+* Replaced cat() by message().
+
 # birp 0.0.2
 
 Addressed CRAN comments, specifically:
