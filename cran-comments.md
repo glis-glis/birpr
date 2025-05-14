@@ -2,9 +2,13 @@
 ## Resubmission 2
 This is a resubmission. Thank you for your comments. In this version I have:
 
-* Replaced instances of cat() by message() to make them suppressable.
-* Removed gzstream.cpp, as this was an artefact that was never used.
-* Added contributors.
+* Replaced instances of cat() by message() to make them suppressible.
+* Removed gzstream.*, as this was an artifact that was never used.
+* Added more contributors in DESCRIPTION.
+* Added inst/AUTHORS file that explains in detail the contributions of all authors.
+* inst/AUTHORS also describes the use of the fast-float library.
+* inst/AUTHORS is referenced in DESCRIPTION.
+* Added URL to DESCRIPTION.
 
 ## Resubmission 1
 This is a resubmission. Thank you for your comments. In this version I have:
