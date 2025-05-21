@@ -2,7 +2,7 @@
 % Please edit documentation in R/birp.R
 \name{birp}
 \alias{birp}
-\title{Creating a Birp Object}
+\title{Create a \code{birp} Object}
 \usage{
 birp(
   data,
@@ -19,33 +19,33 @@ birp(
 )
 }
 \arguments{
-\item{data}{A \link{birp_data} object}
+\item{data}{A \link{birp_data} object containing the input data.}
 
-\item{timesOfChange}{A numeric or integer vector specifying the times of change}
+\item{timesOfChange}{Numeric or integer vector specifying the times of change (change points) for the model.}
 
-\item{negativeBinomial}{A boolean indicating if Poisson (default) or negative binomial model should be used}
+\item{negativeBinomial}{Logical; if \code{TRUE}, fits a negative binomial model instead of the default Poisson model.}
 
-\item{stochastic}{A boolean indicating if deterministic (default) or stochastic trend model should be used}
+\item{stochastic}{Logical; if \code{TRUE}, fits a stochastic trend model instead of the default deterministic trend model.}
 
-\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)}
+\item{BACI}{Optional matrix specifying the BACI (Before-After-Control-Impact) design. Each row corresponds to a control/intervention group and each column to an epoch. The first column contains the control-intervention group names (matching those in \code{data}), and subsequent columns specify which gamma (rate of change) parameter to use for each group and epoch. For example, \code{BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2)} corresponds to a canonical BACI design with control group "A" and intervention group "B".}
 
-\item{assumeTrueDetectionProbability}{A boolean indicating if provided detection probabilities are "true", i.e. meaning that they will be transform to logit and not standardized}
+\item{assumeTrueDetectionProbability}{Logical; if \code{TRUE}, provided detection probabilities are treated as true probabilities (logit-transformed without standardization).}
 
-\item{iterations}{The number of MCMC iterations to run}
+\item{iterations}{Integer; total number of MCMC iterations to run.}
 
-\item{numBurnin}{The number of burnin cycles to run}
+\item{numBurnin}{Integer; number of burn-in cycles to run.}
 
-\item{burnin}{The number of MCMC iterations per burnin cycle}
+\item{burnin}{Integer; number of MCMC iterations per burn-in cycle.}
 
-\item{thinning}{Integer value specifying the thinning interval for recording the MCMC trace. Only every \code{thinning}th iteration will be retained (e.g., \code{thinning = 1} records every iteration, \code{thinning = 2} records every second iteration, and so on).}
+\item{thinning}{Integer; thinning interval for saving MCMC samples. Only every \code{thinning}th iteration is retained.}
 
-\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
+\item{verbose}{Logical; if \code{FALSE}, suppresses console output.}
 }
 \value{
-An object of class birp
+An object of type \code{birp} containing MCMC results and model estimates.
 }
 \description{
-This function creates a birp object by running the MCMC
+This function runs the Markov Chain Monte Carlo (MCMC) algorithm on a \code{birp_data} object to estimate model parameters and returns a fitted \code{birp} object.
 }
 \examples{
 data <- simulate_birp()

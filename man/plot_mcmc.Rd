@@ -2,20 +2,20 @@
 % Please edit documentation in R/birp.R
 \name{plot_mcmc}
 \alias{plot_mcmc}
-\title{Plotting the MCMC chains}
+\title{Plot MCMC Traces and Posterior Densities}
 \usage{
 plot_mcmc(x, col = c("black", "blue"))
 }
 \arguments{
-\item{x}{A birp object}
+\item{x}{A \code{birp} object containing posterior samples.}
 
-\item{col}{Color(s) used in the plot}
+\item{col}{Character vector; Colors for trace and density plots. Default is c("black", "blue").}
 }
 \value{
-No return value, called for side effects
+No return value; the function is called for its side effects (plotting).
 }
 \description{
-Plotting the MCMC chains
+Visualizes the MCMC trace plots and posterior densities of the gamma parameters from a \code{birp} object.
 }
 \examples{
 data <- simulate_birp()

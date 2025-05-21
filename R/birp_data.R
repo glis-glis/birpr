@@ -48,10 +48,10 @@
 # Constructors
 #---------------------------------------
 
-#' Creating a Birp Data Object based on dataframe(s)
+#'  Create a 'birp_data' Object from a Data Frame or List of Data Frames
 #'
-#' This function creates a birp_data object
-#' @param data A single dataframe or a list of data frames (one per method). Each dataframe should consist of five columns: timepoint, location, counts, effort and CI_group. The rows of the dataframe correspond to the counts and efforts obtained at one particular timepoint, location and for one particular control-intervention (CI) group.
+#' Constructs a 'birp_data' object from a single data frame or a list of data frames, with one per method.
+#' @param data A data frame or a list of data frames, each representing one method. Each data frame must include the following columns: 'timepoint', 'location', 'counts', 'effort', and 'CI_group'. Each row represents a survey conducted at a specific timepoint and location, and for a specific control-intervention (CI) group.
 #' @return An object of type \link{birp_data}
 #' 
 #' @export
@@ -115,14 +115,14 @@ birp_data_from_data_frame <- function(data){
   return(x)
 }
 
-#' Creating a Birp Data Object based on counts and efforts for a single method
+#' Create a birp_data Object from Count and Effort Matrices
 #'
-#' This function creates a birp_data object
-#' @param counts An J x K matrix of the observed counts. Each of the J rows corresponds to a location obtained at each of K times (columns)
-#' @param efforts An J x K matrix of the effort conducted to observe the counts
-#' @param times A vector giving the K time points at which counts were obtained
-#' @param CI_groups The name of the control-intervention (CI) group for each location. By default, all locations belong to the same group (group_1)
-#' @param location_names Names to distinguish the locations. By default, locations are named after their row index in counts
+#' Constructs a 'birp_data' object from matrices of observed counts and corresponding efforts for a single method.
+#' @param counts A matrix of observed counts (J locations × K timepoints). Each row corresponds to a location and each column to a timepoint.
+#' @param efforts A matrix of observation effort with the same dimensions as `counts`.
+#' @param times A vector of length K specifying the timepoints.
+#' @param CI_groups A vector of length J specifying the control-intervention (CI) group for each location. Defaults to a single group (`group_1`) if not provided.
+#' @param location_names Optional names for the locations. Defaults to `"Location_1"`, `"Location_2"`, etc.
 #' @return An object of type birp_data
 #' @examples 
 #' data <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))
@@ -172,12 +172,12 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
   return(b)
 }
 
-#' Creating a Birp Data Object based on filenames
+#' Create a birp_data Object from File(s)
 #'
-#' This function creates a birp_data object
-#' @param filenames A vector of filenames specifying the input file(s) (one per method)
-#' @param method_names Names to distinguish the methods. If NA, method names will be derived from filenames
-#' @param sep The field separator character
+#' Constructs a 'birp_data' object from one or more input files, each representing data for a different method.
+#' @param filenames A character vector of file paths. Each file must contain a data frame with the columns 'timepoint', 'location', 'counts', 'effort' and 'CI_group'.
+#' @param method_names Optional vector of method names corresponding to the input files. If not provided, names are inferred from the file names.
+#' @param sep The field separator used in the files (default is comma).
 #' @return An object of type \link{birp_data}
 #' @examples
 #' dir <- system.file("extdata", package = "birp")
@@ -229,28 +229,34 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
   return(b)
 }
 
-#' This function simulates a birp_data object for tidy data
-#' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param gamma A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
-#' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
-#' @param stochastic A boolean indicating if the deterministic (default) or stochastic trend model should be used
-#' @param timepoints A vector of integers that denote the time points
-#' @param numLocations An integer denoting the number of locations
-#' @param numMethods An integer denoting the number of methods
-#' @param numCIGroups An integer denoting the number of control-intervention (CI) groups
-#' @param numCovariatesEffort An integer denoting the number of covariates for modeling the effort
-#' @param numCovariatesDetection An integer denoting the number of covariates for modeling the detection probabilities
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)
-#' @param n_bar A numeric value denoting the average number of counts to be simulated
-#' @param N_0 A numeric value denoting the expected number of observations at the first time point. If NULL, n_bar will be used instead
-#' @param a A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution
-#' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
-#' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
-#' @param covariatesEffort Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
-#' @param covariatesDetection Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate
-#' @param proportionZeroEffort The proportion of effort covariates which are set to zero
-#' @param verbose Logical. If \code{FALSE}, the console output is suppressed
-#' @return An object of type \link{birp_data}
+#' Simulate Data for BIRP Models
+#' Generates simulated count data using the BIRP model framework with user-defined parameters.
+#' @param timepoints Integer vector specifying time points.
+#' @param timesOfChange Integer vector indicating time points at which change in growth rate (gamma) occurs.
+#' @param gamma Numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
+#' @param negativeBinomial Logical; if \code{TRUE}, use negative binomial instead of Poisson.
+#' @param stochastic Logical; if \code{TRUE}, simulate abundance as a stochastic process instead of deterministic.
+#' @param numLocations Integer; number of spatial locations.
+#' @param numMethods Integer; number of sampling methods.
+#' @param numCIGroups Integer; number of control–intervention groups.
+#' @param numCovariatesEffort Integer; number of effort covariates.
+#' @param numCovariatesDetection Integer; number of detection covariates.
+#' @param BACI Optional matrix specifying BACI design (see Details).
+#' @param n_bar Expected average total observations per time point (across all locations).
+#' @param N_0 Optional numeric; initial abundance. If NULL, n_bar will be used instead
+#' @param a A numeric value or vector; detection parameter(s) for the negative binomial distribution. Can be a single value (shared across methods) or a vector of values (one per method).
+#' @param logSigma Optional numeric; log standard deviation of abundance process in the stochastic model. If NULL, logSigma will be set to -1
+#' @param logPhi Optional numeric; log standard deviation of detection process in the stochastic model. If NULL, logPhi will be simulated according to the model assumptions
+#' @param covariatesEffort Specifies how effort is calculated for covariates. Accepts: (1) a single number used for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string to simulate effort from, e.g., "gamma(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.
+#' @param covariatesDetection Specifies how detection probabilities are calculated for covariates. Accepts: (1) a single number for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string, e.g., "normal(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.
+#' @param proportionZeroEffort Proportion of time–location–method combinations with zero effort (0 to 1).
+#' @param verbose Logical; if \code{TRUE}, print progress messages.
+#' @return An object of type \link{birp_data} containing the simulated dataset.
+#' @details
+#' The `BACI` matrix defines a Before-After Control-Impact experimental design. It must be a binary matrix with two columns and one row per observation.  
+#' - The first column indicates the time period (`0 = before`, `1 = after`).  
+#' - The second column indicates the treatment type (`0 = control`, `1 = impact`).  
+#' This allows modeling interactions between time and treatment to isolate impact effects.
 #' @examples 
 #' data <- simulate_birp()
 #' @export
@@ -307,14 +313,14 @@ simulate_birp <- function(timepoints = c(1,2,3),
 }
 
 #' This function simulates a birp_data object using all parameter estimates, dimensionality (methods, locations, timepoints) and the total number of counts nu_ij of a birp object
-#' @param x An object of type birp
-#' @param negativeBinomial A boolean indicating if the Poisson (default) or negative binomial model should be used
-#' @param stochastic A boolean indicating if the deterministic (default) or stochastic trend model should be used
-#' @param mu A numeric vector denoting the values of mu to be used for the negative binomial model, where the size is given by the number of method-location combinations. If NULL, all mu_i for one method i are set to the (number of locations)^(-1) for that method
-#' @param b A numeric vector denoting the values of b to be used for the negative binomial model (one per method). If NULL, all b_i are set to 1
-#' @param logSigma A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1
-#' @param logPhi A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions
-#' @param verbose Logical. If \code{FALSE}, the console output is suppressed
+#' @param x An object of type \code{birp}.
+#' @param negativeBinomial Logical; if \code{TRUE}, simulate counts using a negative binomial distribution instead of Poisson.
+#' @param stochastic Logical; if \code{TRUE}, use a stochastic model with log-normal fluctuations.
+#' @param mu A numeric vector specifying values of \eqn{\mu} for the negative binomial model, with one value per method-location combination. If \code{NULL}, \eqn{\mu_i} for method \eqn{i} is set to \eqn{1 / \text{number of locations}}.
+#' @param b A numeric vector specifying values of \eqn{b} for the negative binomial model (one per method). If \code{NULL}, all \eqn{b_i} are set to 1.
+#' @param logSigma A single numeric value specifying \code{logSigma} for the stochastic model. If \code{NULL}, \code{logSigma} is set to -1.
+#' @param logPhi A numeric vector specifying values of \code{logPhi} for the stochastic model. If \code{NULL}, values are simulated according to the model assumptions.
+#' @param verbose Logical; if \code{FALSE}, suppresses console output.
 #' @return An object of type \link{birp_data}
 #' @examples 
 #' data  <- simulate_birp()
@@ -389,10 +395,12 @@ simulate_birp_from_results <- function(x,
 # Printing birp_data
 #---------------------------------------
 
-#' Printing a birp_data Object
-#' @param x The birp_data object to be printed.
-#' @param ... Other parameters passed to function
-#' @return No return value, called for side effects
+#' Print a birp_data object
+#' Prints a summary of a \code{birp_data} object, including the number of methods, locations, control-intervention (CI) groups, and timepoints, as well as the names or identifiers for each.
+#' 
+#' @param x A \code{birp_data} object to be printed.
+#' @param ... Additional arguments passed to function.
+#' @return No return value; this function is called for its side effects (printing to console).
 #' @examples 
 #' data <- simulate_birp()
 #' print(data)
@@ -408,10 +416,13 @@ print.birp_data <- function(x, ...){
   invisible(x)
 }
 
-#' This function summarizes a birp_data object
-#' @param object The birp_data object to be printed.
-#' @param ... Other parameters passed to function
-#' @return No return value, called for side effects
+#' Summarize a birp_data object
+#'
+#' Provides a printed summary of the contents of a \code{birp_data} object.
+#' @param object A \code{birp_data} object to be summarized.
+#' @param ... Additional arguments.
+#' @return No return value; this function is called for its side effects (printing to console).
+#'
 #' @examples 
 #' data <- simulate_birp()
 #' summary(data)
@@ -424,23 +435,24 @@ summary.birp_data <- function(object, ...){
 # Plotting birp_data
 #---------------------------------------
 
-#' Plotting a birp_data Object
+#' Plot a birp_data Object
 #'
-#' This function plots the counts per unit of effort per time-point, method and location
-#' @param x The birp data object to be printed.
-#' @param col A vector of colors, recycled to match the number of methods and locations
-#' @param lwd A vector of line width, recycled to match the number of methods and locations
-#' @param lty A vector of line types, recycled to match the number of methods and locations
-#' @param pch A vector of plotting characters, recycled to match the number of control/intervention groups
-#' @param xlab The label of the x-axis
-#' @param ylab The label of the y-axis
-#' @param legend.x The x coordinate to position the legend. Use legend.x=NA to omit legend
-#' @param legend.y The y coordinate to position the legend
-#' @param legend.bty The type of box to be drawn around the legend. The allowed values are "o" (the default) and "n".
-#' @param xlim Set the limits of the x-axis
-#' @param ylim Set the limits of the y-axis
-#' @param ... Additional parameters passed to plotting functions.
-#' @return No return value, called for side effects
+#' This function plots observed counts per unit of effort over time, for each method-location combination in a \code{birp_data} object.
+#'
+#' @param x A \code{birp_data} object to be plotted.
+#' @param col A vector of colors, recycled to match the number of locations.
+#' @param lwd A vector of line widths, recycled to match the number of method-location combinations.
+#' @param lty A vector of line types, recycled to match the number of methods.
+#' @param pch A vector of plotting characters, recycled to match the number of control-intervention (CI) groups.
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param legend.x The x-position for the legend. Use \code{NA} to omit the legend.
+#' @param legend.y The y-position for the legend.
+#' @param legend.bty Box type for the legend; either \code{"o"} (default) or \code{"n"}.
+#' @param xlim Numeric vector specifying the x-axis limits.
+#' @param ylim Numeric vector specifying the y-axis limits. If \code{NA}, limits are computed automatically.
+#' @param ... Additional graphical parameters passed to \code{plot()} or \code{lines()}.
+#' @return No return value. Called for side effects.
 #' @examples 
 #' data <- simulate_birp()
 #' plot(data)

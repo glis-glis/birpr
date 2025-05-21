@@ -2,7 +2,7 @@
 % Please edit documentation in R/birp_data.R
 \name{plot.birp_data}
 \alias{plot.birp_data}
-\title{Plotting a birp_data Object}
+\title{Plot a birp_data Object}
 \usage{
 \method{plot}{birp_data}(
   x,
@@ -21,37 +21,37 @@
 )
 }
 \arguments{
-\item{x}{The birp data object to be printed.}
+\item{x}{A \code{birp_data} object to be plotted.}
 
-\item{col}{A vector of colors, recycled to match the number of methods and locations}
+\item{col}{A vector of colors, recycled to match the number of locations.}
 
-\item{lwd}{A vector of line width, recycled to match the number of methods and locations}
+\item{lwd}{A vector of line widths, recycled to match the number of method-location combinations.}
 
-\item{lty}{A vector of line types, recycled to match the number of methods and locations}
+\item{lty}{A vector of line types, recycled to match the number of methods.}
 
-\item{pch}{A vector of plotting characters, recycled to match the number of control/intervention groups}
+\item{pch}{A vector of plotting characters, recycled to match the number of control-intervention (CI) groups.}
 
-\item{xlab}{The label of the x-axis}
+\item{xlab}{Label for the x-axis.}
 
-\item{ylab}{The label of the y-axis}
+\item{ylab}{Label for the y-axis.}
 
-\item{legend.x}{The x coordinate to position the legend. Use legend.x=NA to omit legend}
+\item{legend.x}{The x-position for the legend. Use \code{NA} to omit the legend.}
 
-\item{legend.y}{The y coordinate to position the legend}
+\item{legend.y}{The y-position for the legend.}
 
-\item{legend.bty}{The type of box to be drawn around the legend. The allowed values are "o" (the default) and "n".}
+\item{legend.bty}{Box type for the legend; either \code{"o"} (default) or \code{"n"}.}
 
-\item{xlim}{Set the limits of the x-axis}
+\item{xlim}{Numeric vector specifying the x-axis limits.}
 
-\item{ylim}{Set the limits of the y-axis}
+\item{ylim}{Numeric vector specifying the y-axis limits. If \code{NA}, limits are computed automatically.}
 
-\item{...}{Additional parameters passed to plotting functions.}
+\item{...}{Additional graphical parameters passed to \code{plot()} or \code{lines()}.}
 }
 \value{
-No return value, called for side effects
+No return value. Called for side effects.
 }
 \description{
-This function plots the counts per unit of effort per time-point, method and location
+This function plots observed counts per unit of effort over time, for each method-location combination in a \code{birp_data} object.
 }
 \examples{
 data <- simulate_birp()

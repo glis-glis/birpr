@@ -2,26 +2,26 @@
 % Please edit documentation in R/birp_data.R
 \name{birp_data}
 \alias{birp_data}
-\title{Creating a Birp Data Object based on counts and efforts for a single method}
+\title{Create a birp_data Object from Count and Effort Matrices}
 \usage{
 birp_data(counts, efforts, times, CI_groups = NULL, location_names = NULL)
 }
 \arguments{
-\item{counts}{An J x K matrix of the observed counts. Each of the J rows corresponds to a location obtained at each of K times (columns)}
+\item{counts}{A matrix of observed counts (J locations × K timepoints). Each row corresponds to a location and each column to a timepoint.}
 
-\item{efforts}{An J x K matrix of the effort conducted to observe the counts}
+\item{efforts}{A matrix of observation effort with the same dimensions as `counts`.}
 
-\item{times}{A vector giving the K time points at which counts were obtained}
+\item{times}{A vector of length K specifying the timepoints.}
 
-\item{CI_groups}{The name of the control-intervention (CI) group for each location. By default, all locations belong to the same group (group_1)}
+\item{CI_groups}{A vector of length J specifying the control-intervention (CI) group for each location. Defaults to a single group (`group_1`) if not provided.}
 
-\item{location_names}{Names to distinguish the locations. By default, locations are named after their row index in counts}
+\item{location_names}{Optional names for the locations. Defaults to `"Location_1"`, `"Location_2"`, etc.}
 }
 \value{
 An object of type birp_data
 }
 \description{
-This function creates a birp_data object
+Constructs a 'birp_data' object from matrices of observed counts and corresponding efforts for a single method.
 }
 \examples{
 data <- birp_data(c(10,20,30), c(100,200,300), c(1,2,5))

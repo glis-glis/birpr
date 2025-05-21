@@ -13,3 +13,5 @@
 ^src/libs/coretools/fast_float/.travis.yml
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^doc$
+^Meta$

@@ -2,7 +2,7 @@
 % Please edit documentation in R/birp.R
 \name{plot_epoch_pair}
 \alias{plot_epoch_pair}
-\title{Plotting posterior estimates of gamma pairs}
+\title{Plot joint posterior of two gamma parameters}
 \usage{
 plot_epoch_pair(
   x,
@@ -25,45 +25,45 @@ plot_epoch_pair(
 )
 }
 \arguments{
-\item{x}{A birp object}
+\item{x}{A \code{birp} object.}
 
-\item{gamma1}{The index of the first gamma to plot}
+\item{gamma1}{Integer; Index of the first gamma parameter to plot on the x-axis. Default is 1.}
 
-\item{gamma2}{The index of the second gamma to plot}
+\item{gamma2}{Integer; Index of the second gamma parameter to plot on the y-axis. Default is 2.}
 
-\item{xlab}{A label for the x axis}
+\item{xlab}{Character; Label for the x-axis. Default is dynamically set based on \code{gamma1}.}
 
-\item{ylab}{A label for the y axis}
+\item{ylab}{Character; Label for the y-axis. Default is dynamically set based on \code{gamma2}.}
 
-\item{xlim}{The x-limits (x1, x2) of the plot. Note that x1 > x2 is allowed and leads to a "reversed axis". The default value, NULL, indicates that the range of the finite values to be plotted should be used}
+\item{xlim}{Numeric vector of length 2; Optional x-axis limits. Default is the range of gamma1 and gamma2 values.}
 
-\item{ylim}{The y-limits of the plot}
+\item{ylim}{Numeric vector of length 2; Optional y-axis limits. Default is the same as \code{xlim}.}
 
-\item{col}{The color for the contour lines}
+\item{col}{Character or color specification; Color for contour lines. Default is \code{"deeppink"}.}
 
-\item{diag.col}{The color of the diagonal line. Use NA to indicate that no line should be plotted}
+\item{diag.col}{Character or \code{NA}; Color of the diagonal line (\code{y=x}). Use \code{NA} to omit. Default is \code{"black"}.}
 
-\item{diag.lwd}{The line width of the diagonal line}
+\item{diag.lwd}{Numeric; Line width of the diagonal line. Default is 1.}
 
-\item{diag.lty}{The line type of the diagonal line}
+\item{diag.lty}{Numeric or character; Line type of the diagonal line. Default is 1 (solid).}
 
-\item{zero.col}{The color of the line at zero. Use NA to indicate that no line should be plotted}
+\item{zero.col}{Character or \code{NA}; Color of the zero reference lines (at \code{x=0} and \code{y=0}). Use \code{NA} to omit. Default is \code{"black"}.}
 
-\item{zero.lwd}{The line width of the line at zero}
+\item{zero.lwd}{Numeric; Line width of the zero reference lines. Default is 1.}
 
-\item{zero.lty}{The line type of the line at zero}
+\item{zero.lty}{Numeric or character; Line type of the zero reference lines. Default is 2 (dashed).}
 
-\item{print.p}{If \code{TRUE}, add text representing the posterior probability of a trend change}
+\item{print.p}{Logical; If \code{TRUE}, adds an annotation showing the posterior probability \code{P(gamma1 < gamma2 | data)} or \code{P(gamma1 > gamma2 | data)}. Default is \code{TRUE}.}
 
-\item{add}{Boolean indicating if a lines should be added to an existing plot}
+\item{add}{Logical; If \code{TRUE}, adds the contour plot to an existing plot. Default is \code{FALSE}.}
 
-\item{...}{additional parameters passed to the function}
+\item{...}{Additional graphical parameters passed to \code{\link[graphics]{contour}}.}
 }
 \value{
-No return value, called for side effects.
+No return value; called for side effects (plotting).
 }
 \description{
-Plotting posterior estimates of gamma pairs
+Plots a 2D density contour for the joint posterior of two gamma parameters from a \code{birp} object.
 }
 \examples{
 data <- simulate_birp(timesOfChange = 2)

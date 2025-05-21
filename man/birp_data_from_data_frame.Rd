@@ -2,18 +2,18 @@
 % Please edit documentation in R/birp_data.R
 \name{birp_data_from_data_frame}
 \alias{birp_data_from_data_frame}
-\title{Creating a Birp Data Object based on dataframe(s)}
+\title{Create a 'birp_data' Object from a Data Frame or List of Data Frames}
 \usage{
 birp_data_from_data_frame(data)
 }
 \arguments{
-\item{data}{A single dataframe or a list of data frames (one per method). Each dataframe should consist of five columns: timepoint, location, counts, effort and CI_group. The rows of the dataframe correspond to the counts and efforts obtained at one particular timepoint, location and for one particular control-intervention (CI) group.}
+\item{data}{A data frame or a list of data frames, each representing one method. Each data frame must include the following columns: 'timepoint', 'location', 'counts', 'effort', and 'CI_group'. Each row represents a survey conducted at a specific timepoint and location, and for a specific control-intervention (CI) group.}
 }
 \value{
 An object of type \link{birp_data}
 }
 \description{
-This function creates a birp_data object
+Constructs a 'birp_data' object from a single data frame or a list of data frames, with one per method.
 }
 \examples{
 df <- data.frame(

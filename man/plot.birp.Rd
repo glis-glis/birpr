@@ -2,7 +2,7 @@
 % Please edit documentation in R/birp.R
 \name{plot.birp}
 \alias{plot.birp}
-\title{Plotting a birp object}
+\title{Plot posterior distributions of gamma parameters}
 \usage{
 \method{plot}{birp}(
   x,
@@ -22,39 +22,39 @@
 )
 }
 \arguments{
-\item{x}{A birp object}
+\item{x}{A \code{birp} object.}
 
-\item{shadingIncrease}{Shading color for the range gamma > 0. If \code{NA}, shading is omitted}
+\item{shadingIncrease}{Character or color specification; Shading color for the range where the gamma parameter is greater than 0 (\code{gamma > 0}). If \code{NA}, shading is omitted. Default is \code{NA}.}
 
-\item{shadingDecrease}{Shading color for the range gamma < 0. If \code{NA}, shading is omitted}
+\item{shadingDecrease}{Character or color specification; Shading color for the range where the gamma parameter is less than 0 (\code{gamma < 0}). If \code{NA}, shading is omitted. Default is \code{"#f2c7c7"}.}
 
-\item{col}{Line color, one per gamma. If a single value is provided, it is recycled to match the number of gammas.}
+\item{col}{Character vector or color values; Line color(s) for the density plots. If a single value is provided, it is recycled for all gamma parameters. Default is \code{"black"}.}
 
-\item{lwd}{Line width, one per gamma. If a single value is provided, it is recycled to match the number of gammas.}
+\item{lwd}{Numeric vector; Line width(s) for the density plots. If a single value is provided, it is recycled. Default is 1.}
 
-\item{lty}{Line type, one per gamma. If a single value is provided, it is recycled to match the number of gammas.}
+\item{lty}{Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$num_gamma}.}
 
-\item{xlim}{The x-limits (x1, x2) of the plot. If NA, these are determined automatically}
+\item{xlim}{Numeric vector of length 2; Optional x-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.}
 
-\item{ylim}{The y-limits (y1, y2) of the plot. If NA, these are determined automatically}
+\item{ylim}{Numeric vector of length 2; Optional y-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.}
 
-\item{add}{If \code{TRUE}, posterior density is added to currently open plot. If FALSE, a new plot is opened.}
+\item{add}{Logical; If \code{TRUE}, adds the densities to an existing plot. Otherwise, creates a new plot. Default is \code{FALSE}.}
 
-\item{xlab}{Name of x axis}
+\item{xlab}{Character; Label for the x-axis. Default is \code{expression(gamma)}.}
 
-\item{ylab}{Name of y axis}
+\item{ylab}{Character; Label for the y-axis. Default is \code{"Posterior density"}.}
 
-\item{legend}{Add a legend to the plot. Use NA to suppress}
+\item{legend}{Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$gamma_names}.}
 
-\item{lineAtZero}{If \code{TRUE}, adds a dashed line indicating 0.}
+\item{lineAtZero}{Logical; If \code{TRUE}, adds a vertical line at x = 0 to indicate no effect. Default is \code{TRUE}.}
 
-\item{...}{additional parameters passed to the function.}
+\item{...}{Additional graphical parameters passed to \code{\link[graphics]{lines}} (when plotting the densities) and \code{\link[graphics]{plot}} (when creating a new plot).}
 }
 \value{
 No return value, called for side effects.
 }
 \description{
-Plotting a birp object
+Plots the posterior densities of the gamma parameters estimated by a \code{birp} object.
 }
 \examples{
 data <- simulate_birp()

@@ -2,7 +2,7 @@
 % Please edit documentation in R/birp.R
 \name{assess_NB}
 \alias{assess_NB}
-\title{Assess whether it is possible to use the Poisson model instead of the Negative Binomial (NB) model}
+\title{Assess whether a Poisson model can replace the Negative Binomial model}
 \usage{
 assess_NB(
   x,
@@ -14,23 +14,28 @@ assess_NB(
 )
 }
 \arguments{
-\item{x}{A birp object, estimated under a negative binomial model.}
+\item{x}{A \code{birp} object estimated under a negative binomial model.}
 
-\item{stochastic}{A boolean indicating if deterministic (default) or stochastic trend model should be used}
+\item{stochastic}{Logical; if \code{TRUE}, use a stochastic trend model, otherwise deterministic (default).}
 
-\item{numRep}{The number of replicates to run}
+\item{numRep}{Integer; number of replicate datasets to simulate (default 100).}
 
-\item{cutoff}{The fraction of replicates for which b_Pois > b_x}
+\item{cutoff}{Numeric; significance threshold for the fraction of replicates where NB overdispersion exceeds Poisson estimate (default 0.05).}
 
-\item{plot}{A boolean indicating if the distribution of b should be plotted.}
+\item{plot}{Logical; if \code{TRUE}, plot the distributions of overdispersion parameters from simulated Poisson replicates (default \code{TRUE}).}
 
-\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
+\item{verbose}{Logical; if \code{FALSE}, suppress console output (default \code{TRUE}).}
 }
 \value{
-A list. If keepNB is TRUE, the data is overdispersed and the negative binomial model should be used to account for the overdispersion. If keepNB is FALSE, birp should be re-run using the Poisson model to gain power.
+A list containing:
+\item{keep_NB}{Logical scalar, \code{TRUE} if NB model should be kept (data shows overdispersion). If \code{FALSE}, birp should be re-run using the Poisson model to gain power.}
+\item{keep_NB_per_method}{Logical vector indicating whether NB should be kept for each method.}
+\item{frac}{Numeric vector with fractions of replicates where Poisson simulated overdispersion exceeded observed NB overdispersion.}
+\item{b_Pois}{Matrix of overdispersion parameter estimates from Poisson-simulated replicates.}
+\item{b_x}{Numeric vector of overdispersion parameter estimates from the original NB fit.}
 }
 \description{
-Assess whether it is possible to use the Poisson model instead of the Negative Binomial (NB) model
+This function tests if the Poisson model is appropriate by simulating replicate datasets under the Poisson assumption and comparing the overdispersion parameter estimates with those obtained from the Negative Binomial (NB) model fit to the original data.
 }
 \examples{
 data <- simulate_birp()

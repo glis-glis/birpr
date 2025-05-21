@@ -2,7 +2,8 @@
 % Please edit documentation in R/birp_data.R
 \name{simulate_birp}
 \alias{simulate_birp}
-\title{This function simulates a birp_data object for tidy data}
+\title{Simulate Data for BIRP Models
+Generates simulated count data using the BIRP model framework with user-defined parameters.}
 \usage{
 simulate_birp(
   timepoints = c(1, 2, 3),
@@ -28,51 +29,58 @@ simulate_birp(
 )
 }
 \arguments{
-\item{timepoints}{A vector of integers that denote the time points}
+\item{timepoints}{Integer vector specifying time points.}
 
-\item{timesOfChange}{A numeric or integer vector specifying the times of change}
+\item{timesOfChange}{Integer vector indicating time points at which change in growth rate (gamma) occurs.}
 
-\item{gamma}{A numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero}
+\item{gamma}{Numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero}
 
-\item{negativeBinomial}{A boolean indicating if the Poisson (default) or negative binomial model should be used}
+\item{negativeBinomial}{Logical; if \code{TRUE}, use negative binomial instead of Poisson.}
 
-\item{stochastic}{A boolean indicating if the deterministic (default) or stochastic trend model should be used}
+\item{stochastic}{Logical; if \code{TRUE}, simulate abundance as a stochastic process instead of deterministic.}
 
-\item{numLocations}{An integer denoting the number of locations}
+\item{numLocations}{Integer; number of spatial locations.}
 
-\item{numMethods}{An integer denoting the number of methods}
+\item{numMethods}{Integer; number of sampling methods.}
 
-\item{numCIGroups}{An integer denoting the number of control-intervention (CI) groups}
+\item{numCIGroups}{Integer; number of control–intervention groups.}
 
-\item{numCovariatesEffort}{An integer denoting the number of covariates for modeling the effort}
+\item{numCovariatesEffort}{Integer; number of effort covariates.}
 
-\item{numCovariatesDetection}{An integer denoting the number of covariates for modeling the detection probabilities}
+\item{numCovariatesDetection}{Integer; number of detection covariates.}
 
-\item{BACI}{A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. In addition, the very first column specifies the name of the control-intervention group. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)}
+\item{BACI}{Optional matrix specifying BACI design (see Details).}
 
-\item{n_bar}{A numeric value denoting the average number of counts to be simulated}
+\item{n_bar}{Expected average total observations per time point (across all locations).}
 
-\item{N_0}{A numeric value denoting the expected number of observations at the first time point. If NULL, n_bar will be used instead}
+\item{N_0}{Optional numeric; initial abundance. If NULL, n_bar will be used instead}
 
-\item{a}{A single value (shared across methods) or a numeric vector (per method) used to simulate values under the negative binomial distribution}
+\item{a}{A numeric value or vector; detection parameter(s) for the negative binomial distribution. Can be a single value (shared across methods) or a vector of values (one per method).}
 
-\item{logSigma}{A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1}
+\item{logSigma}{Optional numeric; log standard deviation of abundance process in the stochastic model. If NULL, logSigma will be set to -1}
 
-\item{logPhi}{A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions}
+\item{logPhi}{Optional numeric; log standard deviation of detection process in the stochastic model. If NULL, logPhi will be simulated according to the model assumptions}
 
-\item{covariatesEffort}{Denotes the covariates for calculating the effort. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the effort from, which can be either "gamma(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
+\item{covariatesEffort}{Specifies how effort is calculated for covariates. Accepts: (1) a single number used for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string to simulate effort from, e.g., "gamma(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.}
 
-\item{covariatesDetection}{Denotes the covariates for calculating the detection probabilities. There are 3 options: 1) a single number, which is used for all covariates and locations; 2) a vector of numbers, one per covariate but the same for all location; 3) a distribution to simulate the detection probabilities from, which can be either "normal(a, b)" or "uniform(a, b)" where a and b can be set or 4) a vector of such distributions, one per covariate}
+\item{covariatesDetection}{Specifies how detection probabilities are calculated for covariates. Accepts: (1) a single number for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string, e.g., "normal(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.}
 
-\item{proportionZeroEffort}{The proportion of effort covariates which are set to zero}
+\item{proportionZeroEffort}{Proportion of time–location–method combinations with zero effort (0 to 1).}
 
-\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
+\item{verbose}{Logical; if \code{TRUE}, print progress messages.}
 }
 \value{
-An object of type \link{birp_data}
+An object of type \link{birp_data} containing the simulated dataset.
 }
 \description{
-This function simulates a birp_data object for tidy data
+Simulate Data for BIRP Models
+Generates simulated count data using the BIRP model framework with user-defined parameters.
+}
+\details{
+The `BACI` matrix defines a Before-After Control-Impact experimental design. It must be a binary matrix with two columns and one row per observation.  
+- The first column indicates the time period (`0 = before`, `1 = after`).  
+- The second column indicates the treatment type (`0 = control`, `1 = impact`).  
+This allows modeling interactions between time and treatment to isolate impact effects.
 }
 \examples{
 data <- simulate_birp()

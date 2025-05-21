@@ -2,20 +2,20 @@
 % Please edit documentation in R/birp.R
 \name{summary.birp}
 \alias{summary.birp}
-\title{Summarizing a birp object}
+\title{Summary method for birp objects}
 \usage{
 \method{summary}{birp}(object, ...)
 }
 \arguments{
-\item{object}{A birp object.}
+\item{object}{A \code{birp} object.}
 
-\item{...}{Additional parameters passed to summary functions.}
+\item{...}{Additional arguments passed to \code{print.birp}.}
 }
 \value{
-No return value, called for side effects.
+Invisibly returns the input \code{object}, called for side effects.
 }
 \description{
-Summarizing a birp object
+Provides a printed summary of model estimates for a \code{birp} object.
 }
 \examples{
 data <- simulate_birp()

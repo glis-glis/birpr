@@ -2,20 +2,22 @@
 % Please edit documentation in R/birp_data.R
 \name{print.birp_data}
 \alias{print.birp_data}
-\title{Printing a birp_data Object}
+\title{Print a birp_data object
+Prints a summary of a \code{birp_data} object, including the number of methods, locations, control-intervention (CI) groups, and timepoints, as well as the names or identifiers for each.}
 \usage{
 \method{print}{birp_data}(x, ...)
 }
 \arguments{
-\item{x}{The birp_data object to be printed.}
+\item{x}{A \code{birp_data} object to be printed.}
 
-\item{...}{Other parameters passed to function}
+\item{...}{Additional arguments passed to function.}
 }
 \value{
-No return value, called for side effects
+No return value; this function is called for its side effects (printing to console).
 }
 \description{
-Printing a birp_data Object
+Print a birp_data object
+Prints a summary of a \code{birp_data} object, including the number of methods, locations, control-intervention (CI) groups, and timepoints, as well as the names or identifiers for each.
 }
 \examples{
 data <- simulate_birp()

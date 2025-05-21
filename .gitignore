@@ -58,3 +58,6 @@ birp/src/birp.so
 birp_0.0.1.tar.gz
 birp/src/Makevars
 birpr.Rproj
+inst/doc
+/doc/
+/Meta/

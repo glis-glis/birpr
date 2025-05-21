@@ -2,7 +2,7 @@
 % Please edit documentation in R/birp.R
 \name{plot_trend}
 \alias{plot_trend}
-\title{Plotting posterior trends}
+\title{Plot Posterior Trend Estimates}
 \usage{
 plot_trend(
   x,
@@ -29,51 +29,51 @@ plot_trend(
 )
 }
 \arguments{
-\item{x}{A birp object}
+\item{x}{A \code{birp} object containing MCMC trace and model outputs.}
 
-\item{CI_group}{The index of the control-intervention (CI) group to plot. By default, the first group is plotted.}
+\item{CI_group}{Integer; Index of the control-intervention group to plot. Default is 1.}
 
-\item{n_points}{Number of points}
+\item{n_points}{Integer; Number of points to evaluate the trend over time. Default is 1000.}
 
-\item{quantiles}{Which quantiles to plot}
+\item{quantiles}{Numeric vector; Quantiles to plot as shaded intervals. Must be in (0, 1). Default is c(0.99, 0.9, 0.5, 0.25).}
 
-\item{quantile.col}{Colors of the quantiles}
+\item{quantile.col}{Character vector or color values; Fill colors for quantile polygons. Default is shades of gray.}
 
-\item{quantile.border}{Define border of the quantile. NA is possible}
+\item{quantile.border}{Character or NA; Border color for quantile polygons. Use NA to omit borders. Default is NA.}
 
-\item{median.col}{Color of the median}
+\item{median.col}{Character; Color of the median trend line. Default is "deeppink".}
 
-\item{median.lwd}{Line width of median}
+\item{median.lwd}{Numeric; Line width for the median trend. Default is 1.}
 
-\item{median.lty}{Line type of median}
+\item{median.lty}{Numeric or character; Line type for the median trend line. Default is 1 (solid).}
 
-\item{epoch.col}{Color to represent the epochs}
+\item{epoch.col}{Character or color specification; Color for lines representing epoch boundaries. Default is \code{"black"}.}
 
-\item{epoch.lwd}{Line width to represent the epochs}
+\item{epoch.lwd}{Numeric; Line width for epoch boundary lines. Default is 1.}
 
-\item{epoch.lty}{Line type to represent the epochs}
+\item{epoch.lty}{Numeric or character; Line type for epoch boundary lines. Default is 1 (solid).}
 
-\item{times.col}{Color to represent the times of change}
+\item{times.col}{Character or color specification; Color for vertical lines representing measurement times. Default is \code{"black"}.}
 
-\item{times.lwd}{Line width that represents times of change}
+\item{times.lwd}{Numeric; Line width for measurement time lines. Default is 1.}
 
-\item{times.lty}{Line type that represents times of change}
+\item{times.lty}{Numeric or character scalar; Line type for measurement time lines. Default is 2 (dashed).}
 
-\item{log}{Plot relative densities in log}
+\item{log}{Logical; If \code{TRUE}, plot relative densities on a logarithmic scale; otherwise plot on the original scale. Default is \code{FALSE}.}
 
-\item{xlab}{A label for the x axis}
+\item{xlab}{Character; Label for the x-axis. Default is \code{"Time"}.}
 
-\item{ylab}{A label for the y axis}
+\item{ylab}{Character; Label for the y-axis. Default dynamically set to either \code{"log Relative Density"} or \code{"Relative Density"}.}
 
-\item{main}{A title for the plot}
+\item{main}{Character; Main title of the plot. Defaults to the name of the selected CI group.}
 
-\item{...}{additional parameters passed to the function}
+\item{...}{Additional graphical parameters passed to the base \code{plot} function.}
 }
 \value{
-No return value, called for side effects
+No return value, called for side effects.
 }
 \description{
-Plotting posterior trends
+Visualizes posterior trends from a \code{birp} object by plotting the median and quantile intervals of the estimated relative densities over time. Optionally, vertical lines can be added to mark epoch boundaries and survey timepoints.
 }
 \examples{
 data <- simulate_birp()

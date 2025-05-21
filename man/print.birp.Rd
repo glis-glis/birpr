@@ -2,20 +2,20 @@
 % Please edit documentation in R/birp.R
 \name{print.birp}
 \alias{print.birp}
-\title{Printing a birp object}
+\title{Print a birp object}
 \usage{
 \method{print}{birp}(x, ...)
 }
 \arguments{
-\item{x}{A birp object.}
+\item{x}{A \code{birp} object.}
 
-\item{...}{Additional parameters passed to print functions.}
+\item{...}{Additional arguments passed to internal methods (currently unused).}
 }
 \value{
-No return value, called for side effects.
+Invisibly returns the input \code{x}, called for side effects.
 }
 \description{
-Printing a birp object
+Prints a summary of the estimated parameters from a \code{birp} model.
 }
 \examples{
 data <- simulate_birp()

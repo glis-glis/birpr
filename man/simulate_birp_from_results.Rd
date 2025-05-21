@@ -16,21 +16,21 @@ simulate_birp_from_results(
 )
 }
 \arguments{
-\item{x}{An object of type birp}
+\item{x}{An object of type \code{birp}.}
 
-\item{negativeBinomial}{A boolean indicating if the Poisson (default) or negative binomial model should be used}
+\item{negativeBinomial}{Logical; if \code{TRUE}, simulate counts using a negative binomial distribution instead of Poisson.}
 
-\item{stochastic}{A boolean indicating if the deterministic (default) or stochastic trend model should be used}
+\item{stochastic}{Logical; if \code{TRUE}, use a stochastic model with log-normal fluctuations.}
 
-\item{mu}{A numeric vector denoting the values of mu to be used for the negative binomial model, where the size is given by the number of method-location combinations. If NULL, all mu_i for one method i are set to the (number of locations)^(-1) for that method}
+\item{mu}{A numeric vector specifying values of \eqn{\mu} for the negative binomial model, with one value per method-location combination. If \code{NULL}, \eqn{\mu_i} for method \eqn{i} is set to \eqn{1 / \text{number of locations}}.}
 
-\item{b}{A numeric vector denoting the values of b to be used for the negative binomial model (one per method). If NULL, all b_i are set to 1}
+\item{b}{A numeric vector specifying values of \eqn{b} for the negative binomial model (one per method). If \code{NULL}, all \eqn{b_i} are set to 1.}
 
-\item{logSigma}{A single value denoting the value of logSigma of the stochastic model to simulate. If NULL, logSigma will be set to -1}
+\item{logSigma}{A single numeric value specifying \code{logSigma} for the stochastic model. If \code{NULL}, \code{logSigma} is set to -1.}
 
-\item{logPhi}{A numeric vector denoting the values of logPhi of the stochastic model to simulate. If NULL, logPhi will be simulated according to the model assumptions}
+\item{logPhi}{A numeric vector specifying values of \code{logPhi} for the stochastic model. If \code{NULL}, values are simulated according to the model assumptions.}
 
-\item{verbose}{Logical. If \code{FALSE}, the console output is suppressed}
+\item{verbose}{Logical; if \code{FALSE}, suppresses console output.}
 }
 \value{
 An object of type \link{birp_data}

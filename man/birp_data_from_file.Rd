@@ -2,22 +2,22 @@
 % Please edit documentation in R/birp_data.R
 \name{birp_data_from_file}
 \alias{birp_data_from_file}
-\title{Creating a Birp Data Object based on filenames}
+\title{Create a birp_data Object from File(s)}
 \usage{
 birp_data_from_file(filenames, method_names = NA, sep = ",")
 }
 \arguments{
-\item{filenames}{A vector of filenames specifying the input file(s) (one per method)}
+\item{filenames}{A character vector of file paths. Each file must contain a data frame with the columns 'timepoint', 'location', 'counts', 'effort' and 'CI_group'.}
 
-\item{method_names}{Names to distinguish the methods. If NA, method names will be derived from filenames}
+\item{method_names}{Optional vector of method names corresponding to the input files. If not provided, names are inferred from the file names.}
 
-\item{sep}{The field separator character}
+\item{sep}{The field separator used in the files (default is comma).}
 }
 \value{
 An object of type \link{birp_data}
 }
 \description{
-This function creates a birp_data object
+Constructs a 'birp_data' object from one or more input files, each representing data for a different method.
 }
 \examples{
 dir <- system.file("extdata", package = "birp")

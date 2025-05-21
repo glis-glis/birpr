@@ -2,20 +2,20 @@
 % Please edit documentation in R/birp_data.R
 \name{summary.birp_data}
 \alias{summary.birp_data}
-\title{This function summarizes a birp_data object}
+\title{Summarize a birp_data object}
 \usage{
 \method{summary}{birp_data}(object, ...)
 }
 \arguments{
-\item{object}{The birp_data object to be printed.}
+\item{object}{A \code{birp_data} object to be summarized.}
 
-\item{...}{Other parameters passed to function}
+\item{...}{Additional arguments.}
 }
 \value{
-No return value, called for side effects
+No return value; this function is called for its side effects (printing to console).
 }
 \description{
-This function summarizes a birp_data object
+Provides a printed summary of the contents of a \code{birp_data} object.
 }
 \examples{
 data <- simulate_birp()
