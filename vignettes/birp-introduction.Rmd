@@ -28,7 +28,7 @@ This vignette demonstrates how to:
 * Fit a **negative-binomial model** when your data is overdispersed
 * Fit a **stochastic trend model** when you expect random variability between different survey locations
 * **Add covariates** that account for survey effort or detection probability to improve model accuracy
-* **Understand the modelling approach** behind ```birp``` and how it works
+* **Understand the modeling approach** behind ```birp``` and how it works
 
 This vignette focuses on the **practical use** of the ```birp``` R-package; for the full **methodological details**, **simulation studies**, and **real‑world case analyses**, please refer to the [accompanying manuscript](https://www.biorxiv.org/content/10.1101/2025.01.08.631844v1).
 
@@ -52,7 +52,7 @@ library(birp)
 * ```effort```      : sampling effort (e.g., number of trap nights). Can be named *covEffort_1*, *covEffort_2*, ...  if multiple covariates are used.
 * ```CI_group```    : group assignment (e.g., "control" or "intervention")
 
-If your study has no intervention, like in this first example, you can assign the same group name (e.g.,  ```Group_1 ```) to all rows. Each data set/input file should correspond to a **single survey method**. If your study used multiple survey methods, ```birp``` can analyse all methods together; [this will be covered in a later section](#combine-data-from-different-survey-methods).
+If your study has no intervention, like in this first example, you can assign the same group name (e.g.,  ```Group_1 ```) to all rows. Each data set/input file should correspond to a **single survey method**. If your study used multiple survey methods, ```birp``` can analyze all methods together; [this will be covered in a later section](#combine-data-from-different-survey-methods).
 
 Here's an example data set:
 
@@ -273,7 +273,7 @@ The **posterior probabilities** indicate how certain the model is that each grou
 This outcome is a **clear example of a successful BACI effect**: the control group continues to decline slightly, while the intervention group improves following the change point. This contrast provides **strong evidence that the intervention had a positive impact**.
 
 #################################
-### Visualising the Model Output
+### Visualizing the Model Output
 #################################
 
 Just like in the single-epoch example, ```birp``` includes **built-in plotting functions to visualize the results of a multi-epoch model**:
@@ -477,7 +477,7 @@ In this case, ```birp``` is sure that the trend **increases after 2010 and decre
 
 
 ############################################
-# Overview of the ```birp``` modelling framework
+# Overview of the ```birp``` modeling framework
 ############################################
 
 Our modeling framework builds on **classic count distributions (Poisson and negative binomial)** and **explicitly tests for changes in population trends over predefined time epochs**.
