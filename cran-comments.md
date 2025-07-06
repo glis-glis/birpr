@@ -1,3 +1,16 @@
+## Resubmission 3
+
+This is a resubmission. Although the package was initially accepted by CRAN, 
+there was a compilation error on the Fedora server of CRAN, and the package was thus removed.
+I was not able to reproduce the compilation error: I tried two Fedora Workstation systems, 
+as well as with Fedora available on R-hub v2, and everything compiled fine. 
+Despite this, I think I figured out the issue and fixed it accordingly. 
+I apologize for contacting a CRAN team member directly. I was simply replying to the email and was unaware that it was a policy violation.
+In this version, I now have:
+
+* Likely fixed the compilation error on the Fedora CRAN server (as I cannot reproduce the error, it's hard to confirm this, but I'm confident this will work).
+* Added a vignette.
+* Improved the documentation.
 
 ## Resubmission 2
 This is a resubmission. Thank you for your comments. In this version I have:

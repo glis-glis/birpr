@@ -1,3 +1,11 @@
+# birp 0.0.4
+
+Addressed CRAN installation failure on Fedora server:
+
+* Added more search paths for locating R include directories (needed to link C++ libraries against R)
+
+Added vignette and improved function documentations.
+
 # birp 0.0.3
 
 Addressed CRAN comments, specifically:
