@@ -1,8 +1,8 @@
 Package: birp
 Type: Package
 Title: Testing for Population Trends Using Low-Cost Ecological Count Data
-Version: 0.0.4
-Date: 2025-07-06
+Version: 0.0.5
+Date: 2025-07-12
 Authors@R: c(person("Madleina", "Caduff", 
                      role = c("aut", "cre"),
                      email = "madleina.caduff@unifr.ch"),

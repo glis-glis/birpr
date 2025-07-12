@@ -1,3 +1,9 @@
+# birp 0.0.5
+
+Addressed CRAN installation failure on Fedora server:
+ 
+ * Removed dependency on R library (which fails to be located on CRAN Fedora server)
+
 # birp 0.0.4
 
 Addressed CRAN installation failure on Fedora server:

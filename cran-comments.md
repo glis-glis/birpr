@@ -1,3 +1,12 @@
+## Resubmission 4
+
+This is a resubmission. Although the package was initially accepted by CRAN, 
+there was a compilation error on its Fedora server, which was unfortunately not solved
+by the previous resubmission 3. I was still not able to reproduce the error locally, 
+but I have now removed the step that locates the R library on the system, 
+which failed on the Fedora server of CRAN. 
+This likely solves the issue - but as I cannot reproduce the error, it's hard to be sure.
+
 ## Resubmission 3
 
 This is a resubmission. Although the package was initially accepted by CRAN, 
