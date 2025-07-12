@@ -4,7 +4,7 @@
 
 # Define project
 repoName=birp_cpp
-commit=2ef98275e84303d78dc36ccb09e2799c65c9e753
+commit=2576da7345b9c50cab030ad99401cd678ec4ea1a
 
 # Find C++
 CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
