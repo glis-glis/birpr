@@ -1,3 +1,9 @@
+# birp 0.0.6
+
+Addressed CRAN installation failure on Fedora server:
+ 
+ * Removed downloads via FetchContent on CRAN servers
+
 # birp 0.0.5
 
 Addressed CRAN installation failure on Fedora server:
