@@ -4,7 +4,7 @@
 
 # Define project
 repoName=birp_cpp
-commit=a30cef334418bbcefe0097ff7615ebd3a4306806
+commit=559dd0c5725deef2b316f82fb977b2564d79810a
 
 # Find C++
 CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
@@ -39,7 +39,10 @@ cd src/
 # Download into libs directory (if necessary)
 mkdir -p libs && cd libs/
 
+on_cran=ON
 if [ -z "$( ls -A )" ]; then
+  on_cran=OFF
+
   # Download repo, using wget or curl
   if command -v wget > /dev/null; then
     wget https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
@@ -83,7 +86,8 @@ ${CMAKE} -S ../libs/ \
 -DRCPP=ON \
 -DRCPP_INCLUDE_DIRS="${RCPP_INCLUDE}" \
 -DRCPP_ARMADILLO_INCLUDE_DIRS="${RCPP_ARMADILLO_INCLUDE}" \
--DR_HOME="${R_HOME}"
+-DR_HOME="${R_HOME}" \
+-DFETCHCONTENT_FULLY_DISCONNECTED="${on_cran}"
 
 # Make
 make coreLib

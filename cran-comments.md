@@ -1,3 +1,16 @@
+## Resubmission 5
+
+This is a resubmission. The package was initially accepted by CRAN, 
+but a compilation error occurred on one Fedora server because the stattools library 
+build was skipped. I suspect this was caused by a temporary network issue or configuration setting
+on that server, which prevented CMake’s FetchContent from populating the library.
+Prof. Ripley suggested that the problem could be related to parallel builds. 
+I have tested the package using the official fedora:40 Docker image with multiple threads 
+(Sys.setenv(MAKEFLAGS = "-j8")), and it compiles successfully.
+Although I could not reproduce the error locally, I have modified the package so that, 
+on CRAN servers, no downloads via FetchContent are performed during compilation. 
+This ensures that network configuration or connectivity issues will not affect the build.
+
 ## Resubmission 4
 
 This is a resubmission. Although the package was initially accepted by CRAN, 
