@@ -5,7 +5,7 @@ PKG_CPPFLAGS = -Ilibs/coretools/core/ \
 -Ilibs/core/ \
 -DUSE_RCPP
 
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -DARMA_USE_CURRENT
 
 PKG_LIBS    =  -Lbuild -lcoreLib \
 -Lbuild/_deps/stattools-build -lstattools \
