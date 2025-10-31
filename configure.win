@@ -90,7 +90,7 @@ ${CMAKE} -S ../libs/ \
 -DFETCHCONTENT_FULLY_DISCONNECTED="${on_cran}"
 
 # Make
-make coreLib
+make birpLib
 cd .. # leave build
 
 # Delete unneeded files and directories that cause warnings in check

@@ -4,7 +4,7 @@
 
 # Define project
 repoName=birp_cpp
-commit=693e3dbc5017a3fada5e598501d9119789805fe9
+commit=70f8938
 
 # Find C++
 CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
@@ -90,7 +90,7 @@ ${CMAKE} -S ../libs/ \
 -DFETCHCONTENT_FULLY_DISCONNECTED="${on_cran}"
 
 # Make
-make coreLib
+make birpLib
 cd .. # leave build
 
 # Delete unneeded files and directories that cause warnings in check
