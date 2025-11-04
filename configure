@@ -6,29 +6,6 @@
 repoName=birp_cpp
 commit=70f8938
 
-# Find C++
-CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
-echo $CXX17
-if test -z "$CXX17"; then
-  echo "No C++17 compiler is available"
-fi
-CXX17STD=`"${R_HOME}/bin/R" CMD config CXX17STD`
-CXX="${CXX17} ${CXX17STD}"
-CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX17FLAGS`
-
-# Find R
-: ${R_HOME=`R RHOME`}
-if test -z "${R_HOME}"; then
-  echo "could not determine R_HOME"
-  exit 1
-fi
-
-# Set compilation path
-CC=`"${R_HOME}/bin/R" CMD config CC`
-CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
-CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
-LDFLAGS=`"${R_HOME}/bin/R" CMD config LDFLAGS`
-
 # Find CMake (for Mac)
 if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
 if test -z "$CMAKE"; then CMAKE=/Applications/CMake.app/Contents/bin/cmake; fi
@@ -69,14 +46,6 @@ if [ -z "$RCPP_INCLUDE" ]; then
   exit 1
 fi
 
-# Get RcppArmadillo include directory
-RCPP_ARMADILLO_INCLUDE=$("${R_HOME}/bin/Rscript" --vanilla --slave -e \
-  "stopifnot(require('RcppArmadillo', quietly=TRUE)); cat(system.file('include', package = 'RcppArmadillo'))")
-if [ -z "$RCPP_ARMADILLO_INCLUDE" ]; then
-  echo "Failed to determine RcppArmadillo include path"
-  exit 1
-fi
-
 # Run CMake from build directory
 mkdir build && cd build
 ${CMAKE} -S ../libs/ \
@@ -85,7 +54,6 @@ ${CMAKE} -S ../libs/ \
 -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
 -DRCPP=ON \
 -DRCPP_INCLUDE_DIRS="${RCPP_INCLUDE}" \
--DRCPP_ARMADILLO_INCLUDE_DIRS="${RCPP_ARMADILLO_INCLUDE}" \
 -DR_HOME="${R_HOME}" \
 -DFETCHCONTENT_FULLY_DISCONNECTED="${on_cran}"
 

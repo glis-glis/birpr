@@ -7,7 +7,7 @@ PKG_CPPFLAGS = -Ilibs/coretools/core/ \
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -DARMA_USE_CURRENT 
 
-PKG_LIBS    =  -Lbuild -lbirpLib \
+PKG_LIBS    =  -Lbuild -lbirpLib -larmadillo \
 -Lbuild/_deps/stattools-build -lstattools \
 -Lbuild/_deps/coretools-build -lcoretools \
 $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
