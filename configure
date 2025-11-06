@@ -2,42 +2,10 @@
 
 # Inspired from: https://cloud.r-project.org/doc/manuals/r-devel/R-exts.html#Using-cmake-1
 
-# Define project
-repoName=birp_cpp
-commit=70f8938
-
 # Find CMake (for Mac)
 if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
 if test -z "$CMAKE"; then CMAKE=/Applications/CMake.app/Contents/bin/cmake; fi
 if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
-
-cd src/
-
-# Download into libs directory (if necessary)
-mkdir -p libs && cd libs/
-
-on_cran=ON
-if [ -z "$( ls -A )" ]; then
-  on_cran=OFF
-
-  # Download repo, using wget or curl
-  if command -v wget > /dev/null; then
-    wget https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
-  elif command -v curl > /dev/null; then
-    curl -O https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz
-  else
-    echo "Error: Neither curl nor wget is available"
-    exit 1
-  fi
-
-  tar -xvzf ${commit}.tar.gz
-
-  # Move contents to libs
-  extracted_dir=$(tar -tzf ${commit}.tar.gz | head -n1)
-  mv ${extracted_dir}* ./
-  rm -r $extracted_dir ${commit}.tar.gz
-fi
-cd .. # leave libs
 
 # Get Rcpp include directory
 RCPP_INCLUDE=$("${R_HOME}/bin/Rscript" --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))")
@@ -46,28 +14,6 @@ if [ -z "$RCPP_INCLUDE" ]; then
   exit 1
 fi
 
-# Run CMake from build directory
-mkdir build && cd build
-${CMAKE} -S ../libs/ \
--DCMAKE_BUILD_TYPE=Release \
--DBUILD_SHARED_LIBS:bool=OFF \
--DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
--DRCPP=ON \
--DRCPP_INCLUDE_DIRS="${RCPP_INCLUDE}" \
--DR_HOME="${R_HOME}" \
--DFETCHCONTENT_FULLY_DISCONNECTED="${on_cran}"
-
-# Make
-make birpLib
-cd .. # leave build
-
-# Delete unneeded files and directories that cause warnings in check
-find build -name Makefile -delete
-rm -rf libs/coretools/fast_float/tests/
-rm -rf libs/coretools/fast_float/benchmarks/
-rm -rf libs/coretools/fast_float/fuzz/
-rm -rf libs/coretools/tests/
-rm -rf libs/stattools/tests/
-rm -rf build/CMakeFiles/
-
-cd .. # leave src
+sed -e "s|@cmake@|${CMAKE}|" src/Makevars.in \
+	| sed -e "s|@rcpp_include@|${RCPP_INCLUDE}|" \
+    > src/Makevars

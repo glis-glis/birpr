@@ -1,0 +1,40 @@
+CMAKE = @cmake@
+RCPP_INCLUDE = @rcpp_include@
+
+repoName=birp_cpp
+commit=70f8938
+
+PKG_CPPFLAGS = -Ilibs/coretools/core/ \
+-Ilibs/coretools/fast_float/include/ \
+-Ilibs/stattools/core/ \
+-Ilibs/core/ \
+-DUSE_RCPP
+
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+
+XTRA_LIB    = build/libbirpLib.a
+
+PKG_LIBS    =  $(XTRA_LIB) -larmadillo \
+-Lbuild/_deps/stattools-build -lstattools \
+-Lbuild/_deps/coretools-build -lcoretools \
+$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
+
+.Phony: all
+
+all: $(XTRA_LIB) $(SHLIB)
+
+$(SHLIB): $(XTRA_LIB)
+
+$(XTRA_LIB):
+	wget -v https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz && \
+	tar -xvzf ${commit}.tar.gz && \
+	mv -v wegmannlab-birp_cpp* libs && \
+	mkdir build && cd build && \
+	${CMAKE} -S ../libs/ \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DBUILD_SHARED_LIBS:bool=OFF \
+	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
+	-DRCPP=ON \
+	-DRCPP_INCLUDE_DIRS="${RCPP_INCLUDE}" \
+	-DR_HOME="${R_HOME}"  && \
+	make birpLib
