@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Inspired from: https://cloud.r-project.org/doc/manuals/r-devel/R-exts.html#Using-cmake-1
+# and https://github.com/eddelbuettel/crc32c
 
 # Find CMake (for Mac)
 if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
