@@ -39,6 +39,6 @@ $(repoName):
 	mv _deps/coretools-build/libcoretools.* .. && \
 	mv _deps/stattools-build/libstattools.* .. && \
 	cd .. && \
-	rm -rf build coretools/tests stattools/tests \
-	coretools/fast_float/tests coretools/fast_float/benchmarks \
-	coretools/fast_float/fuzz
+	rm -rf build coretools/tests stattools/tests coretools/fast_float/tests \
+	coretools/.* stattools/.*  coretools/fast_float/.* \
+	coretools/fast_float/benchmarks coretools/fast_float/fuzz
