@@ -1,17 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 
-^src/build/
+^.git$
+^.github$
 
-^src/libs/stattools/tests/
-
-^.github/
-^src/libs/coretools/fast_float/.github
-^src/libs/coretools/fast_float/.bazelrc
-^src/libs/coretools/fast_float/.cirrus.yml
-^src/libs/coretools/fast_float/.clang-format
-^src/libs/coretools/fast_float/.travis.yml
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+
 ^doc$
 ^Meta$
