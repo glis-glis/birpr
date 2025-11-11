@@ -1,8 +1,8 @@
 CMAKE = @cmake@
 RCPP_INCLUDE = @rcpp_include@
 
-repoName=birp_cpp
-commit=	90e6461
+repoName = birp_cpp
+commit = 307983a
 
 PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 -I${repoName}/coretools/fast_float/include/ \
