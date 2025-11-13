@@ -1,8 +1,9 @@
-CMAKE = @cmake@
-RCPP_INCLUDE = @rcpp_include@
+CMAKE = cmake
 
-repoName=birp_cpp
-commit=70f8938
+RCPP_INCLUDE=$(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" --vanilla --slave -e  "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))")
+
+repoName = birp_cpp
+commit = d779341
 
 PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 -I${repoName}/coretools/fast_float/include/ \
@@ -12,19 +13,16 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
-XTRA_LIB    = ${repoName}/libbirpLib.a
-
-PKG_LIBS    =  $(XTRA_LIB) \
--L${repoName} -lstattools -lcoretools -larmadillo \
-$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS    = -L${repoName} -lbirpLib -lstattools -lcoretools -larmadillo \
+$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)  -lz
 
 .Phony: all
 
-all: $(XTRA_LIB) $(SHLIB)
+all: $(repoName) $(SHLIB)
 
-$(SHLIB): $(XTRA_LIB)
+$(SHLIB): $(repoName)
 
-$(XTRA_LIB):
+$(repoName):
 	wget -v https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz && \
 	tar -xvzf ${commit}.tar.gz && \
 	rm -r ${commit}.tar.gz && \
@@ -42,6 +40,6 @@ $(XTRA_LIB):
 	mv _deps/coretools-build/libcoretools.* .. && \
 	mv _deps/stattools-build/libstattools.* .. && \
 	cd .. && \
-	rm -rf build coretools/tests stattools/tests \
-	coretools/fast_float/tests coretools/fast_float/benchmarks \
-	coretools/fast_float/fuzz
+	rm -rf build coretools/tests stattools/tests coretools/fast_float/tests \
+	coretools/.* stattools/.*  coretools/fast_float/.* \
+	coretools/fast_float/benchmarks coretools/fast_float/fuzz
