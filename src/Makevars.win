@@ -13,7 +13,9 @@ PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
+
 PKG_LIBS    = -L${repoName} -lbirpLib -lstattools -lcoretools -larmadillo \
+$(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)  -lz
 $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)  -lz
 
 .Phony: all
@@ -23,7 +25,7 @@ all: $(repoName) $(SHLIB)
 $(SHLIB): $(repoName)
 
 $(repoName):
-	wget -v https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz && \
+	curl -O -v -k https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz && \
 	tar -xvzf ${commit}.tar.gz && \
 	rm -r ${commit}.tar.gz && \
 	mv -v wegmannlab-birp_cpp* ${repoName} && \
