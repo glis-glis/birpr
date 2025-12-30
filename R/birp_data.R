@@ -233,7 +233,8 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' Generates simulated count data using the BIRP model framework with user-defined parameters.
 #' @param timepoints Integer vector specifying time points.
 #' @param timesOfChange Integer vector indicating time points at which change in growth rate (gamma) occurs.
-#' @param gamma Numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero
+#' @param gamma Numeric vector denoting the values of gamma (rate of change) to simulate. If NULL, all gamma will be set to zero.
+#' @param Delta Numeric vector denoting the values of Delta (step change) to simulate. If NULL, all Delta will be set to zero.
 #' @param negativeBinomial Logical; if \code{TRUE}, use negative binomial instead of Poisson.
 #' @param stochastic Logical; if \code{TRUE}, simulate abundance as a stochastic process instead of deterministic.
 #' @param numLocations Integer; number of spatial locations.
@@ -241,28 +242,32 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @param numCIGroups Integer; number of control–intervention groups.
 #' @param numCovariatesEffort Integer; number of effort covariates.
 #' @param numCovariatesDetection Integer; number of detection covariates.
-#' @param BACI Optional matrix specifying BACI design (see Details).
+#' @param rate_design Optional matrix specifying BACI design for the rates of change (gamma, see Details).
+#' @param step_design Optional matrix specifying BACI design for the step changes (Delta, see Details).
 #' @param n_bar Expected average total observations per time point (across all locations).
-#' @param N_0 Optional numeric; initial abundance. If NULL, n_bar will be used instead
+#' @param N_0 Optional numeric; initial abundance. If NULL, n_bar will be used instead.
 #' @param a A numeric value or vector; detection parameter(s) for the negative binomial distribution. Can be a single value (shared across methods) or a vector of values (one per method).
-#' @param logSigma Optional numeric; log standard deviation of abundance process in the stochastic model. If NULL, logSigma will be set to -1
-#' @param logPhi Optional numeric; log standard deviation of detection process in the stochastic model. If NULL, logPhi will be simulated according to the model assumptions
+#' @param logSigma Optional numeric; log standard deviation in the stochastic model. If NULL, logSigma will be set to -1.
+#' @param logZeta Optional numeric; log scaling factors of stochastic volatility in the stochastic model. If NULL, logZeta will be set to 0.
+#' @param logPhi Optional numeric; log standard deviation of detection process in the stochastic model. If NULL, logPhi will be simulated according to the model assumptions.
 #' @param covariatesEffort Specifies how effort is calculated for covariates. Accepts: (1) a single number used for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string to simulate effort from, e.g., "gamma(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.
 #' @param covariatesDetection Specifies how detection probabilities are calculated for covariates. Accepts: (1) a single number for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string, e.g., "normal(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.
 #' @param proportionZeroEffort Proportion of time–location–method combinations with zero effort (0 to 1).
 #' @param verbose Logical; if \code{TRUE}, print progress messages.
 #' @return An object of type \link{birp_data} containing the simulated dataset.
 #' @details
-#' The `BACI` matrix defines a Before-After Control-Impact experimental design. It must be a binary matrix with two columns and one row per observation.  
-#' - The first column indicates the time period (`0 = before`, `1 = after`).  
-#' - The second column indicates the treatment type (`0 = control`, `1 = impact`).  
-#' This allows modeling interactions between time and treatment to isolate impact effects.
+#' The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
+#' - Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
+#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter ($\gamma$ or $\Delta$) to assign for each group and epoch.
+#' For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
+#' Please see the vignette for examples. 
 #' @examples 
 #' data <- simulate_birp()
 #' @export
 simulate_birp <- function(timepoints = c(1,2,3),
                           timesOfChange = c(),
                           gamma = NULL,
+                          Delta = NULL,
                           negativeBinomial = FALSE,
                           stochastic = FALSE,
                           numLocations = 2,
@@ -270,11 +275,13 @@ simulate_birp <- function(timepoints = c(1,2,3),
                           numCIGroups = 1,
                           numCovariatesEffort = 1,
                           numCovariatesDetection = 0,
-                          BACI = NULL,
+                          rate_design = NULL,
+                          step_design = NULL,
                           n_bar = 1000,
                           N_0 = NULL,
                           a = NULL,
                           logSigma = NULL,
+                          logZeta = NULL,
                           logPhi = NULL,
                           covariatesEffort = "gamma(1, 2)",
                           covariatesDetection = "normal(0, 1)",
@@ -290,15 +297,20 @@ simulate_birp <- function(timepoints = c(1,2,3),
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
   for (i in 1:length(args)){
-    if (names(args)[i] == "BACI") next # skip BACI: no command-line argument
+    if (names(args)[i] == "rate_design") next # skip rate_design: no command-line argument
+    if (names(args)[i] == "step_design") next # skip step_design: no command-line argument
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
-  # Add input BACI names
+  # Add input rate_design and step_design names
   rcpp_data <- list(x = c())
-  if (!is.null(BACI)){
-    options[["BACI"]] <- "BACI"
-    rcpp_data <- list(BACI = BACI)
+  if (!is.null(rate_design)){
+    options[["rate_design"]] <- "rate_design"
+    rcpp_data <- list(rate_design = rate_design)
+  }
+  if (!is.null(step_design)){
+    options[["step_design"]] <- "step_design"
+    rcpp_data <- list(step_design = step_design)
   }
 
   # Run simulation
@@ -319,6 +331,7 @@ simulate_birp <- function(timepoints = c(1,2,3),
 #' @param mu A numeric vector specifying values of \eqn{\mu} for the negative binomial model, with one value per method-location combination. If \code{NULL}, \eqn{\mu_i} for method \eqn{i} is set to \eqn{1 / \text{number of locations}}.
 #' @param b A numeric vector specifying values of \eqn{b} for the negative binomial model (one per method). If \code{NULL}, all \eqn{b_i} are set to 1.
 #' @param logSigma A single numeric value specifying \code{logSigma} for the stochastic model. If \code{NULL}, \code{logSigma} is set to -1.
+#' @param logZeta A numeric vector specifying values of \code{logZeta} for the stochastic model. If \code{NULL}, \code{logZeta} is set to 0.
 #' @param logPhi A numeric vector specifying values of \code{logPhi} for the stochastic model. If \code{NULL}, values are simulated according to the model assumptions.
 #' @param verbose Logical; if \code{FALSE}, suppresses console output.
 #' @return An object of type \link{birp_data}
@@ -333,6 +346,7 @@ simulate_birp_from_results <- function(x,
                               mu = NULL,
                               b = NULL,
                               logSigma = NULL,
+                              logZeta = NULL,
                               logPhi = NULL,
                               verbose = TRUE
                               ) {
@@ -356,10 +370,14 @@ simulate_birp_from_results <- function(x,
   rcpp_data <- x$data$data
   options[["data"]] <- paste(x$data$method_names, collapse = ",")
   
-  # Add BACI (if needed)
-  if (length(x$data$CI_groups) > 1 & length(x$times_of_change) > 0){
-    options[["BACI"]] <- "BACI"
-    rcpp_data$BACI <- x$BACI
+  # Add rate_design and step_design (if needed)
+  if (!is.null(x$rate_design)){
+    options[["rate_design"]] <- "rate_design"
+    rcpp_data$rate_design <- x$rate_design
+  }
+  if (!is.null(x$step_design)){
+    options[["step_design"]] <- "step_design"
+    rcpp_data$step_design <- x$step_design
   }
   
   # Add times of change
@@ -376,6 +394,7 @@ simulate_birp_from_results <- function(x,
   }
   if (!stochastic){
     state <- state[state[,1] != "logSigma",]
+    state <- state[state[,1] != "logZeta",]
     state <- state[state[,1] != "logPhi",]
   }
   rcpp_data$state <- state

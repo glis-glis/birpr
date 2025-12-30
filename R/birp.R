@@ -32,6 +32,20 @@
   return(options)
 }
 
+#' Function to print posterior summaries
+#' @param post A list containing different posterior summaries
+#' @param param_name A string indicating the parameter name (gamma or Delta)
+#' @return No return value, called for side effects.
+#' @keywords internal
+.printPostSummary.birp <- function(x, param_name){
+  cat(" - ", param_name, ": [", paste0(x$names, collapse=", "), "]\n", sep = "")
+  cat("   - Posterior mean of ", param_name, ": [", paste0(x$posterior_mean, collapse=", "), "]\n", sep = "")
+  cat("   - Posterior median of ", param_name, ": [", paste0(x$posterior_median, collapse=", "), "]\n", sep = "")
+  cat("   - Posterior 5% quantile of ", param_name, ": [", paste0(x$posterior_q05, collapse=", "), "]\n", sep = "")
+  cat("   - Posterior 95% quantile of ", param_name, ": [", paste0(x$posterior_q95, collapse=", "), "]\n", sep = "")
+  cat("   - Posterior probability of positive P(", param_name, " > 0): [", paste0(x$prob_positive, collapse=", "), "]\n", sep = "")
+}
+
 #' Function to add a hatched polygon to a plot
 #' @param shading Shading color. If \code{NA}, shading is omitted
 #' @param left An integer indicating the left-most value on the x-axis 
@@ -80,7 +94,7 @@
 #' @return A string
 #' @keywords internal
 .getLabelGamma.birp <- function(x, index){
-  return(substitute(paste(gamma[index], ' (', name, ')'), list(index=index, name=x$gamma_names[index])))
+  return(substitute(paste(gamma[index], ' (', name, ')'), list(index=index, name=x$post_gamma$names[index])))
 }
 
 #' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single gammas
@@ -89,11 +103,11 @@
 #' @keywords internal
 .addTextSingleGamma.birp <- function(x){
   diffFromBorder <- 0.01 * diff(par("usr")[1:2])
-  if(x$prob_gamma_positive > 0.5){
-    ttext <- bquote(paste("P(", gamma, " > 0 | n) = ", .(round(x$prob_gamma_positive, 3))))
+  if(x$post_gamma$prob_positive > 0.5){
+    ttext <- bquote(paste("P(", gamma, " > 0 | n) = ", .(round(x$post_gamma$prob_positive, 3))))
     text(par("usr")[2] - diffFromBorder, par("usr")[4], adj = c(1, 1.5), labels = ttext)
   } else {
-    ttext <- bquote(paste("P(", gamma, " < 0 | n) = ", .(round(1 - x$prob_gamma_positive, 3))))
+    ttext <- bquote(paste("P(", gamma, " < 0 | n) = ", .(round(1 - x$post_gamma$prob_positive, 3))))
     text(par("usr")[1] + diffFromBorder, par("usr")[4], adj = c(0, 1.5), labels = ttext)
   }
 }
@@ -114,8 +128,8 @@
   # Check if highest density is left or right of plot
   max.y <- max(dens[[1]]$y)
   max.x <- dens[[1]]$x[dens[[1]]$y == max(dens[[1]]$y)]
-  if (x$num_gamma > 1){
-    for (e in 2:x$num_gamma){
+  if (x$post_gamma$num > 1){
+    for (e in 2:x$post_gamma$num){
       if (max(dens[[e]]$y) > max.y){
         max.y <- max(dens[[e]]$y)
         max.x <- dens[[e]]$x[dens[[e]]$y == max(dens[[e]]$y)]
@@ -193,9 +207,45 @@
 .openFile.birp <- function(path, files, patterns, sep = "\t", header = TRUE, mustExist = TRUE){
   filename <- .checkFile.birp(path, files, patterns, sep = sep, mustExist = mustExist)
   if (length(filename) == 0){ return(data.frame()) }
-  if (file.size(file.path(path, filename)) == 3){ return(data.frame()) } # empty file
+  fz <- file.size(file.path(path, filename))
+  if (fz == 0 | fz == 3){ return(data.frame()) } # empty file
   f <- read.table(file.path(path, filename), header = header, check.names = FALSE, sep = sep)
   return(f)
+}
+
+#' Function to parse posterior results of gamma and Delta
+#' @param param_name A string defining the parameter name (gamma or Delta)
+#' @param meanVar A data frame containing the posterior mean and variance of all parameters
+#' @param trace A data frame containing the MCMC trace of all parameters
+#' @param posterior_summary A data frame containing the posterior probabilities
+#' @return A list with relevant posterior statistics
+#' @keywords internal
+.parsePosteriorGammaDelta.birp <- function(param_name, meanVar, trace, posterior_summary){
+  res <- list(
+    exists = FALSE,
+    posterior_mean = NULL,
+    trace = NULL,
+    posterior_median = NULL,
+    posterior_q05 = NULL,
+    posterior_q95 = NULL,
+    prob_positive = NULL,
+    posterior_summary = NULL,
+    names = NULL,
+    num = 0
+  )
+  if (any(grepl(param_name, meanVar$name))){
+    res$exists <- TRUE
+    res$posterior_mean <- meanVar$posterior_mean[grepl(param_name, meanVar$name)]
+    res$trace <- as.matrix(trace[,grepl(param_name, names(trace))])
+    res$posterior_median <- apply(res$trace, 2, median)
+    res$posterior_q05 <- apply(res$trace, 2, quantile, probs=0.05)
+    res$posterior_q95 <- apply(res$trace, 2, quantile, probs=0.95)
+    res$prob_positive <- diag(as.matrix(posterior_summary[,2:ncol(posterior_summary)]))
+    res$posterior_summary <- posterior_summary
+    res$names <- names(posterior_summary)[2:ncol(posterior_summary)]
+    res$num <- length(names(posterior_summary)) - 1
+  }
+  return(res)
 }
 
 #' Function to create an object of type birp 
@@ -203,57 +253,57 @@
 #' @param meanVar A data frame containing the posterior mean and variance of all parameters
 #' @param trace A data frame containing the MCMC trace of all parameters
 #' @param gamma A data frame containing the posterior probabilities regarding gamma
+#' @param Delta A data frame containing the posterior probabilities regarding Delta
 #' @param timepoints An integer vector containing the timepoints at which counts were obtained
 #' @param timesOfChange A numeric or integer vector specifying the times of change
-#' @param BACI A matrix specifying the BACI configuration. Each row of the matrix corresponds to a control/intervention group, and each column to an epoch. The very first column specifies the name of the control-intervention group and must match the groups specified in data. The values of the matrix specify which gamma to use for each group and epoch. E.g. BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B)
+#' @param rate_design A matrix specifying the BACI configuration for the rates of change (gamma, see details).
+#' @param step_design A matrix specifying the BACI configuration for the step changes (Delta, see details).
 #' @param CI_groups A character vector specifying the names of the control-intervention (CI) group
 #' @param state A data frame containing the posterior mean values of all parameters inferred by birp
 #' @return An object of type birp
+#' @details
+#' The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
+#' - Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
+#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter ($\gamma$ or $\Delta$) to assign for each group and epoch.
+#' For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
+#' Please see the vignette for more examples. 
+#' 
 #' @keywords internal
-.createObjBirp.birp <- function(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state){
-  # Calculate statistics on gamma
-  gamma_posterior_mean <- meanVar$posterior_mean[grepl("gamma", meanVar$name)]
-  trace_gamma <- as.matrix(trace[,grepl("gamma", names(trace))])
-  gamma_posterior_median <- apply(trace_gamma, 2, median)
-  gamma_posterior_q05 <- apply(trace_gamma, 2, quantile, probs=0.05)
-  gamma_posterior_q95 <- apply(trace_gamma, 2, quantile, probs=0.95)
-  matrix_gamma <- as.matrix(gamma[,2:ncol(gamma)])
-  prob_gamma_positive <- diag(matrix_gamma)
+.createObjBirp.birp <- function(data, meanVar, trace, gamma, Delta, timepoints, timesOfChange, rate_design, step_design, CI_groups, state){
+  
+  # Calculate statistics on posteriors of gamma and Delta
+  post_gamma <- .parsePosteriorGammaDelta.birp("gamma", meanVar, trace, gamma)
+  post_Delta <- .parsePosteriorGammaDelta.birp("Delta", meanVar, trace, Delta)
   
   # Calculate statistics on logSigma (if stochastic)
-  log_sigma_posterior_mean <- NULL
-  sigma_posterior_mean <- NULL
+  post_sigma <- list(log_sigma_posterior_mean = NULL,
+                     sigma_posterior_mean = NULL)
   if (any(grepl("logSigma", meanVar$name))){
-    log_sigma_posterior_mean <- meanVar$posterior_mean[grepl("logSigma", meanVar$name)]
-    sigma_posterior_mean <- mean(exp(trace$logSigma)) # as mean(exp(x)) != exp(mean(x))
+    post_sigma$log_sigma_posterior_mean <- meanVar$posterior_mean[grepl("logSigma", meanVar$name)]
+    post_sigma$sigma_posterior_mean <- mean(exp(trace$logSigma)) # as mean(exp(x)) != exp(mean(x))
   }
   
   # Define results
   x <- list(data = data,
             meanVar = meanVar,
             trace = trace,
-            trace_gamma = trace_gamma,
-            gamma = gamma,
+            post_gamma = post_gamma,
+            post_Delta = post_Delta,
             num_epochs = length(timesOfChange) + 1,
-            gamma_names = names(gamma)[2:ncol(gamma)],
-            num_gamma = length(names(gamma)) - 1,
             times_of_change = as.numeric(timesOfChange),
-            BACI = BACI,
+            rate_design = rate_design,
+            step_design = step_design,
             CI_groups = CI_groups$CI_groups,
             state = state,
-            gamma_posterior_mean = gamma_posterior_mean,
-            gamma_posterior_median = gamma_posterior_median,
-            gamma_posterior_q05 = gamma_posterior_q05,
-            gamma_posterior_q95 = gamma_posterior_q95,
-            prob_gamma_positive = prob_gamma_positive,
-            log_sigma_posterior_mean = log_sigma_posterior_mean,
-            sigma_posterior_mean = sigma_posterior_mean,
+            post_sigma = post_sigma,
             timepoints = timepoints
             )
   class(x) <- "birp"
   
   return(x)
 }
+
+
 
 #---------------------------------------
 # Constructor
@@ -263,27 +313,38 @@
 #'
 #' This function runs the Markov Chain Monte Carlo (MCMC) algorithm on a \code{birp_data} object to estimate model parameters and returns a fitted \code{birp} object.
 #' @param data A \link{birp_data} object containing the input data.
+#' @param change A string indicating the type of change to infer. Options are 'rate' (infer exponential rates of change), 'step' (infer step changes) or 'both' (infer both rate and step change). By default, 'rate' is used.
 #' @param timesOfChange Numeric or integer vector specifying the times of change (change points) for the model.
 #' @param negativeBinomial Logical; if \code{TRUE}, fits a negative binomial model instead of the default Poisson model.
 #' @param stochastic Logical; if \code{TRUE}, fits a stochastic trend model instead of the default deterministic trend model.
-#' @param BACI Optional matrix specifying the BACI (Before-After-Control-Impact) design. Each row corresponds to a control/intervention group and each column to an epoch. The first column contains the control-intervention group names (matching those in \code{data}), and subsequent columns specify which gamma (rate of change) parameter to use for each group and epoch. For example, \code{BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2)} corresponds to a canonical BACI design with control group "A" and intervention group "B".
+#' @param rate_design Optional matrix specifying the BACI (Before-After-Control-Impact) design for the rates of change (gamma, see Details). Only applies if \code{change="rate"} or \code{change="both"}.
+#' @param step_design Optional matrix specifying the BACI (Before-After-Control-Impact) design for the step changes (Delta, see Details). Only applies if \code{change="step"} or \code{change="both"}.
 #' @param assumeTrueDetectionProbability Logical; if \code{TRUE}, provided detection probabilities are treated as true probabilities (logit-transformed without standardization).
 #' @param iterations Integer; total number of MCMC iterations to run.
 #' @param numBurnin Integer; number of burn-in cycles to run.
 #' @param burnin Integer; number of MCMC iterations per burn-in cycle.
 #' @param thinning Integer; thinning interval for saving MCMC samples. Only every \code{thinning}th iteration is retained.
 #' @param verbose Logical; if \code{FALSE}, suppresses console output.
-
 #' @return An object of type \code{birp} containing MCMC results and model estimates.
+#' 
+#' @details
+#' The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
+#' - Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
+#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter ($\gamma$ or $\Delta$) to assign for each group and epoch.
+#' For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
+#' Please see the vignette for more examples.
+#'  
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data)
 #' @export
 birp <- function(data,
+                 change = "rate",
                  timesOfChange = c(),
                  negativeBinomial = FALSE,
                  stochastic = FALSE,
-                 BACI = NULL,
+                 rate_design = NULL,
+                 step_design = NULL,
                  assumeTrueDetectionProbability = FALSE,
                  iterations = 100000,
                  numBurnin = 10,
@@ -304,7 +365,8 @@ birp <- function(data,
   options <- list(task = "infer", out = out)
   for (i in 1:length(args)){
     if (names(args)[i] == "data") next # skip data: no command-line argument
-    if (names(args)[i] == "BACI") next # skip BACI: no command-line argument
+    if (names(args)[i] == "rate_design") next # skip rate_design: no command-line argument
+    if (names(args)[i] == "step_design") next # skip step_design: no command-line argument
     options <- .addToList.birp(options, names(args)[i], args[[i]])
   }
   
@@ -312,10 +374,14 @@ birp <- function(data,
   rcpp_data <- data$data
   options[["data"]] <- paste(data$method_names, collapse = ",")
   
-  # Add BACI (if provided)
-  if (!is.null(BACI)){
-    options[["BACI"]] <- "BACI"
-    rcpp_data$BACI <- BACI
+  # Add rate_design and step_design (if provided)
+  if (!is.null(rate_design)){
+    options[["rate_design"]] <- "rate_design"
+    rcpp_data$rate_design <- rate_design
+  }
+  if (!is.null(step_design)){
+    options[["step_design"]] <- "step_design"
+    rcpp_data$step_design <- step_design
   }
   
   # Run MCMC
@@ -328,6 +394,7 @@ birp <- function(data,
   meanVar <- res[[paste0(out, "_meanVar.txt")]]
   trace <- res[[paste0(out, "_trace.txt")]]
   gamma <- res[[paste0(out, "_gammaSummaries.txt")]]
+  Delta <- res[[paste0(out, "_DeltaSummaries.txt")]]
   timepoints <- res[[paste0(out, "_timepoints.txt")]]
   CI_groups <- res[[paste0(out, "_CI_groups.txt")]]
   state <- res[[paste0(out, "_state.txt")]]
@@ -338,11 +405,12 @@ birp <- function(data,
   # Get times of change: might have changed from original input as birp removes pre- or postdating TOCs
   timesOfChange <- res[[paste0(out, "_timesOfChange.txt")]]
   
-  # Get BACI configuration
-  BACI <- res[[paste0(out, "_BACI_configuration.txt")]]
+  # Get BACI configuration for rates and step changes
+  rate_design <- res[[paste0(out, "_BACI_gamma_configuration.txt")]]
+  step_design <- res[[paste0(out, "_BACI_Delta_configuration.txt")]]
   
   # Create and return birp object
-  x <- .createObjBirp.birp(filtered_data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state)
+  x <- .createObjBirp.birp(filtered_data, meanVar, trace, gamma, Delta, timepoints, timesOfChange, rate_design, step_design, CI_groups, state)
   return(x)
 }
 
@@ -374,6 +442,7 @@ birp_from_command_line <- function(path){
   meanVar <- .openFile.birp(path, files, "_meanVar.txt")
   trace <- .openFile.birp(path, files, "_trace.txt")
   gamma <- .openFile.birp(path, files, "_gammaSummaries.txt")
+  Delta <- .openFile.birp(path, files, "_DeltaSummaries.txt")
   timepoints <- .openFile.birp(path, files, "_timepoints.txt")
   CI_groups <- .openFile.birp(path, files, "_CI_groups.txt", header = TRUE)
   state <- .openFile.birp(path, files, "_state.txt", header = TRUE)
@@ -381,11 +450,12 @@ birp_from_command_line <- function(path){
   # Get times of change
   timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = FALSE, mustExist = FALSE)
   
-  # Get BACI file
-  BACI <- .openFile.birp(path, files, "_BACI_configuration.txt", header = FALSE)
+  # Get BACI configuration files for rates and step changes
+  rate_design <- .openFile.birp(path, files, "_BACI_gamma_configuration.txt", header = FALSE)
+  step_design <- .openFile.birp(path, files, "_BACI_Delta_configuration.txt", header = FALSE)
   
   # Create and return birp object
-  x <- .createObjBirp.birp(data, meanVar, trace, gamma, timepoints, timesOfChange, BACI, CI_groups, state)
+  x <- .createObjBirp.birp(data, meanVar, trace, gamma, Delta, timepoints, timesOfChange, rate_design, step_design, CI_groups, state)
   return(x)
 }
 
@@ -427,15 +497,11 @@ assess_NB <- function(x, stochastic = FALSE, numRep = 100, cutoff = 0.05, plot =
     # simulate under Poisson assumption
     sim <- simulate_birp_from_results(x, negativeBinomial = FALSE, stochastic = stochastic, verbose = verbose)
     
-    # infer NB (with BACI only if necessary to avoid warning)
-    if (length(x$data$CI_groups) > 1 & length(x$times_of_change) > 0){
-      est <- birp(sim, timesOfChange = x$times_of_change, 
-                  negativeBinomial = TRUE, stochastic = stochastic,
-                  BACI = x$BACI, verbose = verbose)
-    } else {
-      est <- birp(sim, timesOfChange = x$times_of_change, 
-                  negativeBinomial = TRUE, stochastic = stochastic, verbose = verbose)
-    }
+    # infer NB
+    est <- birp(sim, timesOfChange = x$times_of_change, 
+                negativeBinomial = TRUE, stochastic = stochastic,
+                rate_design = x$rate_design, 
+                step_design = x$step_design, verbose = verbose)
     
     # get estimate of b (per method)
     b_Pois[i,] <- est$meanVar$posterior_mean[grepl("^b_", est$meanVar$name)]
@@ -494,12 +560,9 @@ print.birp <- function(x, ...){
   if (x$num_epochs > 1){ # only for print multi-epoch
     cat(" - times of change: [", paste0(x$times_of_change, collapse = ", "), "]\n", sep = "")
   }
-  cat(" - Gamma: [", paste0(x$gamma_names, collapse=", "), "]\n", sep = "")
-  cat(" - Posterior mean of gamma: [", paste0(x$gamma_posterior_mean, collapse=", "), "]\n", sep = "")
-  cat(" - Posterior median of gamma: [", paste0(x$gamma_posterior_median, collapse=", "), "]\n", sep = "")
-  cat(" - Posterior 5% quantile of gamma: [", paste0(x$gamma_posterior_q05, collapse=", "), "]\n", sep = "")
-  cat(" - Posterior 95% quantile of gamma: [", paste0(x$gamma_posterior_q95, collapse=", "), "]\n", sep = "")
-  cat(" - Posterior probability of increasing trend P(gamma > 0): [", paste0(x$prob_gamma_positive, collapse=", "), "]\n", sep = "")
+  if (x$post_gamma$exists){ .printPostSummary.birp(x$post_gamma, "gamma") }
+  if (x$post_Delta$exists){ .printPostSummary.birp(x$post_Delta, "Delta") }
+  
   invisible(x)
 }
 
@@ -534,13 +597,13 @@ summary.birp <- function(object, ...){
 #' @param shadingDecrease Character or color specification; Shading color for the range where the gamma parameter is less than 0 (\code{gamma < 0}). If \code{NA}, shading is omitted. Default is \code{"#f2c7c7"}.
 #' @param col Character vector or color values; Line color(s) for the density plots. If a single value is provided, it is recycled for all gamma parameters. Default is \code{"black"}.
 #' @param lwd Numeric vector; Line width(s) for the density plots. If a single value is provided, it is recycled. Default is 1.
-#' @param lty Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$num_gamma}.
+#' @param lty Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$post_gamma$num}.
 #' @param xlim Numeric vector of length 2; Optional x-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.
 #' @param ylim Numeric vector of length 2; Optional y-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.
 #' @param add Logical; If \code{TRUE}, adds the densities to an existing plot. Otherwise, creates a new plot. Default is \code{FALSE}.
 #' @param xlab Character; Label for the x-axis. Default is \code{expression(gamma)}.
 #' @param ylab Character; Label for the y-axis. Default is \code{"Posterior density"}.
-#' @param legend Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$gamma_names}.
+#' @param legend Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$post_gamma$names}.
 #' @param lineAtZero Logical; If \code{TRUE}, adds a vertical line at x = 0 to indicate no effect. Default is \code{TRUE}.
 #' @param ... Additional graphical parameters passed to \code{\link[graphics]{lines}} (when plotting the densities) and \code{\link[graphics]{plot}} (when creating a new plot).
 #'
@@ -558,24 +621,29 @@ plot.birp <- function(x,
                       shadingDecrease = "#f2c7c7",
                       col = "black",
                       lwd = 1,
-                      lty = 1:x$num_gamma,
+                      lty = 1:x$post_gamma$num,
                       xlim = NA,
                       ylim = NA,
                       add = FALSE,
                       xlab = expression(gamma),
                       ylab = "Posterior density",
-                      legend = x$gamma_names,
+                      legend = x$post_gamma$names,
                       lineAtZero = TRUE,
                       ...){
+  # TODO: fix this function to also visualize step changes!
+  if (!x$post_gamma$exists){
+    stop("No gamma were inferred - plotting step changes is not implemented yet")
+  }
+  
   # Recycle col, lwd and lty
-  col <- rep_len(col, x$num_gamma)
-  lwd <- rep_len(lwd, x$num_gamma)
-  lty <- rep_len(lty, x$num_gamma)
+  col <- rep_len(col, x$post_gamma$num)
+  lwd <- rep_len(lwd, x$post_gamma$num)
+  lty <- rep_len(lty, x$post_gamma$num)
   
   # Calculate all densities
-  dens <- list(x$num_gamma)
-  for (e in 1:x$num_gamma){
-    dens[[e]] <- stats::density(x$trace_gamma[,e])
+  dens <- list(x$post_gamma$num)
+  for (e in 1:x$post_gamma$num){
+    dens[[e]] <- stats::density(x$post_gamma$trace[,e])
   }
   
   # Get limits
@@ -592,14 +660,14 @@ plot.birp <- function(x,
   }
   
   # Plot densities
-  for (e in 1:x$num_gamma){
+  for (e in 1:x$post_gamma$num){
     lines(dens[[e]], col = col[e], lwd = lwd[e], lty = lty[e], ...)
   }
   
  
   # Add legend?
   if (!any(is.na(legend))){
-    if (x$num_gamma == 1){
+    if (x$post_gamma$num == 1){
       .addTextSingleGamma.birp(x)
     } else {
       .addLegendMultiGamma.birp(x, legend, dens, xlim, col, lwd, lty, ...)
@@ -643,7 +711,7 @@ plot_epoch_pair <- function(x,
                             gamma2 = 2,
                             xlab = .getLabelGamma.birp(x, gamma1),
                             ylab = .getLabelGamma.birp(x, gamma2),
-                            xlim = range(x$trace_gamma[,c(gamma1, gamma2)]),
+                            xlim = range(x$post_gamma$trace[,c(gamma1, gamma2)]),
                             ylim = xlim,
                             col = "deeppink",
                             diag.col = "black",
@@ -655,17 +723,18 @@ plot_epoch_pair <- function(x,
                             print.p = TRUE,
                             add = FALSE,
                             ...){
+  # TODO: fix this function to also visualize step changes!
   # check if x has at least 2 epochs
-  if (x$num_gamma < 2) {
+  if (x$post_gamma$num < 2) {
     stop("Need at least 2 gamma!")
   }
   
   # Check parameters
-  if (gamma1 < 1 | gamma1 > x$num_gamma){ stop("Gamma ", gamma1, " does not exist!") }
-  if (gamma2 < 1 | gamma2 > x$num_gamma){ stop("Gamma ", gamma2, " does not exist!") }
+  if (gamma1 < 1 | gamma1 > x$post_gamma$num){ stop("Gamma ", gamma1, " does not exist!") }
+  if (gamma2 < 1 | gamma2 > x$post_gamma$num){ stop("Gamma ", gamma2, " does not exist!") }
   
   # Obtain density estimates
-  dens <- MASS::kde2d(x$trace_gamma[,gamma1], x$trace_gamma[,gamma2])
+  dens <- MASS::kde2d(x$post_gamma$trace[,gamma1], x$post_gamma$trace[,gamma2])
   
   #make 2D density plot
   contour(dens$x, dens$y, dens$z, 
@@ -691,7 +760,7 @@ plot_epoch_pair <- function(x,
   }
   
   # Print P(gamma1 < gamma2)
-  q <- sum(x$trace_gamma[,gamma1] < x$trace_gamma[,gamma2]) / nrow(x$trace_gamma)
+  q <- sum(x$post_gamma$trace[,gamma1] < x$post_gamma$trace[,gamma2]) / nrow(x$post_gamma$trace)
   
   if (!add & print.p){
     if (q < 0.5){
@@ -768,6 +837,11 @@ plot_trend <- function(x,
                             ylab = paste(c("log", "Relative Density")[c(log, TRUE)], collapse=" "),
                             main = x$CI_groups[CI_group],
                             ...){
+  # TODO: fix this function to also visualize step changes!
+  if (!x$post_gamma$exists){
+    stop("No gamma were inferred - plotting step changes is not implemented yet")
+  }
+  
   if (CI_group > length(x$CI_groups)){
     stop(paste0("Invalid CI_group index ", CI_group, "!"))
   }
@@ -777,9 +851,9 @@ plot_trend <- function(x,
   if(min(quantiles) <= 0.0){ stop("Provided quantiles must be > 0.0!") }
 
   # Get gammas of CI group
-  relevant_gamma_names <- as.character(x$BACI[CI_group,])
+  relevant_gamma_names <- as.character(x$rate_design[CI_group,])
   # Get indices of gamma
-  gamma.cols <- as.numeric(sapply(relevant_gamma_names, function(name) which(x$gamma_names == name)))
+  gamma.cols <- as.numeric(sapply(relevant_gamma_names, function(name) which(x$post_gamma$names == name)))
   
   xlim <- range(x$timepoints)
   times_of_change <- x$times_of_change
@@ -809,13 +883,13 @@ plot_trend <- function(x,
   for (i in 2:mcmc_length){
     # Calculate mean to normalize / align
     # Prevent underflow by normalizing with mean
-    change <- rho %*% x$trace_gamma[i,gamma.cols]
+    change <- rho %*% x$post_gamma$trace[i,gamma.cols]
     meanLog <- mean(change)
     change <- exp(change - meanLog)
-    average <- sum((change[2:(num_epochs+1),1] - change[1:num_epochs]) / x$trace_gamma[i,gamma.cols] / epoch_length)
+    average <- sum((change[2:(num_epochs+1),1] - change[1:num_epochs]) / x$post_gamma$trace[i,gamma.cols] / epoch_length)
     
     # Calc normalized rates
-    rates[i-1,] <- rho_x %*% x$trace_gamma[i,gamma.cols] - log(average) - meanLog
+    rates[i-1,] <- rho_x %*% x$post_gamma$trace[i,gamma.cols] - log(average) - meanLog
   }
   
   if(!log){
@@ -859,7 +933,7 @@ plot_trend <- function(x,
 
 #' Plot MCMC Traces and Posterior Densities
 #'
-#' Visualizes the MCMC trace plots and posterior densities of the gamma parameters from a \code{birp} object.
+#' Visualizes the MCMC trace plots and posterior densities of the gamma and Delta parameters from a \code{birp} object.
 #'
 #' @param x A \code{birp} object containing posterior samples.
 #' @param col Character vector; Colors for trace and density plots. Default is c("black", "blue").
@@ -876,18 +950,30 @@ plot_trend <- function(x,
 plot_mcmc <- function(x, col=c("black", "blue")){
   # Layout
   on.exit(layout(matrix(1)))
-  layout(matrix(1:(2*x$num_gamma), ncol = 2, byrow=TRUE), widths = c(2,1))
+  layout(matrix(1:(2*x$post_gamma$num + 2*x$post_Delta$num), 
+                ncol = 2, byrow=TRUE), widths = c(2,1))
   
   # Plot MCMC and posterior for each epoch
   mcmc_len <- nrow(x$trace)
   
-  for(i in 1:x$num_gamma){
-    # Plot trace
-    xax <- 1:nrow(x$trace_gamma)
-    plot(xax, x$trace_gamma[,i], xlab = "Iteration (thinned)", ylab = bquote(gamma[.(i)]))
-
-    # Plot density
-    plot(stats::density(x$trace_gamma[,i]),  main="", xlab=bquote(gamma[.(i)]), ylab="Posterior density")
+  # Loop over gamma and Delta
+  posteriors <- list(x$post_gamma, x$post_Delta)
+  param_names <- c("gamma", "Delta")
+  
+  for (p in 1:length(posteriors)){
+    post <- posteriors[[p]]
+    param_name <- param_names[p]
+    
+    if (post$exists){
+      for(i in 1:post$num){
+        # Plot trace
+        xax <- 1:nrow(post$trace)
+        plot(xax, post$trace[,i], xlab = "Iteration (thinned)", ylab = bquote(.(as.name(param_name))[.(i)]))
+        
+        # Plot density
+        plot(stats::density(post$trace[,i]),  main="", xlab=bquote(.(as.name(param_name))[.(i)]), ylab="Posterior density")
+      }
+    }
   }
 }
 
