@@ -15,7 +15,7 @@ plot_mcmc(x, col = c("black", "blue"))
 No return value; the function is called for its side effects (plotting).
 }
 \description{
-Visualizes the MCMC trace plots and posterior densities of the gamma parameters from a \code{birp} object.
+Visualizes the MCMC trace plots and posterior densities of the gamma and Delta parameters from a \code{birp} object.
 }
 \examples{
 data <- simulate_birp()

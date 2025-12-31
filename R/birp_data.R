@@ -258,7 +258,7 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' @details
 #' The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
 #' - Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
-#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter ($\gamma$ or $\Delta$) to assign for each group and epoch.
+#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter (\eqn{\gamma} or \eqn{\Delta}) to assign for each group and epoch.
 #' For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
 #' Please see the vignette for examples. 
 #' @examples 

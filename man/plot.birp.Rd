@@ -10,13 +10,13 @@
   shadingDecrease = "#f2c7c7",
   col = "black",
   lwd = 1,
-  lty = 1:x$num_gamma,
+  lty = 1:x$post_gamma$num,
   xlim = NA,
   ylim = NA,
   add = FALSE,
   xlab = expression(gamma),
   ylab = "Posterior density",
-  legend = x$gamma_names,
+  legend = x$post_gamma$names,
   lineAtZero = TRUE,
   ...
 )
@@ -32,7 +32,7 @@
 
 \item{lwd}{Numeric vector; Line width(s) for the density plots. If a single value is provided, it is recycled. Default is 1.}
 
-\item{lty}{Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$num_gamma}.}
+\item{lty}{Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$post_gamma$num}.}
 
 \item{xlim}{Numeric vector of length 2; Optional x-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.}
 
@@ -44,7 +44,7 @@
 
 \item{ylab}{Character; Label for the y-axis. Default is \code{"Posterior density"}.}
 
-\item{legend}{Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$gamma_names}.}
+\item{legend}{Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$post_gamma$names}.}
 
 \item{lineAtZero}{Logical; If \code{TRUE}, adds a vertical line at x = 0 to indicate no effect. Default is \code{TRUE}.}
 

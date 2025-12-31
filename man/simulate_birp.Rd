@@ -9,6 +9,7 @@ simulate_birp(
   timepoints = c(1, 2, 3),
   timesOfChange = c(),
   gamma = NULL,
+  Delta = NULL,
   negativeBinomial = FALSE,
   stochastic = FALSE,
   numLocations = 2,
@@ -16,11 +17,13 @@ simulate_birp(
   numCIGroups = 1,
   numCovariatesEffort = 1,
   numCovariatesDetection = 0,
-  BACI = NULL,
+  rate_design = NULL,
+  step_design = NULL,
   n_bar = 1000,
   N_0 = NULL,
   a = NULL,
   logSigma = NULL,
+  logZeta = NULL,
   logPhi = NULL,
   covariatesEffort = "gamma(1, 2)",
   covariatesDetection = "normal(0, 1)",
@@ -33,7 +36,9 @@ simulate_birp(
 
 \item{timesOfChange}{Integer vector indicating time points at which change in growth rate (gamma) occurs.}
 
-\item{gamma}{Numeric vector denoting the values of gamma to simulate. If NULL, all gamma will be set to zero}
+\item{gamma}{Numeric vector denoting the values of gamma (rate of change) to simulate. If NULL, all gamma will be set to zero.}
+
+\item{Delta}{Numeric vector denoting the values of Delta (step change) to simulate. If NULL, all Delta will be set to zero.}
 
 \item{negativeBinomial}{Logical; if \code{TRUE}, use negative binomial instead of Poisson.}
 
@@ -49,17 +54,21 @@ simulate_birp(
 
 \item{numCovariatesDetection}{Integer; number of detection covariates.}
 
-\item{BACI}{Optional matrix specifying BACI design (see Details).}
+\item{rate_design}{Optional matrix specifying BACI design for the rates of change (gamma, see Details).}
+
+\item{step_design}{Optional matrix specifying BACI design for the step changes (Delta, see Details).}
 
 \item{n_bar}{Expected average total observations per time point (across all locations).}
 
-\item{N_0}{Optional numeric; initial abundance. If NULL, n_bar will be used instead}
+\item{N_0}{Optional numeric; initial abundance. If NULL, n_bar will be used instead.}
 
 \item{a}{A numeric value or vector; detection parameter(s) for the negative binomial distribution. Can be a single value (shared across methods) or a vector of values (one per method).}
 
-\item{logSigma}{Optional numeric; log standard deviation of abundance process in the stochastic model. If NULL, logSigma will be set to -1}
+\item{logSigma}{Optional numeric; log standard deviation in the stochastic model. If NULL, logSigma will be set to -1.}
 
-\item{logPhi}{Optional numeric; log standard deviation of detection process in the stochastic model. If NULL, logPhi will be simulated according to the model assumptions}
+\item{logZeta}{Optional numeric; log scaling factors of stochastic volatility in the stochastic model. If NULL, logZeta will be set to 0.}
+
+\item{logPhi}{Optional numeric; log standard deviation of detection process in the stochastic model. If NULL, logPhi will be simulated according to the model assumptions.}
 
 \item{covariatesEffort}{Specifies how effort is calculated for covariates. Accepts: (1) a single number used for all covariates and locations; (2) a numeric vector with one value per covariate (applied to all locations); (3) a distribution string to simulate effort from, e.g., "gamma(a, b)" or "uniform(a, b)"; or (4) a vector of such distribution strings, one per covariate.}
 
@@ -77,10 +86,11 @@ Simulate Data for BIRP Models
 Generates simulated count data using the BIRP model framework with user-defined parameters.
 }
 \details{
-The `BACI` matrix defines a Before-After Control-Impact experimental design. It must be a binary matrix with two columns and one row per observation.  
-- The first column indicates the time period (`0 = before`, `1 = after`).  
-- The second column indicates the treatment type (`0 = control`, `1 = impact`).  
-This allows modeling interactions between time and treatment to isolate impact effects.
+The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
+- Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
+- Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter (\eqn{\gamma} or \eqn{\Delta}) to assign for each group and epoch.
+For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
+Please see the vignette for examples.
 }
 \examples{
 data <- simulate_birp()

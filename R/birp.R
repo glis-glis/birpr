@@ -33,7 +33,7 @@
 }
 
 #' Function to print posterior summaries
-#' @param post A list containing different posterior summaries
+#' @param x A list containing different posterior summaries
 #' @param param_name A string indicating the parameter name (gamma or Delta)
 #' @return No return value, called for side effects.
 #' @keywords internal
@@ -264,7 +264,7 @@
 #' @details
 #' The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
 #' - Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
-#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter ($\gamma$ or $\Delta$) to assign for each group and epoch.
+#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter (\eqn{\gamma} or \eqn{\Delta}) to assign for each group and epoch.
 #' For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
 #' Please see the vignette for more examples. 
 #' 
@@ -330,7 +330,7 @@
 #' @details
 #' The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
 #' - Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
-#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter ($\gamma$ or $\Delta$) to assign for each group and epoch.
+#' - Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter (\eqn{\gamma} or \eqn{\Delta}) to assign for each group and epoch.
 #' For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
 #' Please see the vignette for more examples.
 #'  
@@ -851,7 +851,7 @@ plot_trend <- function(x,
   if(min(quantiles) <= 0.0){ stop("Provided quantiles must be > 0.0!") }
 
   # Get gammas of CI group
-  relevant_gamma_names <- as.character(x$rate_design[CI_group,])
+  relevant_gamma_names <- as.character(x$rate_design[CI_group,2:ncol(x$rate_design)])
   # Get indices of gamma
   gamma.cols <- as.numeric(sapply(relevant_gamma_names, function(name) which(x$post_gamma$names == name)))
   

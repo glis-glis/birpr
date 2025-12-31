@@ -132,11 +132,11 @@ print(est)
 The output will include a key summary line such as:
 
 ```{r, echo=FALSE}
-cat("Posterior probability of increasing trend P(gamma > 0): ", est$prob_gamma_positive, "\n")
+cat("Posterior probability of increasing trend P(gamma > 0): ", est$post_gamma$prob_positive, "\n")
 ```
 
 
-This is the **main result of interest**. In this example, ```birp``` estimates a **`r round(est$prob_gamma_positive,4)*100`% probability that the trend is increasing** between the specified timepoints (e.g., 2020-2024). In other words, based on the observed data and the assumptions of the model, there's a **high posterior probability that the underlying population is growing** during this period.
+This is the **main result of interest**. In this example, ```birp``` estimates a **`r round(est$post_gamma$prob_positive,4)*100`% probability that the trend is increasing** between the specified timepoints (e.g., 2020-2024). In other words, based on the observed data and the assumptions of the model, there's a **high posterior probability that the underlying population is growing** during this period.
 
 *What does this mean?*
 The value reported is the **posterior probability**, which is the probability of a trend being positive ($\gamma$ > 0) **after accounting for the observed data**. This is calculated using **MCMC**, a computational algorithm that samples from the posterior distribution; a distribution of plausible values for the trend parameter given the data and model. The proportion of MCMC samples where gamma is greater than zero gives us the posterior probability of an increasing trend.
@@ -195,7 +195,7 @@ This fits a model that allows **separate trends (gamma ($\gamma$) values) before
 
 For example, the result:
 ```{r, echo=FALSE}
-cat("Posterior probability of increasing trend P(gamma > 0): ", est$prob_gamma_positive, "\n")
+cat("Posterior probability of increasing trend P(gamma > 0): ", est$post_gamma$prob_positive, "\n")
 ```
 
 shows **moderate support for an increasing trend before 2023**, and **stronger evidence for an increase after**. You can test for multiple change points by providing a vector to the ```timesOfChange``` argument.
@@ -224,8 +224,8 @@ The **BACI matrix defines the trend structure**. Each **row** represents a group
 
 ```{r}
 BACI_matrix <- matrix(c(
-  "A", "1", "1",
-  "B", "1", "2"
+  "Group_1", "1", "1",
+  "Group_2", "1", "2"
 ), nrow = 2, byrow = TRUE)
 print(BACI_matrix)
 ```
@@ -246,7 +246,7 @@ sim_data <- simulate_birp(timepoints = 1:20,
   gamma = c(-0.05, 0.1),
   numLocations = 4,
   numCIGroups = 2,  # 2 CI groups: Control and Intervention
-  BACI = BACI_matrix,
+  rate_design = BACI_matrix,
   verbose = FALSE) # set TRUE to see verbal output in the console
 ```
 
@@ -255,7 +255,7 @@ With the simulated data ready, we can now run the **trend estimation including t
 ```{r}
 est <- birp(data = sim_data,
   timesOfChange = 10,
-  BACI = BACI_matrix,
+  rate_design = BACI_matrix,
   verbose=FALSE)
 print(est)
 ```
@@ -364,7 +364,7 @@ fit_nb <- birp(data = exampleBirp,
 print(fit_nb)
 ```
 
-This will fit the same single-epoch model as [above](#estimating-a-population-trend), but now the **likelihood allows for overdispersed count data**. Because the model estimates one additional parameter (the **overdispersion parameter** ```b```), it is slightly less certain (`r round(fit_nb$prob_gamma_positive,4)*100`%) about the trend estimates, resulting in a **slightly reduced statistical power**.
+This will fit the same single-epoch model as [above](#estimating-a-population-trend), but now the **likelihood allows for overdispersed count data**. Because the model estimates one additional parameter (the **overdispersion parameter** ```b```), it is slightly less certain (`r round(fit_nb$post_gamma$prob_positive,4)*100`%) about the trend estimates, resulting in a **slightly reduced statistical power**.
 
 #################################################
 ## Deciding between Poisson or Negative-binomial

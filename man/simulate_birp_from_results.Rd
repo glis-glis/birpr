@@ -11,6 +11,7 @@ simulate_birp_from_results(
   mu = NULL,
   b = NULL,
   logSigma = NULL,
+  logZeta = NULL,
   logPhi = NULL,
   verbose = TRUE
 )
@@ -27,6 +28,8 @@ simulate_birp_from_results(
 \item{b}{A numeric vector specifying values of \eqn{b} for the negative binomial model (one per method). If \code{NULL}, all \eqn{b_i} are set to 1.}
 
 \item{logSigma}{A single numeric value specifying \code{logSigma} for the stochastic model. If \code{NULL}, \code{logSigma} is set to -1.}
+
+\item{logZeta}{A numeric vector specifying values of \code{logZeta} for the stochastic model. If \code{NULL}, \code{logZeta} is set to 0.}
 
 \item{logPhi}{A numeric vector specifying values of \code{logPhi} for the stochastic model. If \code{NULL}, values are simulated according to the model assumptions.}
 

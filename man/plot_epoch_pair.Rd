@@ -10,7 +10,7 @@ plot_epoch_pair(
   gamma2 = 2,
   xlab = .getLabelGamma.birp(x, gamma1),
   ylab = .getLabelGamma.birp(x, gamma2),
-  xlim = range(x$trace_gamma[, c(gamma1, gamma2)]),
+  xlim = range(x$post_gamma$trace[, c(gamma1, gamma2)]),
   ylim = xlim,
   col = "deeppink",
   diag.col = "black",

@@ -6,10 +6,12 @@
 \usage{
 birp(
   data,
+  change = "rate",
   timesOfChange = c(),
   negativeBinomial = FALSE,
   stochastic = FALSE,
-  BACI = NULL,
+  rate_design = NULL,
+  step_design = NULL,
   assumeTrueDetectionProbability = FALSE,
   iterations = 1e+05,
   numBurnin = 10,
@@ -21,13 +23,17 @@ birp(
 \arguments{
 \item{data}{A \link{birp_data} object containing the input data.}
 
+\item{change}{A string indicating the type of change to infer. Options are 'rate' (infer exponential rates of change), 'step' (infer step changes) or 'both' (infer both rate and step change). By default, 'rate' is used.}
+
 \item{timesOfChange}{Numeric or integer vector specifying the times of change (change points) for the model.}
 
 \item{negativeBinomial}{Logical; if \code{TRUE}, fits a negative binomial model instead of the default Poisson model.}
 
 \item{stochastic}{Logical; if \code{TRUE}, fits a stochastic trend model instead of the default deterministic trend model.}
 
-\item{BACI}{Optional matrix specifying the BACI (Before-After-Control-Impact) design. Each row corresponds to a control/intervention group and each column to an epoch. The first column contains the control-intervention group names (matching those in \code{data}), and subsequent columns specify which gamma (rate of change) parameter to use for each group and epoch. For example, \code{BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2)} corresponds to a canonical BACI design with control group "A" and intervention group "B".}
+\item{rate_design}{Optional matrix specifying the BACI (Before-After-Control-Impact) design for the rates of change (gamma, see Details). Only applies if \code{change="rate"} or \code{change="both"}.}
+
+\item{step_design}{Optional matrix specifying the BACI (Before-After-Control-Impact) design for the step changes (Delta, see Details). Only applies if \code{change="step"} or \code{change="both"}.}
 
 \item{assumeTrueDetectionProbability}{Logical; if \code{TRUE}, provided detection probabilities are treated as true probabilities (logit-transformed without standardization).}
 
@@ -46,6 +52,13 @@ An object of type \code{birp} containing MCMC results and model estimates.
 }
 \description{
 This function runs the Markov Chain Monte Carlo (MCMC) algorithm on a \code{birp_data} object to estimate model parameters and returns a fitted \code{birp} object.
+}
+\details{
+The `rate_design` and `step_design` matrices define a Before-After Control-Impact experimental design for the rates of change (gamma) and the step changes (Delta), respectively, with the following format:
+- Each **row** represents a group (e.g., Control or Intervention). The **first column** specifies the group name (e.g. 'Control' or 'Intervention').
+- Each **column after the first** represents a different epoch. The numbers in these columns indicate which change parameter (\eqn{\gamma} or \eqn{\Delta}) to assign for each group and epoch.
+For example, BACI = matrix(c("A", "B", 1, 1, 1, 2), nrow = 2) corresponds to a canonical BACI design where the first row represents the control group (A) and the second row represents the intervention group (B). 
+Please see the vignette for more examples.
 }
 \examples{
 data <- simulate_birp()
