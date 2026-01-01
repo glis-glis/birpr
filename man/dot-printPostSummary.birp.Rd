@@ -7,9 +7,9 @@
 .printPostSummary.birp(x, param_name)
 }
 \arguments{
-\item{param_name}{A string indicating the parameter name (gamma or Delta)}
+\item{x}{A list containing different posterior summaries}
 
-\item{post}{A list containing different posterior summaries}
+\item{param_name}{A string indicating the parameter name (gamma or Delta)}
 }
 \value{
 No return value, called for side effects.

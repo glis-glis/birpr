@@ -451,8 +451,8 @@ birp_from_command_line <- function(path){
   timesOfChange <- .openFile.birp(path, files, "_timesOfChange.txt", header = FALSE, mustExist = FALSE)
   
   # Get BACI configuration files for rates and step changes
-  rate_design <- .openFile.birp(path, files, "_BACI_gamma_configuration.txt", header = FALSE)
-  step_design <- .openFile.birp(path, files, "_BACI_Delta_configuration.txt", header = FALSE)
+  rate_design <- .openFile.birp(path, files, "_BACI_gamma_configuration.txt", header = FALSE, mustExist = FALSE)
+  step_design <- .openFile.birp(path, files, "_BACI_Delta_configuration.txt", header = FALSE, mustExist = FALSE)
   
   # Create and return birp object
   x <- .createObjBirp.birp(data, meanVar, trace, gamma, Delta, timepoints, timesOfChange, rate_design, step_design, CI_groups, state)
