@@ -2,18 +2,20 @@ CMAKE = @cmake@
 RCPP_INCLUDE = @rcpp_include@
 
 repoName = birp_cpp
-commit = 1cf00ee
+commit   = 393aa08eab67da52c4d9d5a733d5234bdebf96fa
 
-PKG_CPPFLAGS = -I${repoName}/coretools/core/ \
--I${repoName}/coretools/fast_float/include/ \
--I${repoName}/stattools/core/ \
--I${repoName}/core/ \
+PKG_CPPFLAGS = -I$(repoName)/coretools/core/ \
+-I$(repoName)/coretools/fast_float/include/ \
+-I$(repoName)/coretools/arma/include/ \
+-I$(repoName)/stattools/core/ \
+-I$(repoName)/core/ \
 -DUSE_RCPP
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
-PKG_LIBS    = -L${repoName} -lbirpLib -lstattools -lcoretools -larmadillo \
-$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS    = -L$(repoName) -lbirpLib -lcoretools -lstattools -larmadillo \
+$(shell cat $(repoName)/arma.libs) \
+$(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
 
 .Phony: all
 
@@ -22,23 +24,32 @@ all: $(repoName) $(SHLIB)
 $(SHLIB): $(repoName)
 
 $(repoName):
-	wget -v https://bitbucket.org/wegmannlab/${repoName}/get/${commit}.tar.gz && \
-	tar -xvzf ${commit}.tar.gz && \
-	rm -r ${commit}.tar.gz && \
-	mv -v wegmannlab-birp_cpp* ${repoName} && \
-	mkdir ${repoName}/build && cd ${repoName}/build && \
-	${CMAKE} -S .. \
+	wget -v https://bitbucket.org/wegmannlab/$(repoName)/get/$(commit).tar.gz 2> /dev/null || \
+	curl -O https://bitbucket.org/wegmannlab/$(repoName)/get/$(commit).tar.gz && \
+	tar -xvzf $(commit).tar.gz && \
+	rm -r $(commit).tar.gz && \
+	mv -v wegmannlab-birp_cpp* $(repoName) && \
+	mkdir $(repoName)/build && cd $(repoName)/build && \
+	$(CMAKE) -S .. \
+	-G "Unix Makefiles" \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DBUILD_SHARED_LIBS:bool=OFF \
 	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
 	-DRCPP=ON \
-	-DRCPP_INCLUDE_DIRS="${RCPP_INCLUDE}" \
-	-DR_HOME="${R_HOME}"  && \
+	-DRCPP_INCLUDE_DIRS="$(RCPP_INCLUDE)" \
+	-DR_HOME="$(R_HOME)" > cmake.log  && \
+	sed -i '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h && \
+	cat cmake.log | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g' > ../arma.libs && \
 	make birpLib && \
-	mv libbirpLib.* .. && \
-	mv _deps/coretools-build/libcoretools.* .. && \
-	mv _deps/stattools-build/libstattools.* .. && \
-	cd .. && \
-	rm -rf build coretools/tests stattools/tests coretools/fast_float/tests \
-	coretools/.* stattools/.*  coretools/fast_float/.* \
-	coretools/fast_float/benchmarks coretools/fast_float/fuzz
+	mv -v libbirpLib.* .. && \
+	mv -v _deps/coretools-build/libcoretools.* .. && \
+	mv -v _deps/stattools-build/libstattools.* .. && \
+	mv -v _deps/armadillo-build/libarmadillo.* .. && \
+	cd .. && rm -rf build \
+	rm -rf coretools/tests stattools/tests coretools/.* stattools/.* && \
+	rm -rf coretools/fast_float/tests coretools/fast_float/.* && \
+	rm -rf coretools/fast_float/benchmarks coretools/fast_float/fuzz && \
+	rm -rf coretools/arma/tests? coretools/arma/examples && \
+	rm -rf coretools/arma/misc coretools/*.pdf && \
+	rm -rf coretools/fmt/test coretools/fmt/.* && \
+	cat arma.libs 

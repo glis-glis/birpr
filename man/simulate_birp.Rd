@@ -36,6 +36,8 @@ simulate_birp(
 
 \item{timesOfChange}{Integer vector indicating time points at which change in growth rate (gamma) occurs.}
 
+\item{change}{A string indicating the type of change to infer. Options are 'rate' (infer exponential rates of change), 'step' (infer step changes) or 'both' (infer both rate and step change). By default, 'rate' is used.}
+
 \item{gamma}{Numeric vector denoting the values of gamma (rate of change) to simulate. If NULL, all gamma will be set to zero.}
 
 \item{Delta}{Numeric vector denoting the values of Delta (step change) to simulate. If NULL, all Delta will be set to zero.}

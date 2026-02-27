@@ -1,6 +1,7 @@
 
-#include "TBirpCore.h"
+#include "TBirpTask.h"
 #include "coretools/Main/TMain.h"
+#include "coretools/Main/TParameters.h"
 #include <Rcpp.h>
 
 // [[Rcpp::export(.birp_interface)]]
