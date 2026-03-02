@@ -8,6 +8,7 @@ Generates simulated count data using the BIRP model framework with user-defined 
 simulate_birp(
   timepoints = c(1, 2, 3),
   timesOfChange = c(),
+  change = "rate",
   gamma = NULL,
   Delta = NULL,
   negativeBinomial = FALSE,

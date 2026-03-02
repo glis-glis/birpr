@@ -13,15 +13,22 @@ PKG_CPPFLAGS = -I$(repoName)/coretools/core/ \
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
+# Include ARMA_LIBS after it's generated
+-include $(repoName)/arma.libs
+
 PKG_LIBS    = -L$(repoName) -lbirpLib -lcoretools -lstattools -larmadillo \
-$(shell cat $(repoName)/arma.libs) \
-$(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
+$(ARMA_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
 
 .Phony: all
 
 all: $(repoName) $(SHLIB)
 
-$(SHLIB): $(repoName)
+$(SHLIB): $(repoName)/arma.libs $(repoName)
+
+$(repoName)/arma.libs: $(repoName)/build/cmake.log
+	echo "ARMA_LIBS = " $$(grep ARMA_LIBS $< | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
+
+$(repoName)/build/cmake.log: $(repoName)
 
 $(repoName):
 	wget -v https://bitbucket.org/wegmannlab/$(repoName)/get/$(commit).tar.gz 2> /dev/null || \
@@ -39,7 +46,7 @@ $(repoName):
 	-DRCPP_INCLUDE_DIRS="$(RCPP_INCLUDE)" \
 	-DR_HOME="$(R_HOME)" > cmake.log  && \
 	sed -i '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h && \
-	cat cmake.log | grep ARMA_LIBS | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g' > ../arma.libs && \
+	echo "ARMA_LIBS = $$(grep ARMA_LIBS cmake.log | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')" > ../arma.libs && \
 	make birpLib && \
 	mv -v libbirpLib.* .. && \
 	mv -v _deps/coretools-build/libcoretools.* .. && \

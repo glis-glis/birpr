@@ -233,7 +233,7 @@ birp_data_from_file <- function(filenames, method_names = NA, sep = ","){
 #' Generates simulated count data using the BIRP model framework with user-defined parameters.
 #' @param timepoints Integer vector specifying time points.
 #' @param timesOfChange Integer vector indicating time points at which change in growth rate (gamma) occurs.
-#' #' @param change A string indicating the type of change to infer. Options are 'rate' (infer exponential rates of change), 'step' (infer step changes) or 'both' (infer both rate and step change). By default, 'rate' is used.
+#' @param change A string indicating the type of change to infer. Options are 'rate' (infer exponential rates of change), 'step' (infer step changes) or 'both' (infer both rate and step change). By default, 'rate' is used.
 #' @param gamma Numeric vector denoting the values of gamma (rate of change) to simulate. If NULL, all gamma will be set to zero.
 #' @param Delta Numeric vector denoting the values of Delta (step change) to simulate. If NULL, all Delta will be set to zero.
 #' @param negativeBinomial Logical; if \code{TRUE}, use negative binomial instead of Poisson.
