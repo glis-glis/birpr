@@ -1,42 +1,42 @@
 CMAKE = @cmake@
 RCPP_INCLUDE = @rcpp_include@
 
-repoName = birp_cpp
-commit   = 393aa08eab67da52c4d9d5a733d5234bdebf96fa
+REPONAME = birp_cpp
+# get commit number
+-include git_commit
 
-PKG_CPPFLAGS = -I$(repoName)/coretools/core/ \
--I$(repoName)/coretools/fast_float/include/ \
--I$(repoName)/coretools/arma/include/ \
--I$(repoName)/stattools/core/ \
--I$(repoName)/core/ \
+PKG_CPPFLAGS = -I$(REPONAME)/coretools/core/ \
+-I$(REPONAME)/coretools/fast_float/include/ \
+-I$(REPONAME)/coretools/arma/include/ \
+-I$(REPONAME)/stattools/core/ \
+-I$(REPONAME)/core/ \
 -DUSE_RCPP
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 
 # Include ARMA_LIBS after it's generated
--include $(repoName)/arma.libs
+-include $(REPONAME)/arma.libs
 
-PKG_LIBS    = -L$(repoName) -lbirpLib -lcoretools -lstattools -larmadillo \
+PKG_LIBS    = -L$(REPONAME) -lbirpLib -lcoretools -lstattools -larmadillo \
 $(ARMA_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
 
 .Phony: all
 
-all: $(repoName) $(SHLIB)
+all: $(REPONAME) $(SHLIB)
 
-$(SHLIB): $(repoName)/arma.libs $(repoName)
+$(SHLIB): $(REPONAME) $(REPONAME)/arma.libs 
 
-$(repoName)/arma.libs: $(repoName)/build/cmake.log
-	echo "ARMA_LIBS = " $$(grep ARMA_LIBS $< | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')
+$(REPONAME)/arma.libs: $(REPONAME)/build/cmake.log
 
-$(repoName)/build/cmake.log: $(repoName)
+$(REPONAME)/build/cmake.log: $(REPONAME)
 
-$(repoName):
-	wget -v https://bitbucket.org/wegmannlab/$(repoName)/get/$(commit).tar.gz 2> /dev/null || \
-	curl -O https://bitbucket.org/wegmannlab/$(repoName)/get/$(commit).tar.gz && \
-	tar -xvzf $(commit).tar.gz && \
-	rm -r $(commit).tar.gz && \
-	mv -v wegmannlab-birp_cpp* $(repoName) && \
-	mkdir $(repoName)/build && cd $(repoName)/build && \
+$(REPONAME):
+	wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
+	curl -O https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz && \
+	tar -xvzf $(GIT_COMMIT).tar.gz && \
+	rm -r $(GIT_COMMIT).tar.gz && \
+	mv -v wegmannlab-birp_cpp* $(REPONAME) && \
+	mkdir $(REPONAME)/build && cd $(REPONAME)/build && \
 	$(CMAKE) -S .. \
 	-G "Unix Makefiles" \
 	-DCMAKE_BUILD_TYPE=Release \
