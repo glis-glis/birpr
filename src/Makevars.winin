@@ -29,7 +29,7 @@ $(REPONAME)/build/cmake.log: $(REPONAME)
 
 $(REPONAME):
 	CMAKE="cmake" && \
-	RCPP_INCLUDE=$$("${$R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe" --vanilla --slave -e  "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
+	RCPP_INCLUDE=$$("$${R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe" --vanilla --slave -e  "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
 	[ -x "$$RCPP_INCLUDE" ] || $$(echo "\n\n\n !!! no RCPP_INCLUDE library found") && \
 	echo "RCPP_INCLUDE === $$RCPP_INCLUDE" && \
 	wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
