@@ -28,11 +28,8 @@ $(REPONAME)/arma.libs: $(REPONAME)/build/cmake.log
 $(REPONAME)/build/cmake.log: $(REPONAME)
 
 $(REPONAME):
-	CMAKE=$${CMAKE:-$$(which cmake)} && \
-	CMAKE=$${CMAKE:-/Applications/CMake.app/Contents/bin/cmake} && \
-	[ -x "$$CMAKE" ] || $$(echo "\n\n\n !!! no cmake command found") && \
-	echo "CMAKE === $$CMAKE" && \
-	RCPP_INCLUDE=$$($${R_HOME}/bin/Rscript --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
+	CMAKE="cmake" && \
+	RCPP_INCLUDE=$$("${$R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe" --vanilla --slave -e  "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
 	[ -x "$$RCPP_INCLUDE" ] || $$(echo "\n\n\n !!! no RCPP_INCLUDE library found") && \
 	echo "RCPP_INCLUDE === $$RCPP_INCLUDE" && \
 	wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \

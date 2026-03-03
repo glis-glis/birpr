@@ -1,20 +1,2 @@
 #!/bin/sh
-
-# Inspired from: https://cloud.r-project.org/doc/manuals/r-devel/R-exts.html#Using-cmake-1
-# and https://github.com/eddelbuettel/crc32c
-
-# Find CMake (for Mac)
-if test -z "$CMAKE"; then CMAKE="`which cmake`"; fi
-if test -z "$CMAKE"; then CMAKE=/Applications/CMake.app/Contents/bin/cmake; fi
-if [ ! -f "$CMAKE" ]; then echo "no ‘cmake’ command found"; exit 1; fi
-
-# Get Rcpp include directory
-RCPP_INCLUDE=$("${R_HOME}/bin/Rscript" --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))")
-if [ -z "$RCPP_INCLUDE" ]; then
-  echo "Failed to determine Rcpp include path"
-  exit 1
-fi
-
-sed -e "s|@cmake@|${CMAKE}|" src/Makevars.in \
-	| sed -e "s|@rcpp_include@|${RCPP_INCLUDE}|" \
-    > src/Makevars
+cp src/Makevars.in src/Makevars
