@@ -1,2 +1,2 @@
 #!/bin/sh
-cp src/Makevars.winin src/Makevars.win
+cp src/Makevars.in src/Makevars.win
