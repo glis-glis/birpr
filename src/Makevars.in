@@ -40,7 +40,7 @@ $(REPONAME):
 	[ -x "$$RCPP_INCLUDE" ] || $$(echo "\n\n\n !!! no RCPP_INCLUDE library found") && \
 	echo "RCPP_INCLUDE === $$RCPP_INCLUDE" && \
 	wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
-	curl -O https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz && \
+	curl -Okv https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz && \
 	tar -xvzf $(GIT_COMMIT).tar.gz && \
 	rm -r $(GIT_COMMIT).tar.gz && \
 	mv -v wegmannlab-birp_cpp* $(REPONAME) && \
