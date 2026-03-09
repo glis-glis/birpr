@@ -32,8 +32,8 @@ $(REPONAME):
 	CMAKE=$${CMAKE:-/Applications/CMake.app/Contents/bin/cmake} && \
 	[ -x "$$CMAKE" ] || $$(echo "\n\n\n !!! no cmake command found") && \
 	echo "CMAKE = $$CMAKE" && \
-	RSCRIPT=$$(which Rscript) && RSCRIPT=$${RSCRIPT:-$(R_HOME)/bin/Rscript} && \
-	[ -x "$$RSCRIPT" ] || RSCRIPT=$${RSCRIPT:-$(R_HOME)/bin/Rscript.exe} && \
+	RSCRIPT=$${R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe && \
+	[ -x "$$RSCRIPT" ] || RSCRIPT=$${R_HOME}/bin/Rscript && \
 	[ -x "$$RSCRIPT" ] || $$(echo "\n\n\n !!! no Rscript command found") && \
 	echo "RSCRIPT = $$RSCRIPT" && \
 	RCPP_INCLUDE=$$($${RSCRIPT} --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
