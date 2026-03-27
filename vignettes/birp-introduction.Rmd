@@ -135,8 +135,7 @@ The output will include a key summary line such as:
 cat("Posterior probability of increasing trend P(gamma > 0): ", est$post_gamma$prob_positive, "\n")
 ```
 
-
-This is the **main result of interest**. In this example, ```birp``` estimates a **`r round(est$post_gamma$prob_positive,4)*100`% probability that the trend is increasing** between the specified timepoints (e.g., 2020-2024). In other words, based on the observed data and the assumptions of the model, there's a **high posterior probability that the underlying population is growing** during this period.
+This is the **main result of interest**. In this example, ```birp``` estimates a **`r round(est$post_gamma$prob_positive,4)*100`% probability that the trend is increasing** between the specified timepoints (e.g., 2020-2024). In other words, based on the observed data and the assumptions of the model, there's a **high posterior probability that the underlying population is growing** during this period. (Keep in mind that the underlying algorithm is stochastic, so your result when executing the command above may deviate slighlty from what is shown here)
 
 *What does this mean?*
 The value reported is the **posterior probability**, which is the probability of a trend being positive ($\gamma$ > 0) **after accounting for the observed data**. This is calculated using **MCMC**, a computational algorithm that samples from the posterior distribution; a distribution of plausible values for the trend parameter given the data and model. The proportion of MCMC samples where gamma is greater than zero gives us the posterior probability of an increasing trend.
@@ -171,7 +170,7 @@ In real-world monitoring, populations often experience **changes in trend** due 
 * **Before-After (BA)**: 
 to assess whether a trend has changed after a certain point in time.
 * **Control-Intervention (CI)**: 
-to compare trends between an affected group and an unaffected (control) group.
+to compare trends between an affected group (intervention) and an unaffected group (control).
 * **Before-After-Control-Intervention (BACI)**: 
 a combination of both, allowing to test for intervention effects by comparing groups over time.
 
@@ -180,7 +179,7 @@ a combination of both, allowing to test for intervention effects by comparing gr
 ## Before-After (BA) Design: Detecting a Change in Trend Over Time
 ##################################################################
 
-In some situations, we may suspect that an event (e.g., the establishment of a protected area or arrival of a new predator) has caused a **shift in population trend at a known time**. We can test for this by specifying a **change point** in the ```birp()``` function using the ```timesOfChange``` argument.
+In some situations, we may suspect that an event (e.g., the establishment of a protected area or arrival of a new predator/disease) has caused a **change in the population trend at a known time**. We can test for this by specifying a **change point** in the ```birp()``` function using the ```timesOfChange``` argument:
 
 ```{r}
 est <- birp(exampleBirp, verbose = FALSE, timesOfChange = 2023)
@@ -198,7 +197,7 @@ For example, the result:
 cat("Posterior probability of increasing trend P(gamma > 0): ", est$post_gamma$prob_positive, "\n")
 ```
 
-shows **moderate support for an increasing trend before 2023**, and **stronger evidence for an increase after**. You can test for multiple change points by providing a vector to the ```timesOfChange``` argument.
+shows **moderate support for an increasing trend before 2023**, and **stronger evidence for an increase after 2023**. You can test for multiple change points by providing a vector to the ```timesOfChange``` argument.
 
 ###############################################################
 ## Control-Intervention (CI) and BACI Designs: Comparing Groups
