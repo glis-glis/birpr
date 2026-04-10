@@ -205,7 +205,7 @@ cat("Posterior probability of increasing trend P(gamma > 0): ", est$post_gamma$p
 shows **moderate support for an increasing trend before 2023**, and **stronger evidence for an increase after 2023**, which is also shown by th smaller mean estimate of gamma1 (`r round(est$post_gamma$prob_positive[1],4)*100`) compared to gamma2 (`r round(est$post_gamma$prob_positive[2],4)*100`). You can test for multiple change points by providing a vector to the ```timesOfChange``` argument.
 
 ###############################################################
-## Before-After (BA) Design with Step Changes
+## Before-After (BA) Design with or without Step Changes
 ###############################################################
 
 In some situations, an event may cause not only a change in the population trend, but also a **sudden shift in abundance** at the moment of the event itself. For example, a culling event might immediately reduce population size, after which the population continues to grow or decline at a new rate. ```birp``` allows you to test for such **step changes** at epoch boundaries alongside trend changes, using two design matrices: ```rate_design``` and ```step_design```.
@@ -215,15 +215,20 @@ The ```rate_design``` matrix defines the trend structure: each row represents a 
 The ```step_design``` matrix follows the same structure, but instead of assigning trend parameters, it uses **1s and 0s** to indicate whether a step change ($\Delta$) should be estimated at each epoch boundary. A ```1``` means a step change is estimated, a ```0``` means it is not. Note that ```birp``` always defines an epoch boundary at the end of the time series by default, so the final column of step_design controls whether a step change is estimated there too; in most cases you will want to set this to 0.
 
 The ```change``` argument controls what type of change is modeled at epoch boundaries:
-* ```change = "rate"``` (default): only trend changes ($\gamma$) are estimated.
-* ```change = "step"```: only step changes ($\Delta$) are estimated.
-* ```change = "both"```: both trend changes and step changes are estimated simultaneously.
+- ```change = "rate"``` (default): only trend changes ($\gamma$) are estimated.
+- ```change = "step"```: only step changes ($\Delta$) are estimated.
+- ```change = "both"```: both trend changes and step changes are estimated simultaneously.
 
 For a single group with one change point where both a trend change and a step change are expected, the two matrices and model call look like this:
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 rate_design <- matrix(c("Group_1", 1,2), nrow = 1)
+print(rate_design)
 step_design <- matrix(c("Group_1", 1,0), nrow = 1)
+print(step_design)
+```
+
+```{r, echo=TRUE}
 est <- birp(exampleBirp,
             verbose = FALSE,
             timesOfChange = 2023,
@@ -233,19 +238,11 @@ est <- birp(exampleBirp,
 print(est)
 ```
 
-The output includes posterior summaries for both the trend parameters ($\gamma$) and the step change parameter ($\Delta$). Just like the rate change, the step change is estimated on the **log scale**, so the actual multiplicative change in abundance is exp^$\Delta$. A value of $\Delta$=0 means no change, a negative value indicates a sudden decline (e.g., $\Delta$=−1 corresponds to exp^-1 = 0.37; a 63% reduction), and a positive value indicates a sudden increase. The posterior probability P($\Delta$ > 0) tells you how confidently the model detects an upward step change.
+The output includes posterior summaries for both the trend parameters ($\gamma$) and the step change parameter ($\Delta$). Just like the rate change, the step change is estimated on the **log scale**, so the actual multiplicative change in abundance is $\exp^{\Delta}$. A value of $\Delta$=0 means no change, a negative value indicates a sudden decline (e.g., $\Delta$=−1 corresponds to $\exp^{-1}$ = 0.37; a 63% reduction), and a positive value indicates a sudden increase. The posterior probability P(Delta > 0) tells you how confidently the model detects an upward step change.
 
-If you believe the event caused a sudden shift in abundance but no change in the underlying trend, set change = "step". In this case, there is no need to define a ```rate_design```, as we are not estimating any rates:
+If you believe the event caused a a change in the underlying trend, but no step change, then use ```change = "rate"``` and only supply a ```rate_design```. Conversely, to only estimate a step change with no change in the underlying trend, then use ```change = "step"``` and only supply a ```step_design```.
 
-```{r, echo=FALSE}
-step_design      <- matrix(c("Group_1", 1,0), nrow = 1)
-est_step_only <- birp(exampleBirp,
-                      verbose = FALSE,
-                      timesOfChange = 2023,
-                      step_design = step_design,
-                      change = "step")
-```
-
+It is important to note that choosing between a step change and a rate change is, to some extent, guided by **prior ecological knowledge about the system** under study. For example, if only a step change is included in the model but the true underlying process involves a gradual trend, this trend may be absorbed by the estimated step change. Conversely, if only a rate change is specified, sudden shifts in abundance may be smoothed out over time.
 
 ###############################################################
 ## Control-Intervention (CI) and Before-After-Control-Intervention (BACI) Designs: Comparing Groups
