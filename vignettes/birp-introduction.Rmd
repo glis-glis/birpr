@@ -547,49 +547,74 @@ Our modeling framework builds on **classic count distributions (Poisson and nega
 
 We implement two variants of population trend models: a **deterministic model** and a **stochastic model**. Both models describe how population abundance evolves exponentially over time but differ in their assumptions about spatial variation among locations. The structure of the models is flexible enough to represent **classical study designs like Before-After (BA) or Before-After-Control-Intervention (BACI)**, as well as more complex combinations of groups and time periods.
 
+In addition to gradual changes in growth rates, the framework also allows for instant step changes between epochs, capturing sudden shifts in population size (e.g. due to a catastrophic event).
+
 Since the model tracks **relative abundances**, it tells us how populations have changed **compared to the first survey**, but not their absolute size (i.e., the total number of individuals).
 
 ############################################
 ### Deterministic Model
 ############################################
 
-In the **deterministic approach**, populations at each location belong to groups sharing a **common trend**. We partition the overall study period into a number of epochs (specified by the user and it can be just a single epoch), separated at known times. Within each epoch, the population changes exponentially and at a **constant rate** \( \gamma(g,m) \), hence the rate is specific to group \( g \) and epoch \( m \).
+In the **deterministic approach**, populations at each location belong to groups sharing a **common trend**. We partition the overall study period into a number of epochs (specified by the user and it can be just a single epoch), separated at known times. 
+
+Within each epoch, the population changes exponentially at a **constant rate** \( \gamma(g,m) \), where the rate is specific to a species group $g$ and epoch $m$. In addition, we allow for instantaneous step changes \(\Delta(g,m)\) at the boundaries between epochs, which represent sudden proportional changes in population size.
+
 The relative abundance at location $j$ and survey time $t_k$ is given by:
 
 \[
-\varphi_j(t_k, \boldsymbol{\gamma}) = \exp \left( \sum_{m=1}^M \rho_m(t_k) \, \gamma(g(j), m) \right),
+\varphi_j(t_k, \boldsymbol{\theta}) =
+\exp \left(
+\sum_{m=1}^M \rho_m(t_k)\, \gamma(g(j), m)
++
+\sum_{m=1}^M \mathbb{I}(t_k \geq T_m)\, \Delta(g(j), m)
+\right)
 \]
 
 Here’s what each part means:
 
 - $\gamma(g(j), m)$ is the **population growth rate** for group $g(j)$ during epoch $m$.
+- $\Delta(g(j), m)$ is a step change at time $T_m$.
 - $\rho_m(t_k)$ is a **weighting factor** that represents how much of epoch $m$ has passed by time $t_k$.
+- $\boldsymbol{\theta}$ is the **vector of all model parameters**, i.e. $\boldsymbol{\theta} = (\boldsymbol{\gamma}, \boldsymbol{\Delta})$, combining growth rates and step changes; quantities such as $\rho_m(t_k)$ are deterministic functions of time and not estimated
 - The sum over all epochs allows the model to **combine multiple time periods with different growth rates**.
 - The exponential function reflects the assumption of **exponential growth (or decline)** within each epoch.
 
-In other words, the deterministic model assumes that **populations within the same group grow or decline in exactly the same way, with no random variation.** The change in the growth rate at every location is fully explained by its group and the time period.
+In other words, the deterministic model assumes that **populations within the same group follow identical trajectories**, fully determined by shared growth rates and step changes.
 
 
 ### Stochastic Model
 
-Population changes may not always follow smooth, predictable patterns. Even if two locations belong to the same group and share similar environmental conditions, their populations might grow or decline differently due to chance events, like a sudden storm or disease outbreak. To reflect this kind of randomness, we extend the deterministic model by adding **stochasticity**, that is, we allow for **random fluctuations over time**.
+Population changes may not always follow smooth, predictable patterns. Even if two locations belong to the same group and share similar environmental conditions, their populations might grow or decline differently due to chance events, like a sudden storm or disease outbreak. To reflect this kind of randomness, we extend the deterministic model by adding **stochasticity**, allowing for **random fluctuations over time** as well as variability in step changes.
 
-We model these fluctuations using a process known as **geometric Brownian motion**, which is a standard way to model quantities that grow or shrink randomly over time. In this framework, the relative abundance \( \tilde{\varphi}_j(t, \boldsymbol{\gamma}) \) at location \( j \) evolves according to:
+We model these fluctuations using a process known as **geometric Brownian motion**, which is a standard way to model quantities that grow or shrink randomly over time. In this framework, the relative abundance \( \tilde{\varphi}_j(t, \boldsymbol{\theta}) \) at location \( j \) evolves according to:
 
 \[
-\mathrm{d} \tilde{\varphi}_j(t, \boldsymbol{\gamma}) = \gamma_{g(j)}(t) \tilde{\varphi}_j(t, \boldsymbol{\gamma}) \, \mathrm{d}t + \sigma \tilde{\varphi}_j(t, \boldsymbol{\gamma}) \, \mathrm{d}W(t),
+\mathrm{d} \tilde{\varphi}_j(t, \boldsymbol{\theta}) = \gamma_{g(j)}(t) \tilde{\varphi}_j(t, \boldsymbol{\theta}) \, \mathrm{d}t + \sigma \tilde{\varphi}_j(t, \boldsymbol{\theta}) \, \mathrm{d}W(t),
 \]
 
+The only additional parameter in this equation is the volatility parameter $\sigma$, which represents the randomness. 
 
 Here’s what each part means:
 
 - $\gamma_{g(j)}(t)$ represents the **average growth** rate for the group that location $j$ belongs to.
 - $\sigma$ is a parameter that **controls how 'noisy' or unpredictable the changes are**; larger values mean more variation.
 - $W(t)$ represents **random noise over time**, modeled as Brownian motion.
-- The multiplication by $\tilde{\varphi}_j(t, \boldsymbol{\gamma})$  ensures that **locations with larger populations experience proportionally larger changes**, both in the deterministic and the random parts of the equation.
+- The multiplication by $\tilde{\varphi}_j(t, \boldsymbol{\theta})$  ensures that **locations with larger populations experience proportionally larger changes**, both in the deterministic and the random parts of the equation.
 
+We also allow step changes to vary across locations:
+\[
+\Delta_{jm} \sim \mathcal{N}\left(\Delta(g(j), m), \; \zeta(g(j),m)\, \sigma^2 \right)
+\]
 
-In simple terms, **each location tends to follow the group’s average trend, but with some randomness on top**. Some locations might temporarily grow faster or slower just due to chance.
+This means that:
+
+- $\Delta(g(j), m)$ is the **average (group-level) step change** between epochs  
+- $\Delta_{jm}$ is the **realized step change at location $j$**, which may differ from the average  
+- $\zeta(g(j),m)$ controls how much **variation there is in step changes across locations**  
+
+In other words, while all locations in a group share the same *expected* sudden change, the actual magnitude of that change can differ due to randomness.
+
+To summarise, in the stochastic model, **each location tends to follow the group’s average trend, but with some randomness on top**. Some locations might temporarily grow faster or slower just due to chance.
 
 
 ############################################
@@ -616,13 +641,13 @@ Here’s what these models mean:
 The observation rate is modeled as:
 
 \[
-\lambda_{ij}(t_k) = N_{j T_0} \, \varphi_j(t_k, \boldsymbol{\gamma}) \, \delta_{ij}
+\lambda_{ij}(t_k) = N_{j T_0} \, \varphi_j(t_k, \boldsymbol{\theta}) \, \delta_{ij}
 \]
 
 This combines information about the population and the observation process:
 
 - $N_{j T_0}$ is the **initial abundance** at location $j$ at the first survey time.
-- $\varphi_j(t_k, \boldsymbol{\gamma})$ is the **relative abundance** at time $t_k$, modeled using the deterministic or stochastic population trend.
+- $\varphi_j(t_k, \boldsymbol{\theta})$ is the **relative abundance** at time $t_k$, modeled using the deterministic or stochastic population trend, including both gradual changes (growth rates) and sudden step changes between epochs.
 - $\delta_{ij}$ is the **detection probability**, describing how likely an individual is to be seen using method $i$ at location $j$.
 
 In our model, we often **do not need to estimate the initial population size \( N \) or the detection probability \( \delta \)**. This is because we **condition on the total number of counts**, which means we focus only on the **relative proportions of observations rather than their absolute values**. As a result, the terms for population size and detection probability effectively cancel out. If you would like to read more about this, please refer to the [manuscript](https://www.biorxiv.org/content/10.1101/2025.01.08.631844v1).
