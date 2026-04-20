@@ -14,7 +14,7 @@ PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 # Include ARMA_LIBS after it's generated
 -include $(REPONAME)/arma.libs
 
-PKG_LIBS    = -L$(REPONAME) -lbirpLib -lcoretools -lstattools -larmadillo \
+PKG_LIBS    = -L$(REPONAME) -lbirpLib -lstattools -lcoretools -larmadillo -lz \
 $(ARMA_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
 
 .Phony: all
