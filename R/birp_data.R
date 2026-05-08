@@ -308,11 +308,11 @@ simulate_birp <- function(timepoints = c(1,2,3),
   rcpp_data <- list(x = c())
   if (!is.null(rate_design)){
     options[["rate_design"]] <- "rate_design"
-    rcpp_data <- list(rate_design = rate_design)
+    rcpp_data$rate_design <- rate_design
   }
   if (!is.null(step_design)){
     options[["step_design"]] <- "step_design"
-    rcpp_data <- list(step_design = step_design)
+    rcpp_data$step_design <- step_design
   }
 
   # Run simulation
