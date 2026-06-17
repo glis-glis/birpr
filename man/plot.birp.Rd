@@ -2,21 +2,23 @@
 % Please edit documentation in R/birp.R
 \name{plot.birp}
 \alias{plot.birp}
-\title{Plot posterior distributions of gamma parameters}
+\title{Plot posterior distributions of rate and/or step change parameters}
 \usage{
 \method{plot}{birp}(
   x,
+  change = if (x$post_gamma$exists && x$post_Delta$exists) "both" else if
+    (x$post_gamma$exists) "rate" else "step",
   shadingIncrease = NA,
   shadingDecrease = "#f2c7c7",
   col = "black",
   lwd = 1,
-  lty = 1:x$post_gamma$num,
+  lty = NULL,
   xlim = NA,
   ylim = NA,
   add = FALSE,
-  xlab = expression(gamma),
+  xlab = NULL,
   ylab = "Posterior density",
-  legend = x$post_gamma$names,
+  legend = NULL,
   lineAtZero = TRUE,
   ...
 )
@@ -24,42 +26,59 @@
 \arguments{
 \item{x}{A \code{birp} object.}
 
-\item{shadingIncrease}{Character or color specification; Shading color for the range where the gamma parameter is greater than 0 (\code{gamma > 0}). If \code{NA}, shading is omitted. Default is \code{NA}.}
+\item{change}{Character; which parameters to plot. One of \code{"rate"}, \code{"step"}, or
+\code{"both"}. Default is \code{"both"} if both exist, otherwise whichever exists.}
 
-\item{shadingDecrease}{Character or color specification; Shading color for the range where the gamma parameter is less than 0 (\code{gamma < 0}). If \code{NA}, shading is omitted. Default is \code{"#f2c7c7"}.}
+\item{shadingIncrease}{Character or color specification; Shading color for the range where the
+parameter is greater than 0. If \code{NA}, shading is omitted. Default is \code{NA}.}
 
-\item{col}{Character vector or color values; Line color(s) for the density plots. If a single value is provided, it is recycled for all gamma parameters. Default is \code{"black"}.}
+\item{shadingDecrease}{Character or color specification; Shading color for the range where the
+parameter is less than 0. If \code{NA}, shading is omitted. Default is \code{"#f2c7c7"}.}
 
-\item{lwd}{Numeric vector; Line width(s) for the density plots. If a single value is provided, it is recycled. Default is 1.}
+\item{col}{Character vector or color values; Line color(s) for the density plots. Recycled
+per parameter type. Default is \code{"black"}.}
 
-\item{lty}{Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$post_gamma$num}.}
+\item{lwd}{Numeric vector; Line width(s) for the density plots. Recycled per parameter type.
+Default is \code{1}.}
 
-\item{xlim}{Numeric vector of length 2; Optional x-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.}
+\item{lty}{Numeric or character vector; Line type(s) for the density plots. If a single value
+is provided, it is recycled. Default cycles through \code{1:n} within each parameter type.}
 
-\item{ylim}{Numeric vector of length 2; Optional y-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.}
+\item{xlim}{Numeric vector of length 2; Optional x-axis limits applied to all panels.
+If \code{NA}, limits are determined automatically. Default is \code{NA}.}
 
-\item{add}{Logical; If \code{TRUE}, adds the densities to an existing plot. Otherwise, creates a new plot. Default is \code{FALSE}.}
+\item{ylim}{Numeric vector of length 2; Optional y-axis limits applied to all panels.
+If \code{NA}, limits are determined automatically. Default is \code{NA}.}
 
-\item{xlab}{Character; Label for the x-axis. Default is \code{expression(gamma)}.}
+\item{add}{Logical; If \code{TRUE}, adds the densities to an existing plot (only valid when
+\code{change} is \code{"gamma"} or \code{"Delta"}). Default is \code{FALSE}.}
+
+\item{xlab}{Character (or expression) vector of length 1 or 2; Label(s) for the x-axis.
+When \code{change = "both"}, provide two labels (one per panel) or a single value recycled
+for both. Defaults to \code{expression(gamma)} / \code{expression(Delta)} as appropriate.}
 
 \item{ylab}{Character; Label for the y-axis. Default is \code{"Posterior density"}.}
 
-\item{legend}{Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$post_gamma$names}.}
+\item{legend}{Character vector of legend labels, or \code{NA} to suppress the legend.
+Defaults to the names stored in the respective \code{post_*} object.}
 
-\item{lineAtZero}{Logical; If \code{TRUE}, adds a vertical line at x = 0 to indicate no effect. Default is \code{TRUE}.}
+\item{lineAtZero}{Logical; If \code{TRUE}, adds a vertical line at x = 0. Default is \code{TRUE}.}
 
-\item{...}{Additional graphical parameters passed to \code{\link[graphics]{lines}} (when plotting the densities) and \code{\link[graphics]{plot}} (when creating a new plot).}
+\item{...}{Additional graphical parameters passed to \code{\link[graphics]{lines}} and
+\code{\link[graphics]{plot}}.}
 }
 \value{
 No return value, called for side effects.
 }
 \description{
-Plots the posterior densities of the gamma parameters estimated by a \code{birp} object.
+Plots the posterior densities of the rate (gamma) and/or step change (Delta) parameters estimated by a \code{birp} object.
 }
 \examples{
 data <- simulate_birp()
 est <- birp(data)
 plot(est)
+plot(est, change = "gamma")
+plot(est, change = "Delta")
 }
 \seealso{
 \code{\link{birp}}

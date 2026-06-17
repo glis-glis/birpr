@@ -97,23 +97,25 @@
   return(substitute(paste(gamma[index], ' (', name, ')'), list(index=index, name=x$post_gamma$names[index])))
 }
 
-#' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single gammas
-#' @param x A birp object
+#' Function to add text box to plot denoting P(gamma > 0 | n) or P(gamma < 0 | n) for single gammas (same for Delta)
+#' @param post The posterior probabilities (gamma or Delta)
+#' @param param_name The parameter name to show
 #' @return No return value, called for side effects.
 #' @keywords internal
-.addTextSingleGamma.birp <- function(x){
+.addTextSingleGammaDelta.birp <- function(post, param_name = "gamma") {
   diffFromBorder <- 0.01 * diff(par("usr")[1:2])
-  if(x$post_gamma$prob_positive > 0.5){
-    ttext <- bquote(paste("P(", gamma, " > 0 | n) = ", .(round(x$post_gamma$prob_positive, 3))))
+  sym <- as.symbol(param_name)
+  if (post$prob_positive > 0.5) {
+    ttext <- bquote(paste("P(", .(sym), " > 0 | n) = ", .(round(post$prob_positive, 3))))
     text(par("usr")[2] - diffFromBorder, par("usr")[4], adj = c(1, 1.5), labels = ttext)
   } else {
-    ttext <- bquote(paste("P(", gamma, " < 0 | n) = ", .(round(1 - x$post_gamma$prob_positive, 3))))
+    ttext <- bquote(paste("P(", .(sym), " < 0 | n) = ", .(round(1 - post$prob_positive, 3))))
     text(par("usr")[1] + diffFromBorder, par("usr")[4], adj = c(0, 1.5), labels = ttext)
   }
 }
 
 #' Function to add legend to plot denoting gammas
-#' @param x A birp object
+#' @param num The number of gamma/Deltas
 #' @param legend Add a legend to the plot
 #' @param dens A list containing the densities for each gamma
 #' @param xlim The x-limits (x1, x2) of the plot
@@ -123,26 +125,18 @@
 #' @param ... additional parameters passed to the function.
 #' @return No return value, called for side effects.
 #' @keywords internal
-.addLegendMultiGamma.birp <- function(x, legend, dens, xlim, col, lwd, lty, ...){
-  # Add legend
-  # Check if highest density is left or right of plot
+.addLegendMultiGamma.birp <- function(num, legend, dens, xlim, col, lwd, lty, ...) {
   max.y <- max(dens[[1]]$y)
   max.x <- dens[[1]]$x[dens[[1]]$y == max(dens[[1]]$y)]
-  if (x$post_gamma$num > 1){
-    for (e in 2:x$post_gamma$num){
-      if (max(dens[[e]]$y) > max.y){
+  if (num > 1) {
+    for (e in 2:num) {
+      if (max(dens[[e]]$y) > max.y) {
         max.y <- max(dens[[e]]$y)
         max.x <- dens[[e]]$x[dens[[e]]$y == max(dens[[e]]$y)]
       }
     }
   }
-  
-  if (max.x < xlim[1] + diff(xlim)/2){
-    legend.pos <- 'topright'
-  } else {
-    legend.pos <- 'topleft'
-  }
-  
+  legend.pos <- if (max.x < xlim[1] + diff(xlim) / 2) "topright" else "topleft"
   legend(legend.pos, legend, col = col, lwd = lwd, lty = lty, ...)
 }
 
@@ -360,6 +354,9 @@ birp <- function(data,
   
   # Get temporary directory where output will be written
   out <- file.path(tempdir(), "birp")
+  # Create directory and make sure files are deleted at the end
+  dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  on.exit(unlink(out, recursive = TRUE, force = TRUE), add = TRUE)
 
   # Parse options and convert to string
   options <- list(task = "infer", out = out)
@@ -413,8 +410,6 @@ birp <- function(data,
   x <- .createObjBirp.birp(filtered_data, meanVar, trace, gamma, Delta, timepoints, timesOfChange, rate_design, step_design, CI_groups, state)
   return(x)
 }
-
-
 
 #' Create a birp Object from Command-Line Output Files
 #'
@@ -584,97 +579,353 @@ summary.birp <- function(object, ...){
   print.birp(object, ...)
 }
 
+#' Posterior probability of a population trend
+#'
+#' Computes the posterior probability that a population trend is increasing
+#' or decreasing.
+#'
+#' @param x A `birp` object.
+#' @param positive Logical. If `TRUE` (default), returns the posterior
+#'   probability of an increasing (positive) trend,
+#'   \eqn{P(\gamma_m > 0 \mid y)}. If `FALSE`, returns the posterior
+#'   probability of a decreasing (negative) trend,
+#'   \eqn{P(\gamma_m < 0 \mid y)}.
+#' @param gamma Integer. Index of the gamma parameter for which to return the
+#'   posterior probability. If `NULL` (default), posterior probabilities for
+#'   all gamma parameters are returned.
+#'
+#' @return If `gamma = NULL`, a numeric vector containing posterior
+#'   probabilities for all rate parameters. Otherwise, a single numeric value.
+#'
+#' @seealso [birp()]
+#'
+#' @examples
+#' data <- simulate_birp()
+#' est <- birp(data)
+#'
+#' # Posterior probabilities of increasing trends
+#' prob_trend(est)
+#'
+#' # Posterior probability for a specific gamma
+#' prob_trend(est, gamma = 1)
+#'
+#' # Posterior probabilities of decreasing trends
+#' prob_trend(est, positive = FALSE)
+#'
+#' @export
+prob_trend <- function(x, positive = TRUE, gamma = NULL) {
+  # Get full matrix with posterior probabilities
+  s <- x$post_gamma$posterior_summary
+  
+  if (is.null(s)){
+    stop("No gamma were inferred. Use 'prob_step' to get posterior probabilities of a step change.")
+  }
+  
+  # Remove rownames
+  s <- as.matrix(s[, -1, drop = FALSE]) 
+  
+  # Get diagonal: posterior probabilities for gamma > 0
+  pp <- diag(s)
+  
+  # Retrieve full vector
+  if (is.null(gamma)) {
+    return(if (positive) pp else 1 - pp)
+  }
+  
+  # Retrieve a single gamma
+  if (length(gamma) != 1 || !is.numeric(gamma) || 
+      gamma %% 1 != 0 || gamma < 1 || gamma > x$post_gamma$num) {
+    stop("`gamma` must be an integer between 1 and ", x$post_gamma$num, ".")
+  }
+  
+  if (positive) {
+    pp[gamma]
+  } else {
+    1 - pp[gamma]
+  }
+}
+
+#' Posterior probability of a step change
+#'
+#' Computes the posterior probability that a step change is increasing (positive) or decreasing (negative)
+#'
+#' @param x A `birp` object.
+#' @param positive Logical. If `TRUE` (default), returns the posterior
+#'   probability of an increasing (positive) step change,
+#'   \eqn{P(\Delta_m > 0 \mid y)}. If `FALSE`, returns the posterior
+#'   probability of a decreasing (negative) step change,
+#'   \eqn{P(\Delta_m < 0 \mid y)}.
+#' @param Delta Integer. Index of the Delta parameter for which to return the
+#'   posterior probability. If `NULL` (default), posterior probabilities for
+#'   all Delta parameters are returned.
+#'
+#' @return If `Delta = NULL`, a numeric vector containing posterior
+#'   probabilities for all step change parameters. Otherwise, a single numeric value.
+#'
+#' @seealso [birp()]
+#'
+#' @examples
+#' data <- simulate_birp()
+#' est <- birp(data, change = "step")
+#'
+#' # Posterior probabilities of positive step changes
+#' prob_step(est)
+#'
+#' # Posterior probability for a specific Delta
+#' prob_step(est, Delta = 1)
+#'
+#' # Posterior probabilities of negative step changes
+#' prob_step(est, positive = FALSE)
+#'
+#' @export
+prob_step <- function(x, positive = TRUE, Delta = NULL) {
+  # Get full matrix with posterior probabilities
+  s <- x$post_Delta$posterior_summary
+  
+  if (is.null(s)){
+    stop("No Delta were inferred. Use 'prob_trend' to get posterior probabilities of a trend change.")
+  }
+  
+  s <- as.matrix(s[, -1, drop = FALSE]) # remove rownames
+  
+  # Get diagonal: posterior probabilities for Delta > 0
+  pp <- diag(s)
+  
+  # Retrieve full vector
+  if (is.null(Delta)) {
+    if (positive) 
+      return(pp)
+    return(1 - pp)
+  }
+  
+  # Retrieve a single Delta
+  if (length(Delta) != 1 || !is.numeric(Delta) || 
+      Delta %% 1 != 0 || Delta < 1 || Delta > x$post_Delta$num) {
+    stop("`Delta` must be an integer between 1 and ", x$post_Delta$num, ".")
+  }
+  
+  if (positive) {
+    return(pp[Delta])
+  }
+  return(1 - pp[Delta])
+}
+
+#' Pairwise posterior comparisons of population trends
+#'
+#' Computes pairwise posterior probabilities that one population trend
+#' exceeds another.
+#'
+#' Element \code{[i, j]} of the returned matrix equals
+#' \eqn{P(\gamma_i > \gamma_j \mid y)},
+#' the posterior probability that the trend associated with row \code{i}
+#' is greater than the trend associated with column \code{j}.
+#'
+#' Values close to 1 indicate strong evidence that
+#' \eqn{\gamma_i > \gamma_j}, values close to 0 indicate strong evidence
+#' that \eqn{\gamma_i < \gamma_j}, and values near 0.5 indicate little
+#' evidence for either comparison
+#'
+#' @param x A `birp` object.
+#'
+#' @return A square matrix of pairwise posterior probabilities. Element
+#'   \code{[i, j]} gives \eqn{P(\gamma_i > \gamma_j \mid y)}.
+#'
+#' @seealso [birp()], [prob_trend()]
+#'
+#' @examples
+#' data <- simulate_birp(timepoints = 1:5)
+#' est <- birp(sim, timesOfChange = c(2,4))
+#'
+#' prob_trend_diff(est)
+#'
+#' @export
+prob_trend_diff <- function(x) {
+  # Get full matrix with posterior probabilities
+  s <- x$post_gamma$posterior_summary
+  
+  if (is.null(s)) {
+    stop("No gamma parameters were inferred. 
+         Use 'prob_step()' to obtain posterior probabilities of step changes."
+    )
+  }
+  
+  # properly assign row- and column names
+  rn <- s[, 1]
+  s <- as.matrix(s[, -1, drop = FALSE])
+  rownames(s) <- rn
+  colnames(s) <- rn
+  
+  # Set diagonal to NA
+  diag(s) <- NA
+  
+  return(s)
+}
+
+
 #---------------------------------------
 # Methods for plotting
 #---------------------------------------
 
-#' Plot posterior distributions of gamma parameters
+#' Plot posterior distributions of rate and/or step change parameters
 #'
-#' Plots the posterior densities of the gamma parameters estimated by a \code{birp} object.
+#' Plots the posterior densities of the rate (gamma) and/or step change (Delta) parameters estimated by a \code{birp} object.
 #'
 #' @param x A \code{birp} object.
-#' @param shadingIncrease Character or color specification; Shading color for the range where the gamma parameter is greater than 0 (\code{gamma > 0}). If \code{NA}, shading is omitted. Default is \code{NA}.
-#' @param shadingDecrease Character or color specification; Shading color for the range where the gamma parameter is less than 0 (\code{gamma < 0}). If \code{NA}, shading is omitted. Default is \code{"#f2c7c7"}.
-#' @param col Character vector or color values; Line color(s) for the density plots. If a single value is provided, it is recycled for all gamma parameters. Default is \code{"black"}.
-#' @param lwd Numeric vector; Line width(s) for the density plots. If a single value is provided, it is recycled. Default is 1.
-#' @param lty Numeric or character vector; Line type(s) for the density plots. If a single value is provided, it is recycled. Default is \code{1:x$post_gamma$num}.
-#' @param xlim Numeric vector of length 2; Optional x-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.
-#' @param ylim Numeric vector of length 2; Optional y-axis limits. If \code{NA}, limits are determined automatically from the density data. Default is \code{NA}.
-#' @param add Logical; If \code{TRUE}, adds the densities to an existing plot. Otherwise, creates a new plot. Default is \code{FALSE}.
-#' @param xlab Character; Label for the x-axis. Default is \code{expression(gamma)}.
+#' @param change Character; which parameters to plot. One of \code{"rate"}, \code{"step"}, or
+#'   \code{"both"}. Default is \code{"both"} if both exist, otherwise whichever exists.
+#' @param shadingIncrease Character or color specification; Shading color for the range where the
+#'   parameter is greater than 0. If \code{NA}, shading is omitted. Default is \code{NA}.
+#' @param shadingDecrease Character or color specification; Shading color for the range where the
+#'   parameter is less than 0. If \code{NA}, shading is omitted. Default is \code{"#f2c7c7"}.
+#' @param col Character vector or color values; Line color(s) for the density plots. Recycled
+#'   per parameter type. Default is \code{"black"}.
+#' @param lwd Numeric vector; Line width(s) for the density plots. Recycled per parameter type.
+#'   Default is \code{1}.
+#' @param lty Numeric or character vector; Line type(s) for the density plots. If a single value
+#'   is provided, it is recycled. Default cycles through \code{1:n} within each parameter type.
+#' @param xlim Numeric vector of length 2; Optional x-axis limits applied to all panels.
+#'   If \code{NA}, limits are determined automatically. Default is \code{NA}.
+#' @param ylim Numeric vector of length 2; Optional y-axis limits applied to all panels.
+#'   If \code{NA}, limits are determined automatically. Default is \code{NA}.
+#' @param add Logical; If \code{TRUE}, adds the densities to an existing plot (only valid when
+#'   \code{change} is \code{"gamma"} or \code{"Delta"}). Default is \code{FALSE}.
+#' @param xlab Character (or expression) vector of length 1 or 2; Label(s) for the x-axis.
+#'   When \code{change = "both"}, provide two labels (one per panel) or a single value recycled
+#'   for both. Defaults to \code{expression(gamma)} / \code{expression(Delta)} as appropriate.
 #' @param ylab Character; Label for the y-axis. Default is \code{"Posterior density"}.
-#' @param legend Character vector of legend labels, or \code{NA} to suppress the legend. Default is \code{x$post_gamma$names}.
-#' @param lineAtZero Logical; If \code{TRUE}, adds a vertical line at x = 0 to indicate no effect. Default is \code{TRUE}.
-#' @param ... Additional graphical parameters passed to \code{\link[graphics]{lines}} (when plotting the densities) and \code{\link[graphics]{plot}} (when creating a new plot).
+#' @param legend Character vector of legend labels, or \code{NA} to suppress the legend.
+#'   Defaults to the names stored in the respective \code{post_*} object.
+#' @param lineAtZero Logical; If \code{TRUE}, adds a vertical line at x = 0. Default is \code{TRUE}.
+#' @param ... Additional graphical parameters passed to \code{\link[graphics]{lines}} and
+#'   \code{\link[graphics]{plot}}.
 #'
 #' @return No return value, called for side effects.
 #'
 #' @export
 #' @seealso \code{\link{birp}}
-#' @examples 
+#' @examples
 #' data <- simulate_birp()
 #' est <- birp(data)
 #' plot(est)
-
+#' plot(est, change = "rate")
+#' plot(est, change = "step")
 plot.birp <- function(x,
-                      shadingIncrease = NA,
-                      shadingDecrease = "#f2c7c7",
-                      col = "black",
-                      lwd = 1,
-                      lty = 1:x$post_gamma$num,
-                      xlim = NA,
-                      ylim = NA,
-                      add = FALSE,
-                      xlab = expression(gamma),
-                      ylab = "Posterior density",
-                      legend = x$post_gamma$names,
-                      lineAtZero = TRUE,
-                      ...){
-  # TODO: fix this function to also visualize step changes!
-  if (!x$post_gamma$exists){
-    stop("No gamma were inferred - plotting step changes is not implemented yet")
+                       change = if (x$post_gamma$exists && x$post_Delta$exists) "both"
+                       else if (x$post_gamma$exists) "rate"
+                       else "step",
+                       shadingIncrease = NA,
+                       shadingDecrease = "#f2c7c7",
+                       col = "black",
+                       lwd = 1,
+                       lty = NULL,
+                       xlim = NA,
+                       ylim = NA,
+                       add = FALSE,
+                       xlab = NULL,
+                       ylab = "Posterior density",
+                       legend = NULL,
+                       lineAtZero = TRUE,
+                       ...) {
+  
+  change <- match.arg(change, c("rate", "step", "both"))
+  
+  # --- Validate requested parameters exist ---
+  if (change %in% c("rate", "both") && !x$post_gamma$exists) {
+    stop("'change' includes \"rate\" but no rates (gamma) were inferred in this birp object.")
+  }
+  if (change %in% c("step", "both") && !x$post_Delta$exists) {
+    stop("'change' includes \"step\" but no step changes (Delta) were inferred in this birp object.")
+  }
+  if (change == "both" && add) {
+    stop("'add = TRUE' is not supported when 'change = \"both\"' (two panels are drawn).")
   }
   
-  # Recycle col, lwd and lty
-  col <- rep_len(col, x$post_gamma$num)
-  lwd <- rep_len(lwd, x$post_gamma$num)
-  lty <- rep_len(lty, x$post_gamma$num)
+  # --- Build a list of parameter blocks to iterate over ---
+  blocks <- list()
+  if (change %in% c("rate", "both")) {
+    blocks[["rate"]] <- list(
+      post   = x$post_gamma,
+      xlab   = expression(gamma),
+      legend = x$post_gamma$names
+    )
+  }
+  if (change %in% c("step", "both")) {
+    blocks[["step"]] <- list(
+      post   = x$post_Delta,
+      xlab   = expression(Delta),
+      legend = x$post_Delta$names
+    )
+  }
+  n_blocks <- length(blocks)
   
-  # Calculate all densities
-  dens <- list(x$post_gamma$num)
-  for (e in 1:x$post_gamma$num){
-    dens[[e]] <- stats::density(x$post_gamma$trace[,e])
+  # --- Resolve xlab (allow user to pass 1 or 2 values) ---
+  if (is.null(xlab)) {
+    xlab_list <- lapply(blocks, `[[`, "xlab")   # defaults per block
+  } else {
+    xlab_vec  <- if (!is.list(xlab)) list(xlab) else xlab   # wrap scalars
+    xlab_list <- rep_len(xlab_vec, n_blocks)
   }
   
-  # Get limits
-  if (any(is.na(xlim))){
-    xlim <- range(sapply(dens, function(d) range(d$x)))
-  }
-  if (any(is.na(ylim))){
-    ylim <- range(sapply(dens, function(d) range(d$y)))
-  }
-  
-  # Open plot
-  if (!add){
-    .openPosteriorPlot.birp(xlim, ylim, xlab, ylab, shadingIncrease, shadingDecrease, lineAtZero, ...)
+  # --- Resolve legend (allow user to pass a list or a single vector) ---
+  if (is.null(legend)) {
+    legend_list <- lapply(blocks, `[[`, "legend")
+  } else {
+    legend_list <- if (!is.list(legend)) rep(list(legend), n_blocks) else legend
   }
   
-  # Plot densities
-  for (e in 1:x$post_gamma$num){
-    lines(dens[[e]], col = col[e], lwd = lwd[e], lty = lty[e], ...)
+  # --- Split into panels when plotting both ---
+  if (change == "both") {
+    old_par <- par(mfrow = c(1, 2))
+    on.exit(par(old_par), add = TRUE)
   }
   
- 
-  # Add legend?
-  if (!any(is.na(legend))){
-    if (x$post_gamma$num == 1){
-      .addTextSingleGamma.birp(x)
-    } else {
-      .addLegendMultiGamma.birp(x, legend, dens, xlim, col, lwd, lty, ...)
+  # --- Draw each block ---
+  for (i in seq_along(blocks)) {
+    blk      <- blocks[[i]]
+    post     <- blk$post
+    n_params <- post$num
+    
+    # Recycle aesthetics independently per block
+    col_i <- rep_len(col, n_params)
+    lwd_i <- rep_len(lwd, n_params)
+    lty_i <- if (is.null(lty)) seq_len(n_params) else rep_len(lty, n_params)
+    
+    # Compute densities
+    dens <- vector("list", n_params)
+    for (e in seq_len(n_params)) {
+      dens[[e]] <- stats::density(post$trace[, e])
+    }
+    
+    # Axis limits
+    xlim_i <- if (any(is.na(xlim))) range(sapply(dens, function(d) range(d$x))) else xlim
+    ylim_i <- if (any(is.na(ylim))) range(sapply(dens, function(d) range(d$y))) else ylim
+    
+    # Open plot (unless adding to an existing one)
+    if (!add) {
+      .openPosteriorPlot.birp(
+        xlim_i, ylim_i,
+        xlab_list[[i]], ylab,
+        shadingIncrease, shadingDecrease,
+        lineAtZero, ...
+      )
+    }
+    
+    # Draw density lines
+    for (e in seq_len(n_params)) {
+      lines(dens[[e]], col = col_i[e], lwd = lwd_i[e], lty = lty_i[e], ...)
+    }
+    
+    # Legend / annotation
+    leg_i <- legend_list[[i]]
+    if (!any(is.na(leg_i))) {
+      if (n_params == 1) {
+        .addTextSingleGammaDelta.birp(post, param_name = names(blocks)[i])
+      } else {
+        .addLegendMultiGamma.birp(post$num, leg_i, dens, xlim_i, col_i, lwd_i, lty_i, ...)
+      }
     }
   }
 }
-
 
 #' Plot joint posterior of two gamma parameters
 #'
@@ -723,7 +974,6 @@ plot_epoch_pair <- function(x,
                             print.p = TRUE,
                             add = FALSE,
                             ...){
-  # TODO: fix this function to also visualize step changes!
   # check if x has at least 2 epochs
   if (x$post_gamma$num < 2) {
     stop("Need at least 2 gamma!")

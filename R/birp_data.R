@@ -295,6 +295,9 @@ simulate_birp <- function(timepoints = c(1,2,3),
   
   # Get temporary directory where output will be written
   out <- file.path(tempdir(), "birp")
+  # Create directory and make sure files are deleted at the end
+  dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  on.exit(unlink(out, recursive = TRUE, force = TRUE), add = TRUE)
   
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
@@ -360,6 +363,9 @@ simulate_birp_from_results <- function(x,
   
   # Get temporary directory where output will be written
   out <- file.path(tempdir(), "birp")
+  # Create directory and make sure files are deleted at the end
+  dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  on.exit(unlink(out, recursive = TRUE, force = TRUE), add = TRUE)
   
   # Parse options and convert to string
   options <- list(task = "simulate", out = out)
