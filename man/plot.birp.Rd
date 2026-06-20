@@ -74,11 +74,11 @@ No return value, called for side effects.
 Plots the posterior densities of the rate (gamma) and/or step change (Delta) parameters estimated by a \code{birp} object.
 }
 \examples{
-data <- simulate_birp()
-est <- birp(data)
+data <- simulate_birp(timepoints = 1:5)
+est <- birp(data, change = "both")
 plot(est)
-plot(est, change = "gamma")
-plot(est, change = "Delta")
+plot(est, change = "rate")
+plot(est, change = "step")
 }
 \seealso{
 \code{\link{birp}}

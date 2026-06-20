@@ -43,7 +43,7 @@
   cat("   - Posterior median of ", param_name, ": [", paste0(x$posterior_median, collapse=", "), "]\n", sep = "")
   cat("   - Posterior 5% quantile of ", param_name, ": [", paste0(x$posterior_q05, collapse=", "), "]\n", sep = "")
   cat("   - Posterior 95% quantile of ", param_name, ": [", paste0(x$posterior_q95, collapse=", "), "]\n", sep = "")
-  cat("   - Posterior probability of positive P(", param_name, " > 0): [", paste0(x$prob_positive, collapse=", "), "]\n", sep = "")
+  cat("   - Posterior probability of positive P(", param_name, " >= 0): [", paste0(x$prob_positive, collapse=", "), "]\n", sep = "")
 }
 
 #' Function to add a hatched polygon to a plot
@@ -106,7 +106,7 @@
   diffFromBorder <- 0.01 * diff(par("usr")[1:2])
   sym <- as.symbol(param_name)
   if (post$prob_positive > 0.5) {
-    ttext <- bquote(paste("P(", .(sym), " > 0 | n) = ", .(round(post$prob_positive, 3))))
+    ttext <- bquote(paste("P(", .(sym), " >= 0 | n) = ", .(round(post$prob_positive, 3))))
     text(par("usr")[2] - diffFromBorder, par("usr")[4], adj = c(1, 1.5), labels = ttext)
   } else {
     ttext <- bquote(paste("P(", .(sym), " < 0 | n) = ", .(round(1 - post$prob_positive, 3))))
@@ -166,6 +166,24 @@
   return(rho)
 }
 
+#' Compute step-change indicator matrix for Delta
+#'
+#' For a set of evaluation times and a set of step-change times, computes a matrix
+#' where entry \code{[i, m]} is 1 if observation time \code{i} is greater than or equal
+#' to step-change time \code{m}, and 0 otherwise. Used to accumulate the step-change
+#' contributions \eqn{\sum_m \mathbb{1}_{t_k \geq T_m} \Delta(g, m)}.
+#'
+#' @param eval_times Numeric vector; times at which to evaluate the indicator.
+#' @param times_of_change Numeric vector; the step-change times \eqn{T_1, \ldots, T_{M-1}}.
+#' @return A matrix with \code{length(eval_times)} rows and \code{length(times_of_change)} columns.
+#' @keywords internal
+.calculatePsi.birp <- function(eval_times, times_of_change){
+  if (length(times_of_change) == 0){
+    return(matrix(0, nrow = length(eval_times), ncol = 0))
+  }
+  sapply(times_of_change, function(T_m) as.numeric(eval_times >= T_m))
+}
+
 #' Function to check if a file exists and generate error message if it was not found
 #' @param path A file path
 #' @param files A vector of character strings corresponding to file names found in the path
@@ -217,6 +235,7 @@
 .parsePosteriorGammaDelta.birp <- function(param_name, meanVar, trace, posterior_summary){
   res <- list(
     exists = FALSE,
+    is_fix = TRUE,
     posterior_mean = NULL,
     trace = NULL,
     posterior_median = NULL,
@@ -229,8 +248,9 @@
   )
   if (any(grepl(param_name, meanVar$name))){
     res$exists <- TRUE
-    res$posterior_mean <- meanVar$posterior_mean[grepl(param_name, meanVar$name)]
     res$trace <- as.matrix(trace[,grepl(param_name, names(trace))])
+    res$is_fix <- apply(res$trace, 2, function(x) all(x == 0))
+    res$posterior_mean <- meanVar$posterior_mean[grepl(param_name, meanVar$name)]
     res$posterior_median <- apply(res$trace, 2, median)
     res$posterior_q05 <- apply(res$trace, 2, quantile, probs=0.05)
     res$posterior_q95 <- apply(res$trace, 2, quantile, probs=0.95)
@@ -734,7 +754,7 @@ prob_step <- function(x, positive = TRUE, Delta = NULL) {
 #'
 #' @examples
 #' data <- simulate_birp(timepoints = 1:5)
-#' est <- birp(sim, timesOfChange = c(2,4))
+#' est <- birp(data, timesOfChange = c(2,4))
 #'
 #' prob_trend_diff(est)
 #'
@@ -804,8 +824,8 @@ prob_trend_diff <- function(x) {
 #' @export
 #' @seealso \code{\link{birp}}
 #' @examples
-#' data <- simulate_birp()
-#' est <- birp(data)
+#' data <- simulate_birp(timepoints = 1:5)
+#' est <- birp(data, change = "both")
 #' plot(est)
 #' plot(est, change = "rate")
 #' plot(est, change = "step")
@@ -846,14 +866,14 @@ plot.birp <- function(x,
     blocks[["rate"]] <- list(
       post   = x$post_gamma,
       xlab   = expression(gamma),
-      legend = x$post_gamma$names
+      legend = x$post_gamma$names[!x$post_gamma$is_fix]
     )
   }
   if (change %in% c("step", "both")) {
     blocks[["step"]] <- list(
       post   = x$post_Delta,
       xlab   = expression(Delta),
-      legend = x$post_Delta$names
+      legend = x$post_Delta$names[!x$post_Delta$is_fix]
     )
   }
   n_blocks <- length(blocks)
@@ -912,14 +932,17 @@ plot.birp <- function(x,
     
     # Draw density lines
     for (e in seq_len(n_params)) {
+      # If fix: don't draw line
+      if (post$is_fix[e]){ next }
       lines(dens[[e]], col = col_i[e], lwd = lwd_i[e], lty = lty_i[e], ...)
     }
     
     # Legend / annotation
     leg_i <- legend_list[[i]]
     if (!any(is.na(leg_i))) {
-      if (n_params == 1) {
-        .addTextSingleGammaDelta.birp(post, param_name = names(blocks)[i])
+      if (n_params == 1 | sum(!post$is_fix) == 1) {
+        param_name <- ifelse(names(blocks)[i] == "rate", "gamma", "Delta")
+        .addTextSingleGammaDelta.birp(post, param_name = param_name)
       } else {
         .addLegendMultiGamma.birp(post$num, leg_i, dens, xlim_i, col_i, lwd_i, lty_i, ...)
       }
@@ -978,6 +1001,9 @@ plot_epoch_pair <- function(x,
   if (x$post_gamma$num < 2) {
     stop("Need at least 2 gamma!")
   }
+  if (sum(x$post_gamma$is_fix) < 2){
+    stop("Need at least 2 gamma that were inferred!")
+  }
   
   # Check parameters
   if (gamma1 < 1 | gamma1 > x$post_gamma$num){ stop("Gamma ", gamma1, " does not exist!") }
@@ -1010,24 +1036,15 @@ plot_epoch_pair <- function(x,
   }
   
   # Print P(gamma1 < gamma2)
-  q <- sum(x$post_gamma$trace[,gamma1] < x$post_gamma$trace[,gamma2]) / nrow(x$post_gamma$trace)
-  
+  q <- prob_trend_diff(x)[gamma1, gamma2]
+
   if (!add & print.p){
-    if (q < 0.5){
-      text(par("usr")[1] + 0.005 * diff(par("usr")[1:2]), 
-           par("usr")[4] - 0.03 * diff(par("usr")[3:4]), 
-           pos = 4, 
-           labels = substitute(
-               paste('P(', gamma[name1], ' < ', gamma[name2], ' | n) = ', q),
-               list(name1 = gamma1, name2 = gamma2, q = round(q, digits=4))))
-    } else {
-      text(par("usr")[2] - 0.005 * diff(par("usr")[1:2]), 
-           par("usr")[3] + 0.03 * diff(par("usr")[3:4]), 
-           pos = 2, 
-           labels = substitute(
+    text(par("usr")[1] + 0.005 * diff(par("usr")[1:2]), 
+         par("usr")[4] - 0.03 * diff(par("usr")[3:4]), 
+         pos = 4, 
+         labels = substitute(
              paste('P(', gamma[name1], ' > ', gamma[name2], ' | n) = ', q),
-             list(name1 = gamma1, name2 = gamma2, q = round(1 - q, digits=4))))
-    }
+             list(name1 = gamma1, name2 = gamma2, q = round(q, digits=4))))
   }
 }
 
@@ -1044,7 +1061,6 @@ plot_epoch_pair <- function(x,
 #' @param quantile.border Character or NA; Border color for quantile polygons. Use NA to omit borders. Default is NA.
 #' @param median.col Character; Color of the median trend line. Default is "deeppink".
 #' @param median.lwd Numeric; Line width for the median trend. Default is 1.
-
 #' @param median.lty Numeric or character; Line type for the median trend line. Default is 1 (solid).
 #' @param epoch.col Character or color specification; Color for lines representing epoch boundaries. Default is \code{"black"}.
 #' @param epoch.lwd Numeric; Line width for epoch boundary lines. Default is 1.
@@ -1062,34 +1078,33 @@ plot_epoch_pair <- function(x,
 #' @export
 #' @seealso \code{\link{birp}}
 #' @importFrom grDevices gray
+#' @importFrom stats quantile
 #' @examples 
 #' data <- simulate_birp()
 #' est <- birp(data)
 #' plot_trend(est)
-
 plot_trend <- function(x, 
-                            CI_group = 1,
-                            n_points = 1000, 
-                            quantiles = c(0.99, 0.9, 0.5, 0.25), 
-                            quantile.col = "gray"(seq(1, 0, length.out = length(quantiles)+2)[2:(length(quantiles)+1)]), 
-                            quantile.border = NA,
-                            median.col = "deeppink",
-                            median.lwd = 1,
-                            median.lty = 1,
-                            epoch.col = "black",
-                            epoch.lwd = 1,
-                            epoch.lty = 1,
-                            times.col = "black",
-                            times.lwd = 1,
-                            times.lty = 2,
-                            log = FALSE,
-                            xlab = "Time",
-                            ylab = paste(c("log", "Relative Density")[c(log, TRUE)], collapse=" "),
-                            main = x$CI_groups[CI_group],
-                            ...){
-  # TODO: fix this function to also visualize step changes!
-  if (!x$post_gamma$exists){
-    stop("No gamma were inferred - plotting step changes is not implemented yet")
+                       CI_group = 1,
+                       n_points = 1000, 
+                       quantiles = c(0.99, 0.9, 0.5, 0.25), 
+                       quantile.col = "gray"(seq(1, 0, length.out = length(quantiles)+2)[2:(length(quantiles)+1)]), 
+                       quantile.border = NA,
+                       median.col = "deeppink",
+                       median.lwd = 1,
+                       median.lty = 1,
+                       epoch.col = "black",
+                       epoch.lwd = 1,
+                       epoch.lty = 1,
+                       times.col = "black",
+                       times.lwd = 1,
+                       times.lty = 2,
+                       log = FALSE,
+                       xlab = "Time",
+                       ylab = paste(c("log", "Relative Density")[c(log, TRUE)], collapse=" "),
+                       main = x$CI_groups[CI_group],
+                       ...){
+  if (!x$post_gamma$exists && !x$post_Delta$exists){
+    stop("Neither gamma nor Delta were inferred - nothing to plot.")
   }
   
   if (CI_group > length(x$CI_groups)){
@@ -1099,47 +1114,103 @@ plot_trend <- function(x,
   # Check parameters
   if(max(quantiles) > 1.0){ stop("Provided quantiles must be <= 1.0!") }
   if(min(quantiles) <= 0.0){ stop("Provided quantiles must be > 0.0!") }
-
-  # Get gammas of CI group
-  relevant_gamma_names <- as.character(x$rate_design[CI_group,2:ncol(x$rate_design)])
-  # Get indices of gamma
-  gamma.cols <- as.numeric(sapply(relevant_gamma_names, function(name) which(x$post_gamma$names == name)))
   
   xlim <- range(x$timepoints)
   times_of_change <- x$times_of_change
   
+  has_gamma <- x$post_gamma$exists & sum(!x$post_gamma$is_fix) > 0
+  has_Delta <- x$post_Delta$exists & sum(!x$post_Delta$is_fix) > 0
+  
+  # Get gammas of CI group, if any were inferred
+  gamma.cols <- NULL
+  if (has_gamma){
+    relevant_gamma_names <- as.character(x$rate_design[CI_group,2:ncol(x$rate_design)])
+    # Get indices of gamma
+    gamma.cols <- as.numeric(sapply(relevant_gamma_names, function(name) which(x$post_gamma$names == name)))
+  }
+  
+  # Get Deltas of CI group, if any were inferred
+  Delta.cols <- NULL
+  if (has_Delta){
+    relevant_Delta_names <- as.character(x$step_design[CI_group,2:ncol(x$step_design)])
+    Delta.cols <- as.numeric(sapply(relevant_Delta_names, function(name) which(x$post_Delta$names == name)))
+  }
+  
   # Get times of change that should be marked in plot
+  # (highlight if either gamma or Delta differs across that boundary)
   highlight_times_of_change <- c()
   if (x$num_epochs > 1){
     for (i in 2:x$num_epochs){
-      if (gamma.cols[i] != gamma.cols[i-1]){
+      gamma_changes <- has_gamma && !is.null(gamma.cols) && (gamma.cols[i] != gamma.cols[i-1])
+      Delta_present <- has_Delta && !is.null(Delta.cols) && (Delta.cols[i] != Delta.cols[i-1])
+      if (gamma_changes || Delta_present){
         highlight_times_of_change <- c(highlight_times_of_change, x$times_of_change[i-1])
       }
     }
   }
+  # Add last Delta (at the final timepoint, xlim[2])
+  if (has_Delta && !is.null(Delta.cols) && length(Delta.cols) > 0){
+    highlight_times_of_change <- c(highlight_times_of_change, xlim[2])
+  }
   
   # Prepare calculations of means
-  epoch_ranges <- c(xlim[1], times_of_change[times_of_change > xlim[1] & times_of_change < xlim[2]], xlim[2])
+  epoch_ranges <- c(xlim[1], 
+                    times_of_change[times_of_change > xlim[1] & times_of_change < xlim[2]], 
+                    xlim[2])
   epoch_length <- epoch_ranges[2:length(epoch_ranges)] - epoch_ranges[1:(length(epoch_ranges)-1)]
   rho <- .calculateRho.birp(epoch_ranges, times_of_change)
   num_epochs <- length(epoch_length)
-
+  
+  # Step times for Delta: end of each epoch, i.e. all internal times_of_change
+  # plus the final timepoint (end of the last epoch). Length == num_epochs.
+  Delta_step_times <- epoch_ranges[2:length(epoch_ranges)]
+  
   # Prepare points at which to calculate rates
   xvals <- seq(xlim[1], xlim[2], length.out = n_points)
   rho_x <- .calculateRho.birp(xvals, times_of_change)
   mcmc_length <- nrow(x$trace)
   rates <- matrix(0, ncol = length(xvals), nrow = mcmc_length - 1)
   
+  # Step-indicator matrices: psi[i,m] = 1{ t_i >= Delta_step_times[m] }
+  psi_x <- NULL
+  if (has_Delta && !is.null(Delta.cols) && length(Delta.cols) > 0){
+    psi_x <- .calculatePsi.birp(xvals, Delta_step_times)
+  }
+  
+  gamma_is_fix_zero <- x$post_gamma$is_fix[gamma.cols]
+  
   for (i in 2:mcmc_length){
     # Calculate mean to normalize / align
     # Prevent underflow by normalizing with mean
-    change <- rho %*% x$post_gamma$trace[i,gamma.cols]
-    meanLog <- mean(change)
-    change <- exp(change - meanLog)
-    average <- sum((change[2:(num_epochs+1),1] - change[1:num_epochs]) / x$post_gamma$trace[i,gamma.cols] / epoch_length)
+    # NOTE: deliberately gamma-only here - this computes the average value of the
+    # gamma-driven exponential growth over each epoch, used as a normalization
+    # constant. Mixing in Delta jumps breaks the sign-cancellation that keeps
+    # (change[m+1]-change[m])/gamma[m] positive regardless of gamma's sign.
+    change <- 0
+    if (has_gamma){
+      change <- rho %*% x$post_gamma$trace[i,gamma.cols]
     
-    # Calc normalized rates
-    rates[i-1,] <- rho_x %*% x$post_gamma$trace[i,gamma.cols] - log(average) - meanLog
+      meanLog <- mean(change)
+      change <- exp(change - meanLog)
+      
+      gamma_i <- x$post_gamma$trace[i,gamma.cols]
+      numer <- change[2:(num_epochs+1),1] - change[1:num_epochs]
+      
+      epoch_avg <- numeric(num_epochs)
+      epoch_avg[!gamma_is_fix_zero] <- numer[!gamma_is_fix_zero] / gamma_i[!gamma_is_fix_zero] / epoch_length[!gamma_is_fix_zero]
+      epoch_avg[gamma_is_fix_zero]  <- change[1:num_epochs][gamma_is_fix_zero]
+      
+      average <- sum(epoch_avg)
+    }
+    
+    # Calc normalized rates: gamma contribution, normalized, plus the (separate,
+    # additive) Delta step contribution
+    if (has_gamma){
+      rates[i-1,] <- rho_x %*% gamma_i - log(average) - meanLog
+    }
+    if (has_Delta){
+      rates[i-1,] <- rates[i-1,] + psi_x %*% x$post_Delta$trace[i,Delta.cols]
+    }
   }
   
   if(!log){
@@ -1151,7 +1222,7 @@ plot_trend <- function(x,
   quant <- apply(rates, 2, quantile, probs = probs)
   
   # Open plot
-  plot(0, type = 'n', xlim = xlim, ylim = range(quant, na.rm = TRUE), xlab = xlab, ylab = ylab, main = main, ...)
+  plot(0, type = 'n', xlim = xlim, ylim = range(quant, na.rm = TRUE), xlab = xlab, ylab = ylab, main = main)
   
   # Add epochs
   if(!is.na(epoch.lwd) & epoch.lwd>0){

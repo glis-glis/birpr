@@ -7,9 +7,9 @@
 .addTextSingleGammaDelta.birp(post, param_name = "gamma")
 }
 \arguments{
-\item{param_name}{The parameter name to show}
+\item{post}{The posterior probabilities (gamma or Delta)}
 
-\item{x}{A birp object}
+\item{param_name}{The parameter name to show}
 }
 \value{
 No return value, called for side effects.

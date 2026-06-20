@@ -30,7 +30,7 @@ evidence for either comparison
 }
 \examples{
 data <- simulate_birp(timepoints = 1:5)
-est <- birp(sim, timesOfChange = c(2,4))
+est <- birp(data, timesOfChange = c(2,4))
 
 prob_trend_diff(est)
 

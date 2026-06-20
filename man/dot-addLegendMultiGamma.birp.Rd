@@ -7,6 +7,8 @@
 .addLegendMultiGamma.birp(num, legend, dens, xlim, col, lwd, lty, ...)
 }
 \arguments{
+\item{num}{The number of gamma/Deltas}
+
 \item{legend}{Add a legend to the plot}
 
 \item{dens}{A list containing the densities for each gamma}
@@ -20,8 +22,6 @@
 \item{lty}{Line type, one per epoch}
 
 \item{...}{additional parameters passed to the function.}
-
-\item{x}{A birp object}
 }
 \value{
 No return value, called for side effects.
