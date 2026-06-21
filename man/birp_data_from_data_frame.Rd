@@ -19,7 +19,7 @@ Constructs a 'birp_data' object from a single data frame or a list of data frame
 df <- data.frame(
   timepoint = 1:10,
   location = rep(1, 10),
-  counts = runif(10, 0, 100),
+  counts = sample(1:100, 10),
   effort = rexp(10),
   CI_group = "intervention"
 )

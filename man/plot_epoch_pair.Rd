@@ -6,8 +6,8 @@
 \usage{
 plot_epoch_pair(
   x,
-  gamma1 = 1,
-  gamma2 = 2,
+  gamma1 = which(!x$post_gamma$is_fix)[1],
+  gamma2 = which(!x$post_gamma$is_fix)[2],
   xlab = .getLabelGamma.birp(x, gamma1),
   ylab = .getLabelGamma.birp(x, gamma2),
   xlim = range(x$post_gamma$trace[, c(gamma1, gamma2)]),
@@ -27,9 +27,9 @@ plot_epoch_pair(
 \arguments{
 \item{x}{A \code{birp} object.}
 
-\item{gamma1}{Integer; Index of the first gamma parameter to plot on the x-axis. Default is 1.}
+\item{gamma1}{Integer; Index of the first gamma parameter to plot on the x-axis. Default is the first inferred gamma.}
 
-\item{gamma2}{Integer; Index of the second gamma parameter to plot on the y-axis. Default is 2.}
+\item{gamma2}{Integer; Index of the second gamma parameter to plot on the y-axis. Default is the second inferred gamma.}
 
 \item{xlab}{Character; Label for the x-axis. Default is dynamically set based on \code{gamma1}.}
 

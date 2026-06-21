@@ -19,10 +19,18 @@
   for (i in 1:length(data)){
     if (ncol(data[[i]]) < 4) stop("Data frame should have at least four columns!")
     
-    if (!("timepoint" %in% names(data[[i]]))) stop("Data frame should contain a column with name 'timepoint'")
-    if (!("location" %in% names(data[[i]]))) stop("Data frame should contain a column with name 'location'")
-    if (!any(grepl("counts", names(data[[i]])))) stop("Data frame should contain a column starting with 'counts'")
-    if (!any(grepl("covEffort", names(data[[i]])) | grepl("effort", names(data[[i]])))) stop("Data frame should contain a column starting with 'covEffort' or 'effort'")
+    if (!("timepoint" %in% names(data[[i]]))) 
+      stop("Data frame should contain a column with name 'timepoint'")
+    if (!("location" %in% names(data[[i]]))) 
+      stop("Data frame should contain a column with name 'location'")
+    if (!any(grepl("counts", names(data[[i]])))) 
+      stop("Data frame should contain a column starting with 'counts'")
+    if (!any(grepl("covEffort", names(data[[i]])) | grepl("effort", names(data[[i]])))) 
+      stop("Data frame should contain a column starting with 'covEffort' or 'effort'")
+    
+    # Check if counts are integers
+    if (any(data[[i]]$counts != round(data[[i]]$counts)))
+      stop("Values in column 'counts' should be integers.")
   }
 }
 
@@ -59,7 +67,7 @@
 #' df <- data.frame(
 #'   timepoint = 1:10,
 #'   location = rep(1, 10),
-#'   counts = runif(10, 0, 100),
+#'   counts = sample(1:100, 10),
 #'   effort = rexp(10),
 #'   CI_group = "intervention"
 #' )
@@ -165,6 +173,8 @@ birp_data <- function(counts, efforts, times, CI_groups = NULL, location_names =
     }
   }
   names(dat) <- c("location", "timepoint", "CI_group", "counts", "effort")
+  dat$counts <- as.integer(dat$counts)
+  dat$effort <- as.numeric(dat$effort)
   
   # call constructor of birp_data
   b <- birp_data_from_data_frame(dat)

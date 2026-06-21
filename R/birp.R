@@ -105,11 +105,12 @@
 .addTextSingleGammaDelta.birp <- function(post, param_name = "gamma") {
   diffFromBorder <- 0.01 * diff(par("usr")[1:2])
   sym <- as.symbol(param_name)
-  if (post$prob_positive > 0.5) {
-    ttext <- bquote(paste("P(", .(sym), " >= 0 | n) = ", .(round(post$prob_positive, 3))))
+  pp <- post$prob_positive[!post$is_fix]
+  if (pp > 0.5) {
+    ttext <- bquote(paste("P(", .(sym), " >= 0 | n) = ", .(round(pp, 3))))
     text(par("usr")[2] - diffFromBorder, par("usr")[4], adj = c(1, 1.5), labels = ttext)
   } else {
-    ttext <- bquote(paste("P(", .(sym), " < 0 | n) = ", .(round(1 - post$prob_positive, 3))))
+    ttext <- bquote(paste("P(", .(sym), " < 0 | n) = ", .(round(1 - pp, 3))))
     text(par("usr")[1] + diffFromBorder, par("usr")[4], adj = c(0, 1.5), labels = ttext)
   }
 }
@@ -955,8 +956,8 @@ plot.birp <- function(x,
 #' Plots a 2D density contour for the joint posterior of two gamma parameters from a \code{birp} object.
 #'
 #' @param x A \code{birp} object.
-#' @param gamma1 Integer; Index of the first gamma parameter to plot on the x-axis. Default is 1.
-#' @param gamma2 Integer; Index of the second gamma parameter to plot on the y-axis. Default is 2.
+#' @param gamma1 Integer; Index of the first gamma parameter to plot on the x-axis. Default is the first inferred gamma.
+#' @param gamma2 Integer; Index of the second gamma parameter to plot on the y-axis. Default is the second inferred gamma.
 #' @param xlab Character; Label for the x-axis. Default is dynamically set based on \code{gamma1}.
 #' @param ylab Character; Label for the y-axis. Default is dynamically set based on \code{gamma2}.
 #' @param xlim Numeric vector of length 2; Optional x-axis limits. Default is the range of gamma1 and gamma2 values.
@@ -981,8 +982,8 @@ plot.birp <- function(x,
 #' plot_epoch_pair(est)
 
 plot_epoch_pair <- function(x, 
-                            gamma1 = 1,
-                            gamma2 = 2,
+                            gamma1 = which(!x$post_gamma$is_fix)[1],
+                            gamma2 = which(!x$post_gamma$is_fix)[2],
                             xlab = .getLabelGamma.birp(x, gamma1),
                             ylab = .getLabelGamma.birp(x, gamma2),
                             xlim = range(x$post_gamma$trace[,c(gamma1, gamma2)]),
@@ -1001,13 +1002,17 @@ plot_epoch_pair <- function(x,
   if (x$post_gamma$num < 2) {
     stop("Need at least 2 gamma!")
   }
-  if (sum(x$post_gamma$is_fix) < 2){
+  if (sum(!x$post_gamma$is_fix) < 2){
     stop("Need at least 2 gamma that were inferred!")
   }
   
   # Check parameters
-  if (gamma1 < 1 | gamma1 > x$post_gamma$num){ stop("Gamma ", gamma1, " does not exist!") }
-  if (gamma2 < 1 | gamma2 > x$post_gamma$num){ stop("Gamma ", gamma2, " does not exist!") }
+  if (is.na(gamma1) | gamma1 < 1 | gamma1 > x$post_gamma$num){ 
+    stop("Gamma ", gamma1, " does not exist!")
+  }
+  if (is.na(gamma2) | gamma2 < 1 | gamma2 > x$post_gamma$num){ 
+    stop("Gamma ", gamma2, " does not exist!")
+  }
   
   # Obtain density estimates
   dens <- MASS::kde2d(x$post_gamma$trace[,gamma1], x$post_gamma$trace[,gamma2])
@@ -1090,7 +1095,7 @@ plot_trend <- function(x,
                        quantile.col = "gray"(seq(1, 0, length.out = length(quantiles)+2)[2:(length(quantiles)+1)]), 
                        quantile.border = NA,
                        median.col = "deeppink",
-                       median.lwd = 1,
+                       median.lwd = 2,
                        median.lty = 1,
                        epoch.col = "black",
                        epoch.lwd = 1,

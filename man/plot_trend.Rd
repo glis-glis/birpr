@@ -13,7 +13,7 @@ plot_trend(
     + 1)]),
   quantile.border = NA,
   median.col = "deeppink",
-  median.lwd = 1,
+  median.lwd = 2,
   median.lty = 1,
   epoch.col = "black",
   epoch.lwd = 1,
