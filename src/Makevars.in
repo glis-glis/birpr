@@ -21,7 +21,7 @@ $(ARMA_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
 
 all: $(REPONAME) $(SHLIB)
 
-$(SHLIB): $(REPONAME) $(REPONAME)/arma.libs 
+$(SHLIB): $(REPONAME) $(REPONAME)/arma.libs
 
 $(REPONAME)/arma.libs: $(REPONAME)/build/cmake.log
 
@@ -31,14 +31,11 @@ $(REPONAME):
 	CMAKE=$${CMAKE:-$$(which cmake)} && \
 	CMAKE=$${CMAKE:-/Applications/CMake.app/Contents/bin/cmake} && \
 	[ -x "$$CMAKE" ] || $$(echo "\n\n\n !!! no cmake command found") && \
-	echo "CMAKE = $$CMAKE" && \
 	RSCRIPT=$${R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe && \
 	[ -x "$$RSCRIPT" ] || RSCRIPT=$${R_HOME}/bin/Rscript && \
 	[ -x "$$RSCRIPT" ] || $$(echo "\n\n\n !!! no Rscript command found") && \
-	echo "RSCRIPT = $$RSCRIPT" && \
 	RCPP_INCLUDE=$$($${RSCRIPT} --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
 	[ -x "$$RCPP_INCLUDE" ] || $$(echo "\n\n\n !!! no RCPP_INCLUDE library found") && \
-	echo "RCPP_INCLUDE === $$RCPP_INCLUDE" && \
 	wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
 	curl -Okv https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz && \
 	tar -xvzf $(GIT_COMMIT).tar.gz && \
@@ -53,7 +50,8 @@ $(REPONAME):
 	-DRCPP=ON \
 	-DRCPP_INCLUDE_DIRS="$${RCPP_INCLUDE}" \
 	-DR_HOME="$(R_HOME)" > cmake.log  && \
-	sed -i '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h && \
+	sed '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h > tmp.h && \
+	mv tmp.h ../coretools/fast_float/include/fast_float/parse_number.h && \
 	echo "ARMA_LIBS = $$(grep ARMA_LIBS cmake.log | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')" > ../arma.libs && \
 	make birpLib && \
 	mv -v libbirpLib.* .. && \
@@ -66,5 +64,4 @@ $(REPONAME):
 	rm -rf coretools/fast_float/benchmarks coretools/fast_float/fuzz && \
 	rm -rf coretools/arma/tests? coretools/arma/examples && \
 	rm -rf coretools/arma/misc coretools/*.pdf && \
-	rm -rf coretools/fmt/test coretools/fmt/.* && \
-	cat arma.libs 
+	rm -rf coretools/fmt/test coretools/fmt/.*
