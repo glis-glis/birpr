@@ -1,3 +1,8 @@
+## Resubmission 6
+
+This is a resubmission. Local builds work now on Linux, Mac and Windows.
+
+
 ## Resubmission 5
 
 This is a resubmission. The package was initially accepted by CRAN, 
