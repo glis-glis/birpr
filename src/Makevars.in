@@ -58,7 +58,7 @@ $(REPONAME):
 	mv -v _deps/coretools-build/libcoretools.* .. && \
 	mv -v _deps/stattools-build/libstattools.* .. && \
 	mv -v _deps/armadillo-build/libarmadillo.* .. && \
-	cd .. && rm -rf build \
+	cd .. && rm -rf build && \
 	rm -rf coretools/tests stattools/tests coretools/.* stattools/.* && \
 	rm -rf coretools/fast_float/tests coretools/fast_float/.* && \
 	rm -rf coretools/fast_float/benchmarks coretools/fast_float/fuzz && \
