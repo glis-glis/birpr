@@ -54,6 +54,8 @@ $(REPONAME):
 	        -DBUILD_SHARED_LIBS:bool=OFF \
 	        -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
 	        -DCMAKE_CXX_VISIBILITY_PRESET=default \
+	        -DCMAKE_VISIBILITY_INLINES_HIDDEN=OFF \
+	        -DCMAKE_CXX_FLAGS="-fvisibility=default -fPIC" \
 	        -DRCPP=ON \
 	        -DBUILD_SMOKE_TEST=false \
 	        -DRCPP_INCLUDE_DIRS="$${RCPP_INCLUDE}" \
@@ -61,7 +63,7 @@ $(REPONAME):
 	} && { \
 	    sed '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h > tmp.h && \
 	    mv tmp.h ../coretools/fast_float/include/fast_float/parse_number.h && \
-	    rm -rv --interactive=never \
+	    rm -rv \
 		    ../coretools/tests ../stattools/tests \
 			../coretools/.??* ../stattools/.??* \
 	        ../coretools/fast_float/tests ../coretools/fast_float/.??* \
