@@ -60,12 +60,14 @@ $(REPONAME):
 	} && { # remove stuff CRAN complains about \
 	    sed '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h > tmp.h && \
 	    mv tmp.h ../coretools/fast_float/include/fast_float/parse_number.h && \
-	    rm -rv --interactive=never ../coretools/tests ../stattools/tests ../coretools/.* ../stattools/.* && \
-	    rm -rv --interactive=never ../coretools/fast_float/tests ../coretools/fast_float/.* && \
-	    rm -rv --interactive=never ../coretools/fast_float/benchmarks ../coretools/fast_float/fuzz && \
-	    rm -rv --interactive=never ../coretools/arma/tests1 ../coretools/arma/tests2 && \
-	    rm -rv --interactive=never ../coretools/arma/examples ../coretools/arma/misc  && \
-	    rm -rv --interactive=never ../coretools/fmt/test ../coretools/fmt/.*; \
+	    rm -rv --interactive=never \
+		    ../coretools/tests ../stattools/tests \
+			../coretools/.??* ../stattools/.??* \
+	        ../coretools/fast_float/tests ../coretools/fast_float/.??* \
+	        ../coretools/fast_float/benchmarks ../coretools/fast_float/fuzz \
+	        ../coretools/arma/tests1 ../coretools/arma/tests2 \
+	        ../coretools/arma/examples ../coretools/arma/misc \
+	        ../coretools/fmt/test ../coretools/fmt/.??*; \
 	} && { # find arma-lib for linking \
 	    echo "ARMA_LIBS = $$(grep ARMA_LIBS cmake.log | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')" > ../arma.libs; \
 	} && { # finally build birpLib \
