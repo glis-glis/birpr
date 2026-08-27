@@ -28,40 +28,52 @@ $(REPONAME)/arma.libs: $(REPONAME)/build/cmake.log
 $(REPONAME)/build/cmake.log: $(REPONAME)
 
 $(REPONAME):
-	CMAKE=$${CMAKE:-$$(which cmake)} && \
-	CMAKE=$${CMAKE:-/Applications/CMake.app/Contents/bin/cmake} && \
-	[ -x "$$CMAKE" ] || $$(echo "\n\n\n !!! no cmake command found") && \
-	RSCRIPT=$${R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe && \
-	[ -x "$$RSCRIPT" ] || RSCRIPT=$${R_HOME}/bin/Rscript && \
-	[ -x "$$RSCRIPT" ] || $$(echo "\n\n\n !!! no Rscript command found") && \
-	RCPP_INCLUDE=$$($${RSCRIPT} --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
-	[ -x "$$RCPP_INCLUDE" ] || $$(echo "\n\n\n !!! no RCPP_INCLUDE library found") && \
-	wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
-	curl -Okv https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz && \
-	tar -xvzf $(GIT_COMMIT).tar.gz && \
-	rm -r $(GIT_COMMIT).tar.gz && \
-	mv -v wegmannlab-birp_cpp* $(REPONAME) && \
-	mkdir $(REPONAME)/build && cd $(REPONAME)/build && \
-	$${CMAKE} -S .. \
-	-G "Unix Makefiles" \
-	-DCMAKE_BUILD_TYPE=Release \
-	-DBUILD_SHARED_LIBS:bool=OFF \
-	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
-	-DRCPP=ON \
-	-DRCPP_INCLUDE_DIRS="$${RCPP_INCLUDE}" \
-	-DR_HOME="$(R_HOME)" > cmake.log  && \
-	sed '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h > tmp.h && \
-	mv tmp.h ../coretools/fast_float/include/fast_float/parse_number.h && \
-	echo "ARMA_LIBS = $$(grep ARMA_LIBS cmake.log | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')" > ../arma.libs && \
-	make birpLib && \
-	mv -v libbirpLib.* .. && \
-	mv -v _deps/coretools-build/libcoretools.* .. && \
-	mv -v _deps/stattools-build/libstattools.* .. && \
-	mv -v _deps/armadillo-build/libarmadillo.* .. && \
-	cd .. && rm -rf build && \
-	rm -rf coretools/tests stattools/tests coretools/.* stattools/.* && \
-	rm -rf coretools/fast_float/tests coretools/fast_float/.* && \
-	rm -rf coretools/fast_float/benchmarks coretools/fast_float/fuzz && \
-	rm -rf coretools/arma/tests? coretools/arma/examples && \
-	rm -rf coretools/arma/misc coretools/*.pdf && \
-	rm -rf coretools/fmt/test coretools/fmt/.*
+	{   # find CMAKE \
+	    CMAKE=$${CMAKE:-$$(which cmake)} && \
+	    CMAKE=$${CMAKE:-/Applications/CMake.app/Contents/bin/cmake} && \
+	    echo "$${CMAKE}" && [ -x "$${CMAKE}" ] ; \
+	} && { # find RSCRIPT \
+	    RSCRIPT=$${R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe; \
+	    [ -x "$${RSCRIPT}" ] || RSCRIPT=$${R_HOME}/bin/Rscript; \
+	    echo "$${RSCRIPT}" && [ -x "$${RSCRIPT}" ] ; \
+	} && { # find RCPP_INCLUDE \
+	    RCPP_INCLUDE=$$($${RSCRIPT} --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
+	    echo "$${RCPP_INCLUDE}" && [ -d "$${RCPP_INCLUDE}" ] ; \
+	} && { # fetch repo \
+	    wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
+	    curl -Okv https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz; \
+	} && { # unzip \
+	    tar -xvzf $(GIT_COMMIT).tar.gz && \
+	    rm -r $(GIT_COMMIT).tar.gz && \
+	    mv -v wegmannlab-birp_cpp* $(REPONAME); \
+	} && { # run cmake \
+	    mkdir $(REPONAME)/build && cd $(REPONAME)/build && \
+	    $${CMAKE} -S .. \
+	        -G "Unix Makefiles" \
+	        -DCMAKE_BUILD_TYPE=Release \
+	        -DBUILD_SHARED_LIBS:bool=OFF \
+	        -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
+	        -DRCPP=ON \
+	        -DBUILD_SMOKE_TEST=false \
+	        -DRCPP_INCLUDE_DIRS="$${RCPP_INCLUDE}" \
+	        -DR_HOME="$(R_HOME)" > cmake.log; \
+	} && { # remove stuff CRAN complains about \
+	    sed '/^#pragma/d' ../coretools/fast_float/include/fast_float/parse_number.h > tmp.h && \
+	    mv tmp.h ../coretools/fast_float/include/fast_float/parse_number.h && \
+	    rm -rv --interactive=never ../coretools/tests ../stattools/tests ../coretools/.* ../stattools/.* && \
+	    rm -rv --interactive=never ../coretools/fast_float/tests ../coretools/fast_float/.* && \
+	    rm -rv --interactive=never ../coretools/fast_float/benchmarks ../coretools/fast_float/fuzz && \
+	    rm -rv --interactive=never ../coretools/arma/tests1 ../coretools/arma/tests2 && \
+	    rm -rv --interactive=never ../coretools/arma/examples ../coretools/arma/misc  && \
+	    rm -rv --interactive=never ../coretools/fmt/test ../coretools/fmt/.*; \
+	} && { # find arma-lib for linking \
+	    echo "ARMA_LIBS = $$(grep ARMA_LIBS cmake.log | cut -d "=" -f2 | cut -d ' ' -f2- | sed 's/;/ /g')" > ../arma.libs; \
+	} && { # finally build birpLib \
+	    make birpLib; \
+	} && { # move stuff around \
+	    mv -v libbirpLib.* .. && \
+	    mv -v _deps/coretools-build/libcoretools.* .. && \
+	    mv -v _deps/stattools-build/libstattools.* .. && \
+	    mv -v _deps/armadillo-build/libarmadillo.* ..; \
+	} && # go back and remove build \
+	cd .. && rm -rf build
