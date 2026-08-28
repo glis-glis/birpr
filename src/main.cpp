@@ -2,7 +2,7 @@
 #include "TBirpTask.h"
 #include "coretools/Main/TMain.h"
 #include "coretools/Main/TParameters.h"
-#include <Rcpp.h>
+#include <Rcpp/Lightest>
 
 // [[Rcpp::export(.birp_interface)]]
 Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {

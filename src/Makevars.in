@@ -53,9 +53,6 @@ $(REPONAME):
 	        -DCMAKE_BUILD_TYPE=Release \
 	        -DBUILD_SHARED_LIBS:bool=OFF \
 	        -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
-	        -DCMAKE_CXX_VISIBILITY_PRESET=default \
-	        -DCMAKE_VISIBILITY_INLINES_HIDDEN=OFF \
-	        -DCMAKE_CXX_FLAGS="-fvisibility=default -fPIC" \
 	        -DRCPP=ON \
 	        -DBUILD_SMOKE_TEST=false \
 	        -DRCPP_INCLUDE_DIRS="$${RCPP_INCLUDE}" \
