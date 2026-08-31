@@ -1,6 +1,11 @@
 ## Resubmission 7
 
-This is a resubmission. Corrected date in description.
+This is a resubmission. All issues of Resubmission 6 have been adressed:
+ * More fallbacks for cmake path
+ * Use R-defined CC, CXX and CXXFLAGS
+ * Remove unnecessary test-files (which caused warnings)
+
+ We changed the version number to be consistent within all our birp-repositories. We also changed the license to MPL-2.0, which is the license we use in all our programs.
 
 ## Resubmission 6
 
