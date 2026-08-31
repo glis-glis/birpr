@@ -40,6 +40,13 @@ $(REPONAME):
 	    RCPP_INCLUDE=$$($${RSCRIPT} --vanilla --slave -e "stopifnot(require('Rcpp', quietly=TRUE));cat(Rcpp:::Rcpp.system.file('include'))") && \
 	    echo "$${RCPP_INCLUDE}" && [ -d "$${RCPP_INCLUDE}" ] ; \
 	} && { \
+	    R_CC=$$($${RSCRIPT} --vanilla --slave -e "cat(system2(file.path(R.home('bin'),'R'),c('CMD','config','CC'),stdout=TRUE))")  && \
+	    echo "$${R_CC}" && \
+	    R_CXX=$$($${RSCRIPT} --vanilla --slave -e "cat(system2(file.path(R.home('bin'), 'R'), c('CMD','config','CXX'), stdout=TRUE))") && \
+	    echo "$${R_CXX}" && \
+	    R_CXXFLAGS=$$($${RSCRIPT} --vanilla --slave -e "cat(system2(file.path(R.home('bin'), 'R'), c('CMD','config','CXXFLAGS'), stdout=TRUE))") && \
+	    echo "$${R_CXXFLAGS}"; \
+	} && { \
 	    wget -v https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz 2> /dev/null || \
 	    curl -Okv https://bitbucket.org/wegmannlab/$(REPONAME)/get/$(GIT_COMMIT).tar.gz; \
 	} && { \
@@ -48,6 +55,7 @@ $(REPONAME):
 	    mv -v wegmannlab-birp_cpp* $(REPONAME); \
 	} && { \
 	    mkdir $(REPONAME)/build && cd $(REPONAME)/build && \
+		CC=$${R_CC} CXX=$${R_CXX} CXXFLAGS=$${R_CXXFLAGS} \
 	    $${CMAKE} -S .. \
 	        -G "Unix Makefiles" \
 	        -DCMAKE_BUILD_TYPE=Release \
