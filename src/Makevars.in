@@ -29,8 +29,11 @@ $(REPONAME)/build/cmake.log: $(REPONAME)
 
 $(REPONAME):
 	{ \
-	    CMAKE=$${CMAKE:-$$(which cmake)} && \
-	    CMAKE=$${CMAKE:-/Applications/CMake.app/Contents/bin/cmake} && \
+	    [ -x "$${CMAKE}" ]  || CMAKE=$$(which cmake); \
+	    [ -x "$${CMAKE}" ]  || CMAKE=/usr/bin/cmake; \
+	    [ -x "$${CMAKE}" ]  || CMAKE=/usr/local/bin/cmake; \
+	    [ -x "$${CMAKE}" ]  || CMAKE=/opt/homebrew/bin/cmake; \
+	    [ -x "$${CMAKE}" ]  || CMAKE=/Applications/CMake.app/Contents/bin/cmake; \
 	    echo "$${CMAKE}" && [ -x "$${CMAKE}" ] ; \
 	} && { \
 	    RSCRIPT=$${R_HOME}/bin$${R_ARCH_BIN}/Rscript.exe; \
