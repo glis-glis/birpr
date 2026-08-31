@@ -10,7 +10,7 @@ Rcpp::List birp_interface(Rcpp::List Parameters, Rcpp::List Data) {
   
   // Create main by providing a program name, a version, an
   // affiliation, link to repo and contact email
-  coretools::TMain main("Birp", "0.1", "University of Fribourg",
+  coretools::TMain main("Birp", "0.9.0", "University of Fribourg",
                         "https://bitbucket.org/wegmannlab/birpr",
                         "daniel.wegmann@unifr.ch");
   
