@@ -90,10 +90,4 @@ $(REPONAME):
 	    find coretools/arma -mindepth 1 -maxdepth 1 ! -name include ! -exec rm -rv {} +; \
 	    find coretools/fast_float -mindepth 1 -maxdepth 1 ! -name include -exec rm -rv {} +; \
 	    find coretools/fmt -mindepth 1 -maxdepth 1 ! -name include ! -exec rm -rv {} +; \
-		ls -al . > ~/Desktop/birp.out ; \
-		ls -al coretools >> ~/Desktop/birp.out ; \
-		ls -al stattools >> ~/Desktop/birp.out ; \
-		ls -al coretools/arma >> ~/Desktop/birp.out ; \
-		ls -al coretools/fast_float >> ~/Desktop/birp.out ; \
-		ls -al coretools/fmt >> ~/Desktop/birp.out ; \
 	}
