@@ -1,9 +1,10 @@
 # birp 0.9.0
 
 Addressed CRAN installation failures on several servers:
- * More fallbacks for cmake path
- * Use R-defined CC, CXX and CXXFLAGS
- * Remove unnecessary test-files (which caused warnings)
+* More fallbacks for cmake path
+* Use R-defined CC, CXX and CXXFLAGS
+* Remove unnecessary test-files (which caused warnings)
+* Added third party library contributors and inst/COPYRIGHT
 
 # birp 0.0.6
 

@@ -1,3 +1,10 @@
+## Resubmission 8
+
+This is a resubmission. All issues of Resubmission 7 have been adressed:
+ 1) The necessary CMAKE-flag not to write to ~/.cmake/packages/armadillo/ has been set
+ 2) Only source-files are retained from any repository, the arma/NOTICE.txt file has been removed
+ 3) We added all authors of third party libraries as authors in DESCRIPTION with "cph" and added a inst/COPYRIGHT file.
+
 ## Resubmission 7
 
 This is a resubmission. All issues of Resubmission 6 have been adressed:
